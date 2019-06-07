@@ -37,9 +37,33 @@
             <div>
                 <p class="flow-text" th:text="${article.getContent()}"></p>
             </div>
+            <div class="divider"></div>
             <div id="addCommDiv">
-                
+                <form th:action="@{/addComm}" th:method="POST">
+                    <div>
+                        <label for="creator">
+                            昵称：<input id="creator" type="text"/>
+                        </label>
+                    </div>
+                    <div>
+                        <label for="email">
+                            邮箱： <input type="email" id="email">
+                        </label>
+                    </div>
+                    <div>
+                        <textarea placeholder="请输入评论" id="comment"></textarea>
+                    </div>
+                    <div>
+                        <button class="btn waves-effect waves-light pull-s5"
+                                type="submit" id="sbmt">提交
+                        </button>
+                        <button class="btn waves-effect waves-light pull-s5"
+                                type="reset" id="rst">重置
+                        </button>
+                    </div>
+                </form>
             </div>
+            <div class="divider"></div>
             <div id="comments">
                 <div th:each="comment: ${article.getComments()}">
                     <div>

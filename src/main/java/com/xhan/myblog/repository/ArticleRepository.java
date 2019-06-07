@@ -1,7 +1,7 @@
 package com.xhan.myblog.repository;
 
 import com.xhan.myblog.model.content.Article;
-import com.xhan.myblog.model.content.ArticleTitleDTO;
+import com.xhan.myblog.model.content.IdTitleTimeDTO;
 import com.xhan.myblog.model.content.TitleContentCommTimeDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,6 +17,6 @@ public interface ArticleRepository extends MongoRepository<Article, String> {
 
     Optional<TitleContentCommTimeDTO> findByDeletedAndId(Boolean deleted, String id);
 
-    Page<ArticleTitleDTO> findAllByDeleted(Boolean deleted, Pageable pageable);
+    Page<IdTitleTimeDTO> findAllByDeleted(Boolean deleted, Pageable pageable);
 
 }

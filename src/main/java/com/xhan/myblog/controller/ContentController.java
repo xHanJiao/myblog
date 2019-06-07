@@ -84,10 +84,10 @@ public class ContentController {
         return mav;
     }
 
-    @GetMapping(value = {SLASH + INDEX, INDEX})
+    @GetMapping(value = {SLASH + INDEX, SLASH})
     public ModelAndView index(ModelAndView mav, @RequestParam(defaultValue = "0") Integer page,
                               @RequestParam(defaultValue = "10") Integer pageSize) {
-        Page<ArticleTitleDTO> articles = getPagedArticles(page, pageSize);
+        Page<IdTitleTimeDTO> articles = getPagedArticles(page, pageSize);
         Page<Article> articleList = articleRepository.findAll(of(0, 1, DESC, "createTime"));
         Article showBoard = articleList.isEmpty() ? emptyArticle : articleList.getContent().get(0);
         showBoard.setContent(
@@ -115,12 +115,12 @@ public class ContentController {
     @GetMapping(path = ARTICLE_URL)
     public ResponseEntity<?> getArticles(@RequestParam(defaultValue = "0") Integer page,
                                          @RequestParam(defaultValue = "10") Integer pageSize) {
-        Page<ArticleTitleDTO> articles = getPagedArticles(page, pageSize);
+        Page<IdTitleTimeDTO> articles = getPagedArticles(page, pageSize);
 
         return ok(articles.getContent());
     }
 
-    private Page<ArticleTitleDTO> getPagedArticles(@RequestParam(defaultValue = "0") Integer page, @RequestParam(defaultValue = "10") Integer pageSize) {
+    private Page<IdTitleTimeDTO> getPagedArticles(@RequestParam(defaultValue = "0") Integer page, @RequestParam(defaultValue = "10") Integer pageSize) {
         page = isIntValid(page) ? page : 0;
         pageSize = isIntValid(pageSize) ? pageSize : 0;
         return articleRepository.findAllByDeleted(false, of(page, pageSize));
