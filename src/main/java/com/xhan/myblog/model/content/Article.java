@@ -1,0 +1,29 @@
+package com.xhan.myblog.model.content;
+
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@Data
+@Document
+@EqualsAndHashCode(callSuper = true)
+public class Article extends ArticleCreateDTO {
+
+    public static final String COLLECTION_NAME = "articles";
+
+    @Id
+    private String id;
+    private List<Comment> comments = new ArrayList<>();
+    private Boolean deleted;
+
+    public void preProcessBeforeSave() {
+    }
+
+    public Article() {
+        setComments(new ArrayList<>());
+    }
+}

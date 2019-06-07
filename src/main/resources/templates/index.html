@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="cn" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>小韩博客</title>
+    <link href="http://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!--Import materialize.css-->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.8/css/materialize.min.css">
+    <!--Let browser know website is optimized for mobile-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <style>
+        body {
+            color: #FFF5EB;
+        }
+
+        .section {
+            color: #212121;
+        }
+
+        .aTitles {
+            color: #212121;
+            text-decoration: underline;
+        }
+
+        a.flow-text {
+            font-size: large;
+        }
+
+        span.flow-text {
+            font-size: large;
+        }
+
+        h5.flow-text {
+            color: #212121;
+        }
+    </style>
+</head>
+<body>
+<nav th:fragment="header" class="brown darken-2">
+    <div class="nav-wrapper">
+        <a th:href="@{/index}" style="margin-left: 5%" class="brand-logo" th:text="小韩博客"></a>
+        <ul class="right hide-on-med-and-down flow-text" style="margin-right: 5%">
+            <li><a style="font-size: x-large;">分类&标签</a></li>
+            <!--<li><a style="font-size: x-large;">标签</a></li>-->
+            <!--<li><a></a></li>-->
+        </ul>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="row">
+        <div class="col m8">
+            <div class="section">
+                <div>
+                    <h3 th:text="${showBoard.getTitle()}" class="aTitles"></h3>
+                </div>
+                <div style="margin-left: 3%">
+                    <p class="flow-text" th:text="${showBoard.getContent()}"></p>
+                </div>
+            </div>
+            <div class="divider"></div>
+            <div><h5 class="flow-text">最新文章</h5></div>
+            <div th:each="article: ${articles}">
+                <div class="section">
+                    <a class="flow-text aTitles" th:href="'/article/' + ${article.getId()}" th:text="${article.getTitle()}" th:name="${article.getId()}"></a>
+                    <!--<span class="right" style="float: right;" th:text="${article.getCreateTime()}"></span>-->
+                    <span class="flow-text right" th:text="${article.getCreateTime()}"></span>
+                </div>
+                <div class="divider"></div>
+            </div>
+        </div>
+        <div class="col m4 hide-on-med-and-down ">
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.8/js/materialize.min.js"></script>
+</body>
+</html>
