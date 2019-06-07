@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
+import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 
 @Data
@@ -12,6 +13,9 @@ import javax.validation.constraints.NotBlank;
 public class CommentCreateDTO extends Comment{
     @NotBlank
     private String articleId;
+
+    @NotBlank @Email
+    private String email;
 
     public CommentCreateDTO(Comment mockComment) {
         setCreator(mockComment.getCreator());

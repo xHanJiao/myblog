@@ -148,7 +148,7 @@ public class ContentController {
 
         TitleContentCommTimeDTO dto = articleRepository.findByDeletedAndId(false, id)
                 .orElseThrow(() -> new ArticleNotFoundException("id not found"));
-        // todo 这里还是应该把它分拆一下的
+        mav.addObject("dto", new CommentCreateDTO());
         mav.addObject("article", dto);
         mav.setViewName(ARTICLE);
         return mav;

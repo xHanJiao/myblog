@@ -37,7 +37,12 @@
             <div>
                 <p class="flow-text" th:text="${article.getContent()}"></p>
             </div>
-            <div class="divider"></div>
+            <div class="divider" style="margin-top: 30px;margin-bottom: 30px"></div>
+            <div class="fixed-action-btn horizontal">
+                <a id="commBtn" class="btn-floating btn-large red">
+                    <i class="large material-icons">mode_edit</i>
+                </a>
+            </div>
             <div id="addCommDiv">
                 <form th:action="@{/addComm}" th:method="POST">
                     <div>
@@ -63,7 +68,7 @@
                     </div>
                 </form>
             </div>
-            <div class="divider"></div>
+            <div class="divider" style="margin-top: 30px;margin-bottom: 30px"></div>
             <div id="comments">
                 <div th:each="comment: ${article.getComments()}">
                     <div>
@@ -87,5 +92,13 @@
 </div>
 <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.8/js/materialize.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $('#addCommDiv').hide();
+        $('#commBtn').on('click', function () {
+            $('#addCommDiv').toggle();
+        });
+    });
+</script>
 </body>
 </html>

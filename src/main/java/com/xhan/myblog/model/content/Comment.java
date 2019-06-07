@@ -11,4 +11,9 @@ public class Comment extends SimpleContent{
     @NotBlank
     private String creator;
     private String replyTo;
+
+    @Override
+    public void preProcessBeforeSave() {
+        super.preProcessBeforeSave();
+    }
 }
