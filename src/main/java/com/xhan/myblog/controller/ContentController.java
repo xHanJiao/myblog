@@ -18,6 +18,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -80,7 +81,7 @@ public class ContentController {
         }
         Article article = saveArticleDTO(dto);
         model.addFlashAttribute("justSaved", article.getTitle());
-        mav.setViewName(REDIRECT + INDEX);
+        mav.setViewName(REDIRECT + SLASH + INDEX);
         return mav;
     }
 
@@ -132,7 +133,7 @@ public class ContentController {
         if (!hasText(id))
             return badRequest().body("id cannot be null");
 
-        TitleContentCommTimeDTO dto = articleRepository.findByDeletedAndId(false, id)
+        CertainArticleDTO dto = articleRepository.findByDeletedAndId(false, id)
                 .orElseThrow(() -> new ArticleNotFoundException("id not found"));
         return ok(singletonMap("article", dto));
     }
@@ -146,7 +147,7 @@ public class ContentController {
             return mav;
         }
 
-        TitleContentCommTimeDTO dto = articleRepository.findByDeletedAndId(false, id)
+        CertainArticleDTO dto = articleRepository.findByDeletedAndId(false, id)
                 .orElseThrow(() -> new ArticleNotFoundException("id not found"));
         mav.addObject("dto", new CommentCreateDTO());
         mav.addObject("article", dto);
@@ -184,22 +185,52 @@ public class ContentController {
                 : badRequest().body("check id you input");
     }
 
-    @PostMapping(path = ADD_COMMENTS)
+    @PostMapping(path = ADD_COMMENTS, consumes = {APPLICATION_JSON_VALUE, APPLICATION_JSON_UTF8_VALUE})
     public ResponseEntity<?> addComment(@RequestBody @Valid CommentCreateDTO dto,
-                                        BindingResult result) {
+                                        BindingResult result) throws URISyntaxException {
         if (result.hasFieldErrors())
             return badRequest().body(result.getFieldError());
-        if (!articleRepository.existsById(dto.getArticleId()))
+        else if (!articleRepository.existsById(dto.getArticleId()))
             return badRequest().body("no article");
-        dto.preProcessBeforeSave();
-        Comment comment = dto.toComment();
-        UpdateResult updateResult = mongoTemplate.update(Article.class)
-                .matching(Query.query(Criteria.where("id").is(dto.getArticleId())))
-                .apply(new Update().push("comments", comment)).all();
+        UpdateResult updateResult = saveComment(dto);
 
         return updateResult.getModifiedCount() == 1
-                ? ok("success")
+                ? ResponseEntity.created(new URI(ARTICLE_URL + SLASH + dto.getArticleId())).body("success")
                 : ResponseEntity.status(500).body("cannot save comment");
+    }
+
+    private UpdateResult saveComment(@Valid @RequestBody CommentCreateDTO dto) {
+        dto.preProcessBeforeSave();
+        Comment comment = dto.toComment();
+        return mongoTemplate.update(Article.class)
+                .matching(Query.query(Criteria.where("id").is(dto.getArticleId())))
+                .apply(new Update().push("comments", comment)).all();
+    }
+
+    @PostMapping(value = ADD_COMMENTS)
+    public ModelAndView addComment(@Valid CommentCreateDTO dto, BindingResult result,
+                                   ModelAndView mav) throws URISyntaxException {
+        String viewName = ARTICLE_URL + SLASH + dto.getArticleId();
+        if (result.hasFieldErrors()) {
+            mav.addObject("error", result.getFieldError());
+            mav.setStatus(HttpStatus.BAD_REQUEST);
+            mav.setViewName(viewName);
+        } else if (!articleRepository.existsById(dto.getArticleId())) {
+            mav.addObject("error", "no article");
+            mav.setStatus(HttpStatus.BAD_REQUEST);
+            mav.setViewName(viewName);
+        } else {
+            UpdateResult updateResult = saveComment(dto);
+            if (updateResult.getModifiedCount() == 1) {
+                mav.setViewName(REDIRECT + viewName);
+                mav.setStatus(HttpStatus.OK);
+            } else {
+                mav.setStatus(HttpStatus.valueOf(500));
+                mav.addObject("error", "cannot save comment");
+                mav.setViewName(viewName);
+            }
+        }
+        return mav;
     }
 
     @PostMapping(path = DEL_COMMENTS)

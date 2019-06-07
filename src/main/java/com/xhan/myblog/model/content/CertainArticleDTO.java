@@ -2,7 +2,8 @@ package com.xhan.myblog.model.content;
 
 import java.util.List;
 
-public interface TitleContentCommTimeDTO {
+public interface CertainArticleDTO {
+    String getId();
     String getTitle();
     String getContent();
     String getCreateTime();

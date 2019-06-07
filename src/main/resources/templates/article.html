@@ -3,13 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <title th:text="${article.getTitle()}"></title>
+    <!--<meta name="_csrf" th:content="${_csrf.token}"/>-->
+    <!--<meta name="_csrf_header" th:content="${_csrf.headerName}"/>-->
     <link href="http://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <!--Import materialize.css-->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.8/css/materialize.min.css">
+    <script th:src="@{/js/util.js}"></script>
     <!--Let browser know website is optimized for mobile-->
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <style>
-        /* todo 应该把CSS配置到一个文件里 */
         body {
             color: #FFF5EB;
         }
@@ -20,6 +22,16 @@
 
         p.createTime {
             font-size: medium;
+        }
+
+        textarea {
+            /*resize: none;*/
+            height: 200px;
+        }
+
+        .latch {
+            margin-top: 80px;
+            margin-bottom: 10px;
         }
     </style>
 </head>
@@ -33,55 +45,70 @@
             </div>
             <div>
                 <p class="flow-text createTime" th:text="${article.getCreateTime()}"></p>
+                <input id="articleId" th:value="${article.getId()}" type="hidden"/>
             </div>
             <div>
                 <p class="flow-text" th:text="${article.getContent()}"></p>
             </div>
-            <div class="divider" style="margin-top: 30px;margin-bottom: 30px"></div>
+            <!--<p th:text="点击红色按钮以创建评论" class="flow-text"></p>-->
             <div class="fixed-action-btn horizontal">
-                <a id="commBtn" class="btn-floating btn-large red">
+                <a id="commBtn" class="btn-floating btn red"
+                   title="发表评论">
                     <i class="large material-icons">mode_edit</i>
                 </a>
+                <ul>
+                    <li><a class="btn-floating blue" title="修改文章">
+                        <i class="material-icons">mode_edit</i>
+                    </a></li>
+                </ul>
             </div>
             <div id="addCommDiv">
-                <form th:action="@{/addComm}" th:method="POST">
-                    <div>
-                        <label for="creator">
-                            昵称：<input id="creator" type="text"/>
-                        </label>
-                    </div>
-                    <div>
-                        <label for="email">
-                            邮箱： <input type="email" id="email">
-                        </label>
-                    </div>
-                    <div>
-                        <textarea placeholder="请输入评论" id="comment"></textarea>
-                    </div>
-                    <div>
-                        <button class="btn waves-effect waves-light pull-s5"
-                                type="submit" id="sbmt">提交
-                        </button>
-                        <button class="btn waves-effect waves-light pull-s5"
-                                type="reset" id="rst">重置
-                        </button>
-                    </div>
-                </form>
+                <div class="divider latch"></div>
+                <div>
+                    <label for="creator">
+                        昵称：<input id="creator" type="text"/>
+                    </label>
+                </div>
+                <div>
+                    <label for="email">
+                        邮箱： <input type="email" id="email">
+                    </label>
+                </div>
+                <div>
+                    <textarea class="materialize-textarea" placeholder="请输入评论" id="content"></textarea>
+                </div>
+                <div>
+                    <button class="btn waves-effect waves-light pull-s5"
+                            id="sbmt">提交
+                    </button>
+                    <button class="btn waves-effect waves-light pull-s5"
+                            type="reset" id="rst">重置
+                    </button>
+                </div>
             </div>
-            <div class="divider" style="margin-top: 30px;margin-bottom: 30px"></div>
+            <div class="divider latch"></div>
+            <p th:text="评论" class="flow-text"></p>
             <div id="comments">
                 <div th:each="comment: ${article.getComments()}">
                     <div>
-                        <p th:text="${comment.getCreator()}"></p>
-                        <p th:text="'回复：' + ${comment.getReplyTo()}" th:if="${comment.getReplyTo()}"
-                           style="float: right"></p>
+                        <div class="row">
+                            <p th:text="'回复：' + ${comment.getReplyTo()}" th:if="${comment.getReplyTo()}"
+                               style="float: right"></p>
+                            <p th:text="${comment.getContent()}" class="flow-text"></p>
+                        </div>
+                        <div class="row">
+                            <div class="waves-effect waves-light right">
+                                <a class="btn-floating btn red">
+                                    <i class="large material-icons">delete</i>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <p th:text="'@' + ${comment.getCreator()} + ' at '
+                            + ${comment.getCreateTime()}" style="float: right;"></p>
+                        </div>
                     </div>
-                    <div>
-                        <p th:text="${comment.getContent()}" class="flow-text"></p>
-                    </div>
-                    <div>
-                        <p th:text="${comment.getCreateTime()}"></p>
-                    </div>
+                    <div class="divider"></div>
                 </div>
             </div>
         </div>
@@ -92,6 +119,7 @@
 </div>
 <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.8/js/materialize.min.js"></script>
+<!--<script th:src="@{/js/util.js}"></script>-->
 <script>
     $(document).ready(function () {
         $('#addCommDiv').hide();
@@ -99,6 +127,29 @@
             $('#addCommDiv').toggle();
         });
     });
+
+    $('#sbmt').on('click', function () {
+        var creator = $('#creator'), email = $('#email'),
+            content = $('#content'), URL = '/addcomm',
+            articleId = $('#articleId').val();
+        // var token = $("meta[name='_csrf']").attr("content");
+        // var header = $("meta[name='_csrf_header']").attr("content");
+        if (!creator.text()) {
+            creator.text('请输入昵称');
+            return false;
+        } else if (!email.text()) {
+            email.text('请输入邮箱');
+            return false;
+        } else if (!content.text()) {
+            content.text('请输入评论');
+            return false;
+        }
+        mockFormKv(URL, "POST", {
+            articleId: articleId, email: email.val(),
+            content: content.val(), creator: creator.val()
+            // , _csrf: token, _csrf_header: header});
+        });
+    })
 </script>
 </body>
 </html>

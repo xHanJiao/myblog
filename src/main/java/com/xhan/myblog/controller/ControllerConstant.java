@@ -10,7 +10,7 @@ public interface ControllerConstant {
     String DEL_COMMENTS = SLASH + "delcomm";
     String ADD = SLASH + "add";
     String INDEX = "index";
-    String REDIRECT = "redirect:/";
+    String REDIRECT = "redirect:";
     String EDIT = "edit";
     String ID_PATH_VAR = SLASH + "{id}";
     String DELETE = SLASH + "del";

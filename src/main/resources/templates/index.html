@@ -52,7 +52,10 @@
         <div class="col m8">
             <div class="section">
                 <div>
-                    <h3 th:text="${showBoard.getTitle()}" class="aTitles"></h3>
+                    <h3>
+                        <a class="aTitles" th:href="'/article/' + ${showBoard.getId()}"
+                           th:text="${showBoard.getTitle()}"></a>
+                    </h3>
                 </div>
                 <div style="margin-left: 3%">
                     <p class="flow-text" th:text="${showBoard.getContent()}"></p>
@@ -62,7 +65,8 @@
             <div><h5 class="flow-text">最新文章</h5></div>
             <div th:each="article: ${articles}">
                 <div class="section">
-                    <a class="flow-text aTitles" th:href="'/article/' + ${article.getId()}" th:text="${article.getTitle()}" th:name="${article.getId()}"></a>
+                    <a class="flow-text aTitles" th:href="'/article/' + ${article.getId()}"
+                       th:text="${article.getTitle()}" th:name="${article.getId()}"></a>
                     <!--<span class="right" style="float: right;" th:text="${article.getCreateTime()}"></span>-->
                     <span class="flow-text right" th:text="${article.getCreateTime()}"></span>
                 </div>

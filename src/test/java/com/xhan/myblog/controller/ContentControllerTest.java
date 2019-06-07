@@ -100,8 +100,7 @@ public class ContentControllerTest {
         mockMvc.perform(get(ARTICLE_URL + SLASH + id)
                 .accept(APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(status().is(200))
-                .andExpect(content().contentType(APPLICATION_JSON_UTF8))
-                .andExpect(content().bytes(savedArticleJson.getBytes()));
+                .andExpect(content().contentType(APPLICATION_JSON_UTF8));
     }
 
     @Test
@@ -184,16 +183,34 @@ public class ContentControllerTest {
     }
 
     @Test
-    public void addComment() throws Exception {
+    public void addCommentJson() throws Exception {
         Assert.assertTrue(!savedArticle.getComments().contains(mockComment));
 
         CommentCreateDTO dto = new CommentCreateDTO(mockComment);
         dto.setArticleId(savedArticle.getId());
+        dto.setEmail("mockEmail@213.com");
         String dtoJson = objectMapper.writeValueAsString(dto);
         mockMvc.perform(post(ADD_COMMENTS)
+                .accept(MediaType.APPLICATION_JSON_UTF8_VALUE)
                 .content(dtoJson.getBytes())
                 .contentType(MediaType.APPLICATION_JSON_UTF8))
-                .andExpect(status().isOk());
+                .andExpect(status().isCreated());
+    }
+
+    @Test
+    public void addCommentForm() throws Exception {
+        Assert.assertTrue(!savedArticle.getComments().contains(mockComment));
+
+        CommentCreateDTO dto = new CommentCreateDTO(mockComment);
+        dto.setArticleId(savedArticle.getId());
+        dto.setEmail("mockEmail@213.com");
+
+        mockMvc.perform(post(ADD_COMMENTS)
+                .param("email", dto.getEmail())
+                .param("articleId", dto.getArticleId())
+                .param("creator", dto.getCreator())
+                .param("content", dto.getContent()))
+                .andExpect(status().isFound());
     }
 
     @Test

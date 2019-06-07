@@ -17,11 +17,11 @@ public class CommentCreateDTO extends Comment{
     @NotBlank @Email
     private String email;
 
-    public CommentCreateDTO(Comment mockComment) {
-        setCreator(mockComment.getCreator());
-        setReplyTo(mockComment.getReplyTo());
-        setContent(mockComment.getContent());
-        setCreateTime(mockComment.getCreateTime());
+    public CommentCreateDTO(Comment comment) {
+        setCreator(comment.getCreator());
+        setReplyTo(comment.getReplyTo());
+        setContent(comment.getContent());
+        setCreateTime(comment.getCreateTime());
     }
 
     public Comment toComment() {
