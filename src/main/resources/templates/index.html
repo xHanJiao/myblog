@@ -39,11 +39,15 @@
 <body>
 <nav th:fragment="header" class="brown darken-2">
     <div class="nav-wrapper">
-        <a th:href="@{/index}" style="margin-left: 5%" class="brand-logo" th:text="小韩博客"></a>
+        <a th:href="@{/index}" style="margin-left: 5%" class="brand-logo" th:text="#{nav.brand}"></a>
         <ul class="right hide-on-med-and-down flow-text" style="margin-right: 5%">
-            <li><a style="font-size: x-large;">分类&标签</a></li>
-            <!--<li><a style="font-size: x-large;">标签</a></li>-->
-            <!--<li><a></a></li>-->
+            <li><a style="font-size: x-large;" class="dropdown-button" data-beloworigin="true"
+                   href="#" data-activates="dropdown1">发布</a></li>
+        </ul>
+        <ul id="dropdown1" class="dropdown-content">
+            <li><a th:href="@{/article/edit}">发布文章</a></li>
+            <li><a href="#" id="publishCate">创建分类</a></li>
+            <li><a href="#" id="publishNote">留言</a></li>
         </ul>
     </div>
 </nav>
@@ -74,12 +78,23 @@
                 <div class="divider"></div>
             </div>
         </div>
-        <div class="col m4 hide-on-med-and-down ">
-            <!--<div class="row">-->
-                <!--<div>-->
-                    <!---->
-                <!--</div>-->
-            <!--</div>-->
+        <div class="col m2 offset-m1 hide-on-med-and-down">
+            <div class="row">
+                <div class="m4 offset-m4 s4 offset-s4">
+                    <div class="card z-depth-0.5">
+                        <div class="card-image">
+                            <img th:src="@{/images/sample-1.jpg}">
+                            <span class="card-title" th:text="个人介绍"></span>
+                        </div>
+                        <div class="card-content">
+                            <p class="flow-text" style="color: #212121;">聂志军</p>
+                        </div>
+                        <div class="card-action">
+                            <a href="#">这是一个链接</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>

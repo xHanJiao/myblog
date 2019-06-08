@@ -5,6 +5,8 @@ import lombok.EqualsAndHashCode;
 
 import javax.validation.constraints.NotBlank;
 
+import static org.springframework.util.StringUtils.hasText;
+
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class ArticleCreateDTO extends SimpleContent{
@@ -12,7 +14,13 @@ public class ArticleCreateDTO extends SimpleContent{
     @NotBlank
     private String title;
 
-    public Article toDO() {
+    private String category;
+    private Boolean commentEnable;
+    private Boolean finished;
+
+    public Article toArticle() {
+        setCategory( hasText(category) ? category : Category.DEFAULT_NAME );
+        setCommentEnable(commentEnable == null ? true : commentEnable);
         Article article = new Article();
         article.setDeleted(false);
         article.setTitle(getTitle());

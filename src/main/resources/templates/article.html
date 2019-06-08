@@ -41,76 +41,96 @@
 <div class="container">
     <div class="row">
         <div class="col m8 offset-m2">
-            <div>
-                <h3 th:text="${article.getTitle()}"></h3>
+            <div class="row">
+                <div>
+                    <h3 class="center-align" th:text="${article.getTitle()}"></h3>
+                </div>
             </div>
-            <div>
-                <p class="flow-text createTime" th:text="${article.getCreateTime()}"></p>
-                <input id="articleId" th:value="${article.getId()}" type="hidden"/>
+            <div class="row">
+                <div>
+                    <p class="flow-text createTime right" th:text="${article.getCreateTime()}"></p>
+                    <input id="articleId" th:value="${article.getId()}" type="hidden"/>
+                </div>
             </div>
-            <div>
-                <p class="flow-text" th:utext="${article.getContent()}"></p>
+            <div class="row flow-text articleHolder">
+                <p th:utext="${article.getContent()}"></p>
             </div>
-            <!--<p th:text="点击红色按钮以创建评论" class="flow-text"></p>-->
             <div class="fixed-action-btn horizontal">
-                <a id="commBtn" class="btn-floating btn-large red"
-                   title="发表评论">
-                    <i class="large material-icons">mode_edit</i>
+                <a class="btn-floating btn-large red" title="menu">
+                    <i class="material-icons large">menu</i>
                 </a>
                 <ul>
-                    <li><a class="btn-floating blue" id="editBtn" title="修改文章">
-                        <i class="material-icons">mode_edit</i>
-                    </a></li>
+                    <li th:if="${article.getCommentEnable()}">
+                        <a id="commBtn" class="btn-floating blue"
+                           title="发表评论">
+                            <i class="material-icons">mode_edit</i>
+                        </a>
+                    </li>
+                    <li>
+                        <a id="uphead" class="btn-floating yellow"
+                           title="返回顶部">
+                            <i class="material-icons">call_merge</i>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="btn-floating red" id="editBtn"
+                           title="修改文章">
+                            <i class="material-icons">mode_edit</i>
+                        </a>
+                    </li>
                 </ul>
             </div>
-            <div id="addCommDiv">
-                <div class="divider latch"></div>
-                <div>
-                    <label for="creator">
-                        昵称：<input id="creator" type="text"/>
-                    </label>
-                </div>
-                <div>
-                    <label for="email">
-                        邮箱： <input type="email" id="email">
-                    </label>
-                </div>
-                <div>
-                    <label for="content">评论:
-                        <textarea class="materialize-textarea" id="content"></textarea>
-                    </label>
-                </div>
-                <div class="right">
-                    <button class="btn waves-effect waves-light pull-s5"
-                            id="sbmt">提交
-                    </button>
-                </div>
-            </div>
-            <div class="divider latch"></div>
-            <p th:text="评论" class="flow-text"></p>
-            <div id="comments">
-                <div class="commentsBoard" th:each="comment: ${article.getComments()}">
+            <div class="row" th:if="${article.getCommentEnable()}">
+                <div id="addCommDiv">
+                    <div class="divider latch"></div>
                     <div>
-                        <div class="row">
-                            <p th:text="${comment.getContent()}" class="flow-text contentHolder"></p>
-                        </div>
-                        <div class="row">
-                            <div class="right">
-                                <a class="btn-floating btn red delcomm">
-                                    <i class="material-icons">delete</i>
-                                </a>
-                                <input th:value="${comment.creator}" class="replyTo" type="hidden"/>
-                                <a class="btn-floating btn red reply">
-                                    <i class="material-icons">chat_bubble</i>
-                                </a>
+                        <label for="creator">
+                            昵称：<input id="creator" type="text"/>
+                        </label>
+                    </div>
+                    <div>
+                        <label for="email">
+                            邮箱： <input type="email" id="email">
+                        </label>
+                    </div>
+                    <div>
+                        <label for="content">评论:
+                            <textarea class="materialize-textarea" id="content"></textarea>
+                        </label>
+                    </div>
+                    <div class="right">
+                        <button class="waves-effect waves-light btn" id="sbmt">提交
+                        </button>
+                    </div>
+                </div>
+                <div class="divider latch"></div>
+            </div>
+            <div class="row">
+                <p th:text="评论" class="flow-text"></p>
+                <div id="comments">
+                    <div class="commentsBoard" th:each="comment: ${article.getComments()}">
+                        <div>
+                            <div class="row">
+                                <p th:text="${comment.getContent()}" class="flow-text contentHolder"></p>
+                            </div>
+                            <div class="row">
+                                <div class="right">
+                                    <a class="btn-floating btn red delcomm">
+                                        <i class="material-icons">delete</i>
+                                    </a>
+                                    <input th:value="${comment.creator}" class="replyTo" type="hidden"/>
+                                    <a class="btn-floating btn red reply">
+                                        <i class="material-icons">chat_bubble</i>
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <p th:text="'@' + ${comment.getCreator()} + ' at '
+                            + ${comment.getCreateTime()}" class="flow-text right"></p>
                             </div>
                         </div>
-                        <div class="row">
-                            <p th:text="'@' + ${comment.getCreator()} + ' at '
-                            + ${comment.getCreateTime()}" class="flow-text right"></p>
-                        </div>
+                        <div class="divider"></div>
                     </div>
-                    <div class="divider"></div>
                 </div>
             </div>
         </div>
@@ -130,7 +150,7 @@
         $('#commBtn').on('click', function () {
             addCommDiv.toggle();
             $('#content').val("");
-            $("html,body").animate({scrollTop:addCommDiv.offset().top},1000);
+            $("html,body").animate({scrollTop: addCommDiv.offset().top}, 1000);
         });
 
         $('.reply').on('click', function () {
@@ -139,7 +159,12 @@
             console.log(title);
             addCommDiv.show();
             $('#content').val(title);
-            $("html,body").animate({scrollTop:addCommDiv.offset().top},1000);
+            $("html,body").animate({scrollTop: addCommDiv.offset().top}, 1000);
+        });
+
+        $('#uphead').on('click', function () {
+            $("html,body").animate({scrollTop:0},1000);
+            return false;
         });
 
         $('.delcomm').on('click', function () {
@@ -152,32 +177,33 @@
         $('#editBtn').on('click', function () {
             var articleId = $('#articleId').val();
             console.log('articleId : ' + articleId);
-            mockFormKv('/article/edit/'+articleId, 'get', {});
+            mockFormKv('/article/edit/' + articleId, 'get', {});
         });
     });
 
-    $('#sbmt').on('click', function () {
+    $('#sbmt').click(function () {
         var creator = $('#creator'), email = $('#email'),
             content = $('#content'), URL = '/addcomm',
             articleId = $('#articleId').val();
         // var token = $("meta[name='_csrf']").attr("content");
         // var header = $("meta[name='_csrf_header']").attr("content");
-        if (!creator.text()) {
-            creator.text('请输入昵称');
-            return false;
-        } else if (!email.text()) {
-            email.text('请输入邮箱');
-            return false;
-        } else if (!content.text()) {
-            content.text('请输入评论');
-            return false;
-        }
+        // if (!creator.text()) {
+        //     creator.text('请输入昵称');
+        //     return false;
+        // } else if (!email.text()) {
+        //     email.text('请输入邮箱');
+        //     return false;
+        // } else if (!content.text()) {
+        //     content.text('请输入评论');
+        //     return false;
+        // }
         mockFormKv(URL, "POST", {
             articleId: articleId, email: email.val(),
             content: content.val(), creator: creator.val()
             // , _csrf: token, _csrf_header: header});
         });
-    })
+        return true;
+    });
 </script>
 </body>
 </html>

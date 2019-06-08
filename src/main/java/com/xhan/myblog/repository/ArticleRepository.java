@@ -13,11 +13,11 @@ import java.util.Optional;
 @Repository
 public interface ArticleRepository extends MongoRepository<Article, String> {
 
-//    Optional<CertainArticleDTO> findByDeletedAndId(Boolean deleted, String id);
+//    Optional<CertainArticleDTO> findByDeletedAndFinishedAndId(Boolean deleted, String id);
 
-    Optional<Article> findByDeletedAndId(Boolean deleted, String id);
+    Optional<Article> findByDeletedAndFinishedAndId(Boolean deleted, Boolean finished, String id);
 
-    Page<IdTitleTimeDTO> findAllByDeleted(Boolean deleted, Pageable pageable);
+    Page<IdTitleTimeDTO> findAllByDeletedAndFinished(Boolean deleted, Boolean finished, Pageable pageable);
 
     Optional<ContentTitleIdDTO> getById(String id);
 

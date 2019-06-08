@@ -12,11 +12,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 </head>
 <body>
+<div th:replace="index::header"></div>
 <div class="container">
     <div class="row">
-        <div class="col s10 offset-s1">
+        <div class="col m8 offset-m2">
             <div class="row">
-                <div class="input-field col s10 offset-s1">
+                <div class="input-field">
                     <input placeholder="标题" type="text" id="aTitle"
                            th:value="${dto.getTitle()}">
                     <label for="aTitle">标题</label>
@@ -24,7 +25,7 @@
                 </div>
             </div>
             <div class="row">
-                <div class="input-field col s10 offset-s1">
+                <div class="input-field">
                     <div class="editor" th:utext="${dto.getContent()}">
                         <p><br></p>
                         <p><br></p>
@@ -32,7 +33,7 @@
                 </div>
             </div>
             <div class="row">
-                <div class="col s4 push-s8">
+                <div class="right">
                     <button class="btn waves-effect waves-light pull-s5" type="submit" id="sbmt">提交</button>
                     <button class="btn waves-effect waves-light pull-s5" type="reset" id="rst">重置</button>
                 </div>
@@ -42,6 +43,16 @@
                     <p id="error" th:text="${error}"></p>
                 </div>
             </div>
+        </div>
+        <div class="col m2">
+            <p>
+                <input type="checkbox" id="commentEnable"/>
+                <label for="commentEnable"> 允许评论 </label>
+            </p>
+            <p>
+                <input type="checkbox" id="finished" checked="checked"/>
+                <label for="finished"> 发布 </label>
+            </p>
         </div>
     </div>
 </div>
@@ -66,16 +77,14 @@
     $(document).ready(function () {
         $('#sbmt').on('click', function () {
             var content = quill.container.firstChild.innerHTML;
-            console.log(content);
-            var modify = $('#modSig').val();
+            var modify = $('#modSig').val(), cme = $('#commentEnable').prop('checked');
+            var fns = $('#finished').prop('checked');
+            var data = {title: $('#aTitle').val(), content: content,
+                    commentEnable: cme, finished: fns};
             if (modify) {
-                mockFormKv('/article/modify/' + modify, 'POST',
-                    {title: $('#aTitle').val(), content: content}
-                );
+                mockFormKv('/article/modify/' + modify, 'POST', data);
             } else {
-                mockFormKv('/article/add', 'POST',
-                    {title: $('#aTitle').val(), content: content}
-                );
+                mockFormKv('/article/add', 'POST', data);
             }
         });
     });
@@ -85,17 +94,17 @@
         ['blockquote', 'code-block'],
 
         // [{ 'header': 1 }, { 'header': 2 }],               // custom button values
-        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-        [{ 'script': 'sub'}, { 'script': 'super' }],      // superscript/subscript
-        [{ 'indent': '-1'}, { 'indent': '+1' }],          // outdent/indent
+        [{'list': 'ordered'}, {'list': 'bullet'}],
+        [{'script': 'sub'}, {'script': 'super'}],      // superscript/subscript
+        [{'indent': '-1'}, {'indent': '+1'}],          // outdent/indent
         // [{ 'direction': 'rtl' }],                         // text direction
 
         // [{ 'size': ['small', false, 'large', 'huge'] }],  // custom dropdown
-        [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+        [{'header': [1, 2, 3, 4, 5, 6, false]}],
 
-        [{ 'color': [] }, { 'background': [] }],          // dropdown with defaults from theme
-        [{ 'font': [] }],
-        [{ 'align': [] }],
+        [{'color': []}, {'background': []}],          // dropdown with defaults from theme
+        [{'font': []}],
+        [{'align': []}],
 
         ['clean']                                         // remove formatting button
     ];

@@ -1,5 +1,6 @@
 package com.xhan.myblog.model.content;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.xhan.myblog.utils.BlogUtils;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -24,14 +25,16 @@ public class Article extends ArticleCreateDTO {
     public void preProcessBeforeSave() {
     }
 
-    public String getShortCut() {
+    public Article() {
+        setComments(new ArrayList<>());
+    }
+
+    @JsonIgnore
+    public void convertToShortcut() {
         String content = getContent().length() > 80
                 ? getContent().substring(0, 80) + "..."
                 : getContent();
-        return BlogUtils.htmlToText(content);
-    }
-
-    public Article() {
-        setComments(new ArrayList<>());
+        content = BlogUtils.htmlToText(content);
+        setContent(content);
     }
 }

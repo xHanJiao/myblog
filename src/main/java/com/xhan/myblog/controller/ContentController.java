@@ -70,8 +70,12 @@ public class ContentController {
         } else {
             UpdateResult updateResult = mongoTemplate.update(Article.class)
                     .matching(query(where("id").is(id)))
-                    .apply(new Update().set("content", dto.getContent())
-                            .set("title", dto.getTitle())).first();
+                    .apply(new Update()
+                            .set("content", dto.getContent())
+                            .set("title", dto.getTitle())
+                            .set("commentEnable", dto.getCommentEnable())
+                            .set("category", dto.getCategory())
+                            .set("finished", dto.getFinished())).first();
 
             if (updateResult.getModifiedCount() == 0) {
                 mav.addObject("dto", dto);
@@ -121,11 +125,11 @@ public class ContentController {
 
     @GetMapping(value = {SLASH + INDEX, SLASH})
     public ModelAndView index(ModelAndView mav, @RequestParam(defaultValue = "0") Integer page,
-                              @RequestParam(defaultValue = "10") Integer pageSize) {
+                              @RequestParam(defaultValue = "7") Integer pageSize) {
         Page<IdTitleTimeDTO> articles = getPagedArticles(page, pageSize);
         Page<Article> articleList = articleRepository.findAll(of(0, 1, DESC, "createTime"));
         Article showBoard = articleList.isEmpty() ? emptyArticle : articleList.getContent().get(0);
-        showBoard.setContent(showBoard.getShortCut());
+        showBoard.convertToShortcut();
 
         mav.setViewName(INDEX);
         mav.addObject("showBoard", showBoard);
@@ -138,7 +142,7 @@ public class ContentController {
     }
 
     private Article saveArticleDTO(@RequestBody @Valid ArticleCreateDTO dto) {
-        Article article = dto.toDO();
+        Article article = dto.toArticle();
         article = articleRepository.save(article);
         return article;
     }
@@ -153,7 +157,7 @@ public class ContentController {
     private Page<IdTitleTimeDTO> getPagedArticles(@RequestParam(defaultValue = "0") Integer page, @RequestParam(defaultValue = "10") Integer pageSize) {
         page = isIntValid(page) ? page : 0;
         pageSize = isIntValid(pageSize) ? pageSize : 0;
-        return articleRepository.findAllByDeleted(false, of(page, pageSize,
+        return articleRepository.findAllByDeletedAndFinished(false, true, of(page, pageSize,
                 DESC, "createTime"));
     }
 
@@ -163,7 +167,7 @@ public class ContentController {
         if (!hasText(id))
             return badRequest().body("id cannot be null");
 
-        Article dto = articleRepository.findByDeletedAndId(false, id)
+        Article dto = articleRepository.findByDeletedAndFinishedAndId(false, true, id)
                 .orElseThrow(ArticleNotFoundException::new);
         return ok(singletonMap("article", dto));
     }
@@ -177,7 +181,9 @@ public class ContentController {
             return mav;
         }
 
-        Article dto = articleRepository.findByDeletedAndId(false, id)
+        // todo 这里要修改一下，未完成和已删除的，管理员可以看，非管理员不能看
+        Article dto = articleRepository.findByDeletedAndFinishedAndId(
+                false, true, id)
                 .orElseThrow(ArticleNotFoundException::new);
         mav.addObject("dto", new CommentCreateDTO());
         mav.addObject("article", dto);
