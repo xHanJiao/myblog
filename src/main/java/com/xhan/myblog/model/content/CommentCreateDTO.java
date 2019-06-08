@@ -19,7 +19,6 @@ public class CommentCreateDTO extends Comment{
 
     public CommentCreateDTO(Comment comment) {
         setCreator(comment.getCreator());
-        setReplyTo(comment.getReplyTo());
         setContent(comment.getContent());
         setCreateTime(comment.getCreateTime());
     }
@@ -27,7 +26,6 @@ public class CommentCreateDTO extends Comment{
     public Comment toComment() {
         Comment comment = new Comment();
         comment.setCreator(getCreator());
-        comment.setReplyTo(getReplyTo());
         comment.setContent(getContent());
         comment.setCreateTime(getCreateTime());
         return comment;

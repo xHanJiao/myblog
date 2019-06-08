@@ -2,6 +2,7 @@ package com.xhan.myblog.exceptions.content;
 
 public class ArticleNotFoundException extends ArticleException{
     public ArticleNotFoundException() {
+        super("找不到文章");
     }
 
     public ArticleNotFoundException(String message) {

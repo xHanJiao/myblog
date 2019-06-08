@@ -14,7 +14,7 @@ public class SimpleContent {
 
     public SimpleContent() {
         createTime = LocalDateTime.now()
-                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm"));
+                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
     }
 
     public void preProcessBeforeSave() {

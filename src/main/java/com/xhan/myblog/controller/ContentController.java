@@ -9,7 +9,6 @@ import com.xhan.myblog.repository.ArticleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.http.HttpStatus;
@@ -18,7 +17,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -30,6 +28,8 @@ import static com.xhan.myblog.controller.ControllerConstant.*;
 import static java.util.Collections.singletonMap;
 import static org.springframework.data.domain.PageRequest.of;
 import static org.springframework.data.domain.Sort.Direction.DESC;
+import static org.springframework.data.mongodb.core.query.Criteria.where;
+import static org.springframework.data.mongodb.core.query.Query.query;
 import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.ResponseEntity.badRequest;
@@ -55,6 +55,42 @@ public class ContentController {
     @GetMapping(value = ARTICLE_URL + SLASH + EDIT)
     public String getEditPage(Model model) {
         model.addAttribute("dto", new ArticleCreateDTO());
+        model.addAttribute("modify", "");
+        return EDIT;
+    }
+
+    @PostMapping(value = ARTICLE_URL + SLASH + MODIFY + ID_PATH_VAR)
+    public ModelAndView modifyArticle(@PathVariable String id, @Valid ArticleCreateDTO dto,
+                                      BindingResult result, ModelAndView mav) {
+        if (result.hasFieldErrors()) {
+            setErrorMav(result.getFieldError().getField(), mav, EDIT);
+            // 如果修改成功，就直接重定向去其他页面，如果修改失败，就还要把修改信息添加返回回去
+            mav.addObject("dto", dto);
+            mav.addObject("modify", id);
+        } else {
+            UpdateResult updateResult = mongoTemplate.update(Article.class)
+                    .matching(query(where("id").is(id)))
+                    .apply(new Update().set("content", dto.getContent())
+                            .set("title", dto.getTitle())).first();
+
+            if (updateResult.getModifiedCount() == 0) {
+                mav.addObject("dto", dto);
+                mav.addObject("modify", id);
+                mav.addObject("error", "cannot modify this article");
+                mav.setViewName(EDIT);
+            } else {
+                mav.setViewName(REDIRECT + ARTICLE_URL + SLASH + id);
+            }
+        }
+        return mav;
+    }
+
+    @GetMapping(value = ARTICLE_URL + SLASH + EDIT + ID_PATH_VAR)
+    public String getEditPage(Model model, @PathVariable String id) {
+        ContentTitleIdDTO dto = articleRepository.getById(id)
+                .orElseThrow(ArticleNotFoundException::new);
+        model.addAttribute("dto", dto);
+        model.addAttribute("modify", id);
         return EDIT;
     }
 
@@ -73,10 +109,8 @@ public class ContentController {
     public ModelAndView addArticle(@Valid ArticleCreateDTO dto, BindingResult result,
                                    ModelAndView mav, RedirectAttributes model) {
         if (result.hasFieldErrors()) {
-            mav.addObject("error", result.getFieldError());
+            mav = setErrorMav(result.getFieldError().getField(), mav, EDIT);
             mav.addObject("dto", dto);
-            mav.setViewName(EDIT);
-            mav.setStatus(HttpStatus.BAD_REQUEST);
             return mav;
         }
         Article article = saveArticleDTO(dto);
@@ -91,15 +125,11 @@ public class ContentController {
         Page<IdTitleTimeDTO> articles = getPagedArticles(page, pageSize);
         Page<Article> articleList = articleRepository.findAll(of(0, 1, DESC, "createTime"));
         Article showBoard = articleList.isEmpty() ? emptyArticle : articleList.getContent().get(0);
-        showBoard.setContent(
-                showBoard.getContent().length() > 80
-                        ? showBoard.getContent().substring(0, 80) + "..."
-                        : showBoard.getContent()
-        );
+        showBoard.setContent(showBoard.getShortCut());
 
         mav.setViewName(INDEX);
         mav.addObject("showBoard", showBoard);
-        mav.addObject("articles", articles);
+        mav.addObject("articles", articles.getContent());
         return mav;
     }
 
@@ -117,14 +147,14 @@ public class ContentController {
     public ResponseEntity<?> getArticles(@RequestParam(defaultValue = "0") Integer page,
                                          @RequestParam(defaultValue = "10") Integer pageSize) {
         Page<IdTitleTimeDTO> articles = getPagedArticles(page, pageSize);
-
         return ok(articles.getContent());
     }
 
     private Page<IdTitleTimeDTO> getPagedArticles(@RequestParam(defaultValue = "0") Integer page, @RequestParam(defaultValue = "10") Integer pageSize) {
         page = isIntValid(page) ? page : 0;
         pageSize = isIntValid(pageSize) ? pageSize : 0;
-        return articleRepository.findAllByDeleted(false, of(page, pageSize));
+        return articleRepository.findAllByDeleted(false, of(page, pageSize,
+                DESC, "createTime"));
     }
 
     @GetMapping(path = ARTICLE_URL + ID_PATH_VAR,
@@ -133,8 +163,8 @@ public class ContentController {
         if (!hasText(id))
             return badRequest().body("id cannot be null");
 
-        CertainArticleDTO dto = articleRepository.findByDeletedAndId(false, id)
-                .orElseThrow(() -> new ArticleNotFoundException("id not found"));
+        Article dto = articleRepository.findByDeletedAndId(false, id)
+                .orElseThrow(ArticleNotFoundException::new);
         return ok(singletonMap("article", dto));
     }
 
@@ -147,8 +177,8 @@ public class ContentController {
             return mav;
         }
 
-        CertainArticleDTO dto = articleRepository.findByDeletedAndId(false, id)
-                .orElseThrow(() -> new ArticleNotFoundException("id not found"));
+        Article dto = articleRepository.findByDeletedAndId(false, id)
+                .orElseThrow(ArticleNotFoundException::new);
         mav.addObject("dto", new CommentCreateDTO());
         mav.addObject("article", dto);
         mav.setViewName(ARTICLE);
@@ -156,7 +186,7 @@ public class ContentController {
     }
 
     private Query getIdQueryWithDeleteState(String id, boolean state) {
-        return Query.query(Criteria.where("id").is(id).and("deleted").is(state));
+        return query(where("id").is(id).and("deleted").is(state));
     }
 
     @PostMapping(path = ARTICLE_URL + DELETE + ID_PATH_VAR)
@@ -203,37 +233,64 @@ public class ContentController {
         dto.preProcessBeforeSave();
         Comment comment = dto.toComment();
         return mongoTemplate.update(Article.class)
-                .matching(Query.query(Criteria.where("id").is(dto.getArticleId())))
+                .matching(query(where("id").is(dto.getArticleId())))
                 .apply(new Update().push("comments", comment)).all();
     }
 
     @PostMapping(value = ADD_COMMENTS)
     public ModelAndView addComment(@Valid CommentCreateDTO dto, BindingResult result,
-                                   ModelAndView mav) throws URISyntaxException {
-        String viewName = ARTICLE_URL + SLASH + dto.getArticleId();
+                                   ModelAndView mav) {
+        String viewName = REDIRECT + ARTICLE_URL + SLASH + dto.getArticleId(),
+                errMsg = "cannot save comment";
         if (result.hasFieldErrors()) {
-            mav.addObject("error", result.getFieldError());
-            mav.setStatus(HttpStatus.BAD_REQUEST);
-            mav.setViewName(viewName);
+            return setErrorMav("error in " + result.getFieldError().getField(),
+                    mav, viewName);
         } else if (!articleRepository.existsById(dto.getArticleId())) {
-            mav.addObject("error", "no article");
-            mav.setStatus(HttpStatus.BAD_REQUEST);
-            mav.setViewName(viewName);
+            return setErrorMav("no article", mav, viewName);
         } else {
             UpdateResult updateResult = saveComment(dto);
-            if (updateResult.getModifiedCount() == 1) {
-                mav.setViewName(REDIRECT + viewName);
-                mav.setStatus(HttpStatus.OK);
-            } else {
-                mav.setStatus(HttpStatus.valueOf(500));
-                mav.addObject("error", "cannot save comment");
-                mav.setViewName(viewName);
-            }
+            oneModify(mav, viewName, errMsg, updateResult);
         }
         return mav;
     }
 
     @PostMapping(path = DEL_COMMENTS)
+    public ModelAndView delComments(@Valid DelCommDTO dto, BindingResult result,
+                                    ModelAndView mav) {
+        String viewName = REDIRECT + ARTICLE_URL + SLASH + dto.getArticleId(),
+                errMsg = "cannot delete comment";
+
+        if (result.hasFieldErrors()) {
+            return setErrorMav("error in " + result.getFieldError().getField(),
+                    mav, viewName);
+        } else if (!articleRepository.existsById(dto.getArticleId())) {
+            return setErrorMav("no article", mav, viewName);
+        } else {
+            UpdateResult updateResult = mongoTemplate.update(Article.class)
+                    .matching(query(where("id").is(dto.getArticleId())))
+                    .apply(new Update().pull("comments", singletonMap("content", dto.getContent())))
+                    .all();
+            return oneModify(mav, viewName, errMsg, updateResult);
+        }
+    }
+
+    private ModelAndView oneModify(ModelAndView mav, String viewName, String errMsg, UpdateResult updateResult) {
+        mav.setViewName(viewName);
+        if (updateResult.getModifiedCount() != 1) {
+            mav.setStatus(HttpStatus.valueOf(500));
+            mav.addObject("error", errMsg);
+        }
+        return mav;
+    }
+
+    private ModelAndView setErrorMav(String errMsg, ModelAndView mav, String viewName) {
+        mav.setStatus(HttpStatus.BAD_REQUEST);
+        mav.addObject("error", errMsg);
+        mav.setViewName(viewName);
+        return mav;
+    }
+
+    @PostMapping(path = DEL_COMMENTS, consumes = {APPLICATION_JSON_UTF8_VALUE, APPLICATION_JSON_VALUE})
     public ResponseEntity<?> delComments(@RequestBody @Valid DelCommDTO dto,
                                          BindingResult result) {
         if (result.hasFieldErrors())
@@ -253,7 +310,7 @@ public class ContentController {
             throw new CommentNotFoundException(dto.getContent());
 
         UpdateResult updateResult = mongoTemplate.update(Article.class)
-                .matching(Query.query(Criteria.where("id").is(dto.getArticleId())))
+                .matching(query(where("id").is(dto.getArticleId())))
                 .apply(new Update().pull("comments", toDelete)).all();
 
         return updateResult.getModifiedCount() == 1

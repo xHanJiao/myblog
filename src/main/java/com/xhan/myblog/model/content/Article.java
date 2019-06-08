@@ -1,5 +1,6 @@
 package com.xhan.myblog.model.content;
 
+import com.xhan.myblog.utils.BlogUtils;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.data.annotation.Id;
@@ -21,6 +22,13 @@ public class Article extends ArticleCreateDTO {
     private Boolean deleted;
 
     public void preProcessBeforeSave() {
+    }
+
+    public String getShortCut() {
+        String content = getContent().length() > 80
+                ? getContent().substring(0, 80) + "..."
+                : getContent();
+        return BlogUtils.htmlToText(content);
     }
 
     public Article() {
