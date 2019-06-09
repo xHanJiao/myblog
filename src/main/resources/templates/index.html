@@ -102,11 +102,11 @@
             <div class="row">
                 <div class="m5 offset-m4 s5 offset-s4">
                     <ul>
-                        <li th:each="cate: ${categories}">
+                        <li th:each="cate: ${headCate}">
                             <a th:text="${cate.getName()}"
                                th:href="'/category/' + ${cate.getName()}"></a></li>
                         <li><a th:text="#{index.cate.toAll}"
-                               th:href="@{/categories}"></a></li>
+                               href="#modal2"></a></li>
                     </ul>
                 </div>
             </div>
@@ -124,19 +124,26 @@
                        style="color: #212121;" id="cateName" th:name="name">
                 <!--fixme 放到CSS中-->
             </div>
-            <div class="input-field">
-                <label for="cateDescription" th:text="#{index.cate.cateDescription}">
+            <div class="input-field"><label for="cateDescription" th:text="#{index.cate.cateDescription}">
                 </label>
                 <input th:placeholder="#{index.cate.placeholder}" type="text"
-                       style="color: #212121;" id="cateDescription" th:name="description"/>
-            </div>
-
+                       style="color: #212121;" id="cateDescription" th:name="description"</div>
         </div>
         <div class="modal-footer">
-            <!--<a href="#" class=" modal-action modal-close waves-effect waves-green btn-flat">同意</a>-->
             <button class="btn wave-effect wave-light right" type="submit" th:text="#{button.submit}"></button>
         </div>
     </form>
+</div>
+
+<div id="modal2" class="modal" th:fragment="modal">
+        <div class="modal-content">
+            <h4 style="color: #212121">创建分类</h4>
+            <ul>
+                <li th:each="cate: ${allCate}">
+                    <a th:text="${cate.getName()}" style="color: #212121"
+                       th:href="'/category/' + ${cate.getName()}"></a></li>
+            </ul>
+        </div>
 </div>
 
 <script src="https://cdn.bootcss.com/jquery/2.2.1/jquery.js"></script>

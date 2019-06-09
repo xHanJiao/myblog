@@ -67,7 +67,7 @@ public class AdminController extends BaseController {
     private UpdateResult modifyDeleted(Query unDeletedIdQuery, boolean b) {
         return mongoTemplate.update(Article.class)
                 .matching(unDeletedIdQuery)
-                .apply(new Update().set("deleted", b)).all();
+                .apply(new Update().set("published", b)).all();
     }
 
     @Secured(R_ADMIN)
@@ -121,7 +121,7 @@ public class AdminController extends BaseController {
     }
 
     private Query getIdQueryWithDeleteState(String id, boolean state) {
-        return query(where("id").is(id).and("deleted").is(state));
+        return query(where("id").is(id).and("published").is(state));
     }
 
     @Secured(R_ADMIN)

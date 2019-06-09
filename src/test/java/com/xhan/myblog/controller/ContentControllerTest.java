@@ -66,16 +66,16 @@ public class ContentControllerTest {
         savedArticle = new Article();
         savedArticle.setTitle("saved title");
         savedArticle.setContent("saved content");
-        savedArticle.setDeleted(false);
+        savedArticle.setPublished(false);
         Comment savedComment = new Comment();
         savedComment.setCreator("mock creator");
         savedComment.setContent("mock comment");
         savedArticle.getComments().add(savedComment);
         savedArticle = articleRepository.save(savedArticle);
         deletedArticle = new Article();
-        deletedArticle.setContent("deleted article");
-        deletedArticle.setTitle("deleted article");
-        deletedArticle.setDeleted(true);
+        deletedArticle.setContent("published article");
+        deletedArticle.setTitle("published article");
+        deletedArticle.setPublished(true);
         deletedArticle = articleRepository.save(deletedArticle);
         mockComment = new Comment();
         mockComment.setCreator("mock Creator");
@@ -178,7 +178,7 @@ public class ContentControllerTest {
 
     @Test
     public void deleteArticle() throws Exception {
-        Assert.assertFalse(savedArticle.getDeleted());
+        Assert.assertFalse(savedArticle.getPublished());
 
         mockMvc.perform(post(ARTICLE_URL + DELETE_URL + SLASH + savedArticle.getId()))
                 .andExpect(status().isOk())
@@ -187,7 +187,7 @@ public class ContentControllerTest {
 
     @Test
     public void recoverArticle() throws Exception {
-        Assert.assertTrue(deletedArticle.getDeleted());
+        Assert.assertTrue(deletedArticle.getPublished());
 
         mockMvc.perform(post(ARTICLE_URL + RECOVER_URL + SLASH + deletedArticle.getId()))
                 .andExpect(status().isOk())

@@ -2,10 +2,8 @@ package com.xhan.myblog.repository;
 
 import com.xhan.myblog.model.content.Article;
 import com.xhan.myblog.model.content.ContentTitleIdDTO;
-import com.xhan.myblog.model.content.IdTitleTimeDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
@@ -14,13 +12,19 @@ import java.util.Optional;
 @Repository
 public interface ArticleRepository extends MongoRepository<Article, String> {
 
-//    Optional<CertainArticleDTO> findByDeletedAndFinishedAndId(Boolean deleted, String id);
+    Optional<Article> findByPublishedAndFinishedAndId(Boolean published, Boolean finished, String id);
 
-    Optional<Article> findByDeletedAndFinishedAndId(Boolean deleted, Boolean finished, String id);
+    Page<Article> findByPublishedAndFinished(Boolean published, Boolean finished, PageRequest pageable);
 
-    Page<Article> findByDeletedAndFinished(Boolean deleted, Boolean finished, Pageable pageable);
+    Page<Article> findAllByPublishedAndFinished(Boolean published, Boolean finished, PageRequest pageable);
 
-    Page<Article> findAllByDeletedAndFinished(Boolean deleted, Boolean finished, Pageable pageable);
+    Page<Article> findAllByPublishedAndFinishedAndCategory(Boolean published, Boolean finished, String category, PageRequest pageRequest);
+
+    Page<Article> findAllByCategory(String category, PageRequest pageRequest);
+
+    Page<Article> findAllByPublished(Boolean published, PageRequest request);
+
+    Page<Article> findAllByFinished(Boolean finished, PageRequest request);
 
     Optional<ContentTitleIdDTO> getById(String id);
 

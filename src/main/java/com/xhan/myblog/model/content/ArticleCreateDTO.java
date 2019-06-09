@@ -21,7 +21,7 @@ public class ArticleCreateDTO extends SimpleContent {
     public Article toArticle() {
         setCategory(hasText(category) ? category : Category.DEFAULT_NAME);
         Article article = new Article();
-        article.setDeleted(false);
+        article.setPublished(false);
         article.setCommentEnable(getCommentEnable() == null ? false : getCommentEnable());
         article.setCategory(getCategory());
         article.setTitle(getTitle());

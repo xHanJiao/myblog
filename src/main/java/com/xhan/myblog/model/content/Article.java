@@ -20,7 +20,7 @@ public class Article extends ArticleCreateDTO {
     @Id
     private String id;
     private List<Comment> comments = new ArrayList<>();
-    private Boolean deleted;
+    private Boolean published;
 
     public void preProcessBeforeSave() {
     }

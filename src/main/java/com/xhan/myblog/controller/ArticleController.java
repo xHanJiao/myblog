@@ -8,6 +8,7 @@ import com.xhan.myblog.model.content.Category;
 import com.xhan.myblog.model.content.Comment;
 import com.xhan.myblog.model.content.CommentCreateDTO;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +21,6 @@ import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.List;
 
 import static com.xhan.myblog.controller.ControllerConstant.*;
 import static java.util.Collections.singletonMap;
@@ -49,7 +49,8 @@ public class ArticleController extends BaseController {
         Article showBoard = articleList.isEmpty() ? emptyArticle : articleList.getContent().get(0);
         showBoard.convertToShortcut();
         Page<Category> categories = categoryRepository.findAll(of(0, 5));
-        mav.addObject("categories", categories.getContent());
+        mav.addObject("headCate", categories.getContent());
+        mav.addObject("allCate", categoryRepository.findAll());
         mav.setViewName(INDEX);
         mav.addObject("category", new Category());
         mav.addObject("showBoard", showBoard);
@@ -69,6 +70,39 @@ public class ArticleController extends BaseController {
         return i != null && i >= 0;
     }
 
+    @GetMapping(path = SLASH + CATEGORY + NAME_PATH_VAR)
+    public ModelAndView getArticlesOfCategory(@PathVariable String name, ModelAndView mav,
+                                              @RequestParam(defaultValue = "0") Integer page,
+                                              @RequestParam(defaultValue = "10") Integer pageSize,
+                                              @SessionAttribute(value = IS_ADMIN, required = false) Boolean isAdmin,
+                                              HttpSession session) {
+        if (!hasText(name)) {
+            mav.setViewName(INDEX);
+            mav.setStatus(HttpStatus.BAD_REQUEST);
+            mav.addObject("error", "分类名不能为空");
+            return mav;
+        }
+        isAdmin = checkAndSetIsAdmin(session, isAdmin);
+        Page<Article> articles = getPagedArticles(page, pageSize, isAdmin, name);
+        mav.setViewName(ARTICLE_LIST);
+        mav.addObject("articles", articles.getContent());
+        return mav;
+    }
+
+    /**
+     * 获取一个分类下的文章
+     *
+     */
+    private Page<Article> getPagedArticles(Integer page, Integer pageSize, Boolean isAdmin, String cateName) {
+        page = isIntValid(page) ? page : 0;
+        pageSize = isIntValid(pageSize) ? pageSize : 0;
+        isAdmin = isAdmin == null ? false : isAdmin;
+        PageRequest request = of(page, pageSize, DESC, "createTime");
+        return isAdmin
+                ? articleRepository.findAllByCategory(cateName, request)
+                : articleRepository.findAllByPublishedAndFinishedAndCategory(false,
+                true, cateName, request);
+    }
 
     @GetMapping(path = ARTICLE_URL, consumes = {APPLICATION_JSON_VALUE, APPLICATION_JSON_UTF8_VALUE})
     public ResponseEntity<?> getArticles(@RequestParam(defaultValue = "0") Integer page,
@@ -89,7 +123,6 @@ public class ArticleController extends BaseController {
         Page<Article> articles = getPagedArticles(page, pageSize, isAdmin);
         mav.setViewName(ARTICLE_LIST);
         mav.addObject("articles", articles.getContent());
-
         return mav;
     }
 
@@ -101,7 +134,7 @@ public class ArticleController extends BaseController {
         isAdmin = isAdmin == null ? false : isAdmin;
         return isAdmin
                 ? articleRepository.findAll(of(page, pageSize, DESC, "createTime"))
-                : articleRepository.findAllByDeletedAndFinished(false, true, of(page, pageSize,
+                : articleRepository.findAllByPublishedAndFinished(false, true, of(page, pageSize,
                 DESC, "createTime"));
     }
 
@@ -115,7 +148,7 @@ public class ArticleController extends BaseController {
 
         Article dto = isAdmin
                 ? articleRepository.findById(id).orElseThrow(ArticleNotFoundException::new)
-                : articleRepository.findByDeletedAndFinishedAndId(false, true, id)
+                : articleRepository.findByPublishedAndFinishedAndId(false, true, id)
                 .orElseThrow(ArticleNotFoundException::new);
         return ok(singletonMap("article", dto));
     }
@@ -134,7 +167,7 @@ public class ArticleController extends BaseController {
 
         Article dto = isAdmin
                 ? articleRepository.findById(id).orElseThrow(ArticleNotFoundException::new)
-                : articleRepository.findByDeletedAndFinishedAndId(false, true, id)
+                : articleRepository.findByPublishedAndFinishedAndId(false, true, id)
                 .orElseThrow(ArticleNotFoundException::new);
         mav.addObject("dto", new CommentCreateDTO());
         mav.addObject("article", dto);

@@ -15,6 +15,7 @@ public interface ControllerConstant {
     String REDIRECT = "redirect:";
     String EDIT = "edit";
     String ID_PATH_VAR = SLASH + "{id}";
+    String NAME_PATH_VAR = SLASH + "{name}";
     String MODIFY = "modify";
     String DELETE_URL = SLASH + "del";
     String COMMENT_URL = "/comment";
