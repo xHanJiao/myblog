@@ -6,6 +6,8 @@ import javax.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+import static com.xhan.myblog.utils.BlogUtils.getCurrentTime;
+
 @Data
 public class SimpleContent {
     @NotBlank
@@ -13,8 +15,7 @@ public class SimpleContent {
     private String createTime;
 
     public SimpleContent() {
-        createTime = LocalDateTime.now()
-                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+        setCreateTime(getCurrentTime());
     }
 
     public void preProcessBeforeSave() {

@@ -31,6 +31,7 @@ public class Article extends ArticleCreateDTO {
 
     @JsonIgnore
     public void convertToShortcut() {
+        if (getContent() == null) return;
         String content = getContent().length() > 80
                 ? getContent().substring(0, 80) + "..."
                 : getContent();

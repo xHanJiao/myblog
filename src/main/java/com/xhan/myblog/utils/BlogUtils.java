@@ -14,6 +14,8 @@ import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.Normalizer;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -46,15 +48,6 @@ public class BlogUtils {
     public static boolean isEmail(String emailStr) {
         Matcher matcher = VALID_EMAIL_ADDRESS_REGEX.matcher(emailStr);
         return matcher.find();
-    }
-
-    /**
-     * 获取当前时间
-     *
-     * @return
-     */
-    public static int getCurrentTime() {
-        return (int) (new Date().getTime() / 1000);
     }
 
     /**
@@ -115,6 +108,11 @@ public class BlogUtils {
             return html.replaceAll("(?s)<[^>]*>(\\s*<[^>]*>)*", " ");
         }
         return "";
+    }
+
+    public static String getCurrentTime() {
+        return LocalDateTime.now()
+                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
     }
 
     /**

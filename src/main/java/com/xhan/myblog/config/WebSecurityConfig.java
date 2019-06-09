@@ -5,13 +5,33 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
+import javax.annotation.Resource;
+
+import static com.xhan.myblog.controller.ControllerConstant.*;
 
 @Configuration
 @EnableWebSecurity
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+
+    @Resource(name = "userDetailService")
+    private UserDetailsService myService;
+    @Resource(name = "myPasswordEncoder")
+    private PasswordEncoder passwordEncoder;
+
+    private final String JS_PATHS = "/js/**";
+    private final String CSS_PATHS = "/css/**";
+    private final String IMAGE_PATHS = "/image/**";
+    private final String LOGIN_PATHS = "/login/**";
+    private final String ADMIN_PATHS = "/admin/**";
+    private final String SUFFIX = "/**";
+
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         super.configure(auth);
+        auth.userDetailsService(myService).passwordEncoder(passwordEncoder);
     }
 
     @Override
@@ -19,6 +39,15 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         super.configure(http);
         http.csrf().disable()
                 .authorizeRequests()
-                .anyRequest().permitAll();
+                .antMatchers(SLASH + EDIT + SUFFIX,
+                        RECOVER_URL + SUFFIX,
+                        DELETE_URL + SUFFIX,
+                        ADD_URL + SUFFIX,
+                        SLASH + MODIFY + SUFFIX).authenticated()
+                .anyRequest().permitAll()
+                .and()
+                .formLogin().loginPage(LOGIN_URL)
+                .usernameParameter("account")
+                .successForwardUrl(LOGIN_DISPATCH_URL);
     }
 }

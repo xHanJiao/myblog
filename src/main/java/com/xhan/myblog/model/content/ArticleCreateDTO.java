@@ -9,7 +9,7 @@ import static org.springframework.util.StringUtils.hasText;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class ArticleCreateDTO extends SimpleContent{
+public class ArticleCreateDTO extends SimpleContent {
 
     @NotBlank
     private String title;
@@ -19,12 +19,14 @@ public class ArticleCreateDTO extends SimpleContent{
     private Boolean finished;
 
     public Article toArticle() {
-        setCategory( hasText(category) ? category : Category.DEFAULT_NAME );
-        setCommentEnable(commentEnable == null ? true : commentEnable);
+        setCategory(hasText(category) ? category : Category.DEFAULT_NAME);
         Article article = new Article();
         article.setDeleted(false);
+        article.setCommentEnable(getCommentEnable() == null ? false : getCommentEnable());
+        article.setCategory(getCategory());
         article.setTitle(getTitle());
         article.setContent(getContent());
+        article.setFinished(getFinished());
         return article;
     }
 }

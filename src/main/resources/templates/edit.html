@@ -53,13 +53,26 @@
                 <input type="checkbox" id="finished" checked="checked"/>
                 <label for="finished"> 发布 </label>
             </p>
+            <label for="categories">请选择分类</label>
+            <select id="categories">
+                <option th:text="#{edit.category.default}"
+                        th:value="#{edit.category.default}"></option>
+                <option th:each="category : ${categories}"
+                        th:text="${category.getName()}"
+                        th:value="${category.getName()}"></option>
+            </select>
+            <!--<a class='dropdown-button btn' href='#' data-activates='dropdown1'>选择分类</a>-->
+            <!--<ul id='dropdown1' class='dropdown-content'>-->
+            <!--<li th:each="category : ${categories}"><a href="#"></a></li>-->
+            <!--</ul>-->
         </div>
     </div>
 </div>
-<script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
-<!--&lt;!&ndash;&ndash;&gt;<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.8/js/materialize.min.js"></script>-->
+
+<div th:replace="index::modal"></div>
+
+<script src="https://cdn.bootcss.com/jquery/2.2.1/jquery.js"></script>
 <script th:src="@{/js/materialize.min.js}"></script>
-<!--<script th:src="@{/js/util.js}"></script>-->
 <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
 <script>
     function mockFormKv(URL, method, kv) {
@@ -75,16 +88,21 @@
     }
 
     $(document).ready(function () {
+        $('#categories').material_select();
         $('#sbmt').on('click', function () {
             var content = quill.container.firstChild.innerHTML;
-            var modify = $('#modSig').val(), cme = $('#commentEnable').prop('checked');
+            var modify = $('#modSig').val();
+            var cme = $('#commentEnable').prop('checked');
             var fns = $('#finished').prop('checked');
-            var data = {title: $('#aTitle').val(), content: content,
-                    commentEnable: cme, finished: fns};
+            var checkValue = $("#categories").val();
+            var data = {
+                title: $('#aTitle').val(), content: content,
+                commentEnable: cme, finished: fns, category: checkValue
+            };
             if (modify) {
-                mockFormKv('/article/modify/' + modify, 'POST', data);
+                mockFormKv('/modify/article/' + modify, 'POST', data);
             } else {
-                mockFormKv('/article/add', 'POST', data);
+                mockFormKv('/add/article', 'POST', data);
             }
         });
     });

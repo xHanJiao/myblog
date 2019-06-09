@@ -1,12 +1,14 @@
 package com.xhan.myblog.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.xhan.myblog.exceptions.content.ArticleNotFoundException;
 import com.xhan.myblog.model.content.Article;
 import com.xhan.myblog.model.content.Comment;
 import com.xhan.myblog.model.content.CommentCreateDTO;
 import com.xhan.myblog.model.content.DelCommDTO;
+import com.xhan.myblog.model.user.Admin;
+import com.xhan.myblog.model.user.Guest;
 import com.xhan.myblog.repository.ArticleRepository;
+import com.xhan.myblog.utils.BlogUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -14,7 +16,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -91,6 +92,17 @@ public class ContentControllerTest {
 
     }
 
+//    @Test
+    public void insertAdmin() {
+        Admin admin = new Admin();
+        admin.setAccount("xhanjiao94217");
+        admin.setNickName("小韩");
+        admin.setPassword("{NOOP}niezhidongwu94");
+        admin.setCreateTime(BlogUtils.getCurrentTime());
+        admin.setLastLoginTime(BlogUtils.getCurrentTime());
+        mongoTemplate.save(admin, Guest.COLLECTION_NAME);
+    }
+
     @Test
     public void getCertainArticle() throws Exception {
         String id = savedArticle.getId();
@@ -116,7 +128,7 @@ public class ContentControllerTest {
         String articleJson = objectMapper.writeValueAsString(fullArticle);
         System.out.println("articleJson : " + articleJson);
 
-        mockMvc.perform(post(ARTICLE_URL + ADD)
+        mockMvc.perform(post(ARTICLE_URL + ADD_URL)
                 .contentType(APPLICATION_JSON)
                 .content(articleJson.getBytes()))
                 .andExpect(status().is(201))
@@ -129,7 +141,7 @@ public class ContentControllerTest {
         String articleJson = objectMapper.writeValueAsString(fullArticle);
         System.out.println("articleJson : " + articleJson);
 
-        mockMvc.perform(post(ARTICLE_URL + ADD)
+        mockMvc.perform(post(ARTICLE_URL + ADD_URL)
 //                .contentType(APPLICATION_FORM_URLENCODED_VALUE)
                 .param("title", "mock form title")
                 .param("content", "mock form content"))
@@ -142,12 +154,12 @@ public class ContentControllerTest {
         String noContentJson = objectMapper.writeValueAsString(noContent);
         String noTitleJson = objectMapper.writeValueAsString(noTitle);
 
-        mockMvc.perform(post(ARTICLE_URL + ADD)
+        mockMvc.perform(post(ARTICLE_URL + ADD_URL)
                 .contentType(APPLICATION_JSON)
                 .content(noContentJson.getBytes()))
                 .andExpect(status().is(400));
 
-        mockMvc.perform(post(ARTICLE_URL + ADD)
+        mockMvc.perform(post(ARTICLE_URL + ADD_URL)
                 .contentType(APPLICATION_JSON)
                 .content(noTitleJson.getBytes()))
                 .andExpect(status().is(400));
@@ -155,7 +167,7 @@ public class ContentControllerTest {
 
     @Test
     public void addUnFullArticleForm() throws Exception {
-        mockMvc.perform(post(ARTICLE_URL + ADD)
+        mockMvc.perform(post(ARTICLE_URL + ADD_URL)
                 .param("title", "")
                 .param("content", ""))
                 .andDo(print())
@@ -168,7 +180,7 @@ public class ContentControllerTest {
     public void deleteArticle() throws Exception {
         Assert.assertFalse(savedArticle.getDeleted());
 
-        mockMvc.perform(post(ARTICLE_URL + DELETE + SLASH + savedArticle.getId()))
+        mockMvc.perform(post(ARTICLE_URL + DELETE_URL + SLASH + savedArticle.getId()))
                 .andExpect(status().isOk())
                 .andExpect(content().bytes("modified".getBytes()));
     }
@@ -177,7 +189,7 @@ public class ContentControllerTest {
     public void recoverArticle() throws Exception {
         Assert.assertTrue(deletedArticle.getDeleted());
 
-        mockMvc.perform(post(ARTICLE_URL + RECOVER + SLASH + deletedArticle.getId()))
+        mockMvc.perform(post(ARTICLE_URL + RECOVER_URL + SLASH + deletedArticle.getId()))
                 .andExpect(status().isOk())
                 .andExpect(content().bytes("modified".getBytes()));
     }
