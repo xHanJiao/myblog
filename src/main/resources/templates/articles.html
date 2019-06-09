@@ -13,20 +13,35 @@
 <div class="container">
     <div class="row">
         <div id="listHolder" class="col m8 offset-m2 flow-text">
-            <div th:each="article: ${articles}">
-                <div class="section contentHolder">
-                    <a th:href="@{'/article/' + ${article.getId()}}"
-                       th:text="${article.getTitle()}"></a>
-                    <span class="right" th:text="${article.getCreateTime()}"></span>
-                </div>
-                <div class="divider"></div>
+            <div class="section">
+                <h3 th:unless="${cateName}" class="metainf" th:text="#{|${meta}|}"></h3>
+                <h3 th:if="${cateName}" class="metainf" th:text="${cateName}"></h3>
             </div>
-            <div id="pageHolder">
-
+            <div class="section">
+                <div th:each="article: ${articles}">
+                    <div class="section contentHolder">
+                        <a th:href="@{'/article/' + ${article.getId()}}"
+                           th:text="${article.getTitle()}"></a>
+                        <span class="right" th:text="${article.getCreateTime()}"></span>
+                    </div>
+                    <div class="divider"></div>
+                </div>
+            </div>
+            <div id="pageHolder" class="right col m2 s2">
+                <input th:value="${metaUrl}" type="hidden" id="metaUrl"/>
+                <label for="pages">页码</label>
+                <select id="pages" onchange="toPage(this)">
+                    <option th:each="page : ${allPages}"
+                            th:selected="${currentPage == page}"
+                            th:text="${page}" class="pageNum"
+                            th:value="${page - 1}">
+                    </option>
+                </select>
             </div>
         </div>
-        <div class="col m2">
-
+        <div class="col m2 hide-on-med-and-down">
+            <!--<div th:replace="index::slideBar">-->
+            <!--</div>-->
         </div>
     </div>
 </div>
@@ -35,5 +50,17 @@
 
 <script src="https://cdn.bootcss.com/jquery/2.2.1/jquery.js"></script>
 <script th:src="@{/js/materialize.min.js}"></script>
+<script th:src="@{/js/util.js}"></script>
+<script>
+    $(document).ready(function () {
+        $('#pages').material_select();
+    });
+
+    function toPage(sobj) {
+        var page = sobj.options[sobj.selectedIndex].value;
+        var metaUrl = $('#metaUrl').val() + $('.metainf').text();
+        mockFormKv(metaUrl, 'get', {page: page});
+    }
+</script>
 </body>
 </html>

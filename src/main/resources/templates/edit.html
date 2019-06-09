@@ -55,8 +55,8 @@
             </p>
             <label for="categories">请选择分类</label>
             <select id="categories">
-                <option th:text="#{edit.category.default}"
-                        th:value="#{edit.category.default}"></option>
+                <!--<option th:text="#{edit.category.default}"-->
+                        <!--th:value="#{edit.category.default}"></option>-->
                 <option th:each="category : ${categories}"
                         th:text="${category.getName()}"
                         th:value="${category.getName()}"></option>
@@ -73,7 +73,8 @@
 
 <script src="https://cdn.bootcss.com/jquery/2.2.1/jquery.js"></script>
 <script th:src="@{/js/materialize.min.js}"></script>
-<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+<script th:src="@{/js/quill.js}"></script>
+<!--<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>-->
 <script>
     function mockFormKv(URL, method, kv) {
         var form = $("<form></form>").attr("action", URL).attr("method", method);

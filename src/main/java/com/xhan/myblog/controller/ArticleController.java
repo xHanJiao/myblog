@@ -21,9 +21,12 @@ import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
+import java.util.stream.IntStream;
 
 import static com.xhan.myblog.controller.ControllerConstant.*;
 import static java.util.Collections.singletonMap;
+import static java.util.stream.Collectors.toList;
 import static org.springframework.data.domain.PageRequest.of;
 import static org.springframework.data.domain.Sort.Direction.DESC;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
@@ -41,12 +44,10 @@ public class ArticleController extends BaseController {
     public ModelAndView index(ModelAndView mav, HttpSession session,
                               @SessionAttribute(value = IS_ADMIN, required = false) Boolean isAdmin,
                               @RequestParam(defaultValue = "0") Integer page,
-                              @RequestParam(defaultValue = "7") Integer pageSize) {
+                              @RequestParam(defaultValue = "5") Integer pageSize) {
         isAdmin = checkAndSetIsAdmin(session, isAdmin);
         Page<Article> articles = getPagedArticles(page, pageSize, isAdmin);
-        Page<Article> articleList =
-                articleRepository.findAll(of(0, 1, DESC, "createTime"));
-        Article showBoard = articleList.isEmpty() ? emptyArticle : articleList.getContent().get(0);
+        Article showBoard = articles.isEmpty() ? emptyArticle : articles.getContent().get(0);
         showBoard.convertToShortcut();
         Page<Category> categories = categoryRepository.findAll(of(0, 5));
         mav.addObject("headCate", categories.getContent());
@@ -57,6 +58,23 @@ public class ArticleController extends BaseController {
         mav.addObject("articles", articles.getContent());
 
         return mav;
+    }
+
+    @GetMapping(value = SLASH + CATEGORIES)
+    public ResponseEntity<?> getCategories() {
+        List<String> categories = categoryRepository.findAll()
+                .stream().map(Category::getName)
+                .collect(toList());
+        return ResponseEntity.ok(categories);
+    }
+
+    @GetMapping(value = SLASH + "lessCate")
+    public ResponseEntity<?> getLessCategories() {
+        List<String> categories = categoryRepository.findAll(of(0, 5))
+                .getContent().stream()
+                .map(Category::getName)
+                .collect(toList());
+        return ResponseEntity.ok(categories);
     }
 
     private Boolean checkAndSetIsAdmin(HttpSession session, Boolean isAdmin) {
@@ -73,7 +91,7 @@ public class ArticleController extends BaseController {
     @GetMapping(path = SLASH + CATEGORY + NAME_PATH_VAR)
     public ModelAndView getArticlesOfCategory(@PathVariable String name, ModelAndView mav,
                                               @RequestParam(defaultValue = "0") Integer page,
-                                              @RequestParam(defaultValue = "10") Integer pageSize,
+                                              @RequestParam(defaultValue = "5") Integer pageSize,
                                               @SessionAttribute(value = IS_ADMIN, required = false) Boolean isAdmin,
                                               HttpSession session) {
         if (!hasText(name)) {
@@ -84,29 +102,45 @@ public class ArticleController extends BaseController {
         }
         isAdmin = checkAndSetIsAdmin(session, isAdmin);
         Page<Article> articles = getPagedArticles(page, pageSize, isAdmin, name);
-        mav.setViewName(ARTICLE_LIST);
-        mav.addObject("articles", articles.getContent());
+        int nums = isAdmin
+                ? articleRepository.countByCategoryAndPublishedAndFinished(name, true, true)
+                : articleRepository.countByCategory(name);
+
+        preProcessToArticleList(mav, page, pageSize, articles, nums, CATE, CATE_URL);
+        mav.addObject("cateName", name);
         return mav;
+    }
+
+    private void preProcessToArticleList(ModelAndView mav, Integer page, Integer pageSize,
+                                         Page<Article> articles, int nums, String meta, String metaUrl) {
+        mav.setViewName(ARTICLE_LIST);
+        page = isIntValid(page) ? page : 0;
+        int maxPage = nums % pageSize == 0 ? nums / pageSize : nums / pageSize + 1;
+        List<Integer> pages = IntStream.range(0, maxPage).boxed().map(i -> i+1).collect(toList());
+        mav.addObject("articles", articles.getContent());
+        mav.addObject("currentPage", page + 1);
+        mav.addObject("allPages", pages);
+        mav.addObject("meta", meta);
+        mav.addObject("metaUrl", metaUrl);
     }
 
     /**
      * 获取一个分类下的文章
-     *
      */
     private Page<Article> getPagedArticles(Integer page, Integer pageSize, Boolean isAdmin, String cateName) {
         page = isIntValid(page) ? page : 0;
-        pageSize = isIntValid(pageSize) ? pageSize : 0;
+        pageSize = isIntValid(pageSize) ? pageSize : 5;
         isAdmin = isAdmin == null ? false : isAdmin;
         PageRequest request = of(page, pageSize, DESC, "createTime");
         return isAdmin
                 ? articleRepository.findAllByCategory(cateName, request)
-                : articleRepository.findAllByPublishedAndFinishedAndCategory(false,
+                : articleRepository.findAllByPublishedAndFinishedAndCategory(true,
                 true, cateName, request);
     }
 
     @GetMapping(path = ARTICLE_URL, consumes = {APPLICATION_JSON_VALUE, APPLICATION_JSON_UTF8_VALUE})
     public ResponseEntity<?> getArticles(@RequestParam(defaultValue = "0") Integer page,
-                                         @RequestParam(defaultValue = "10") Integer pageSize,
+                                         @RequestParam(defaultValue = "5") Integer pageSize,
                                          @SessionAttribute(value = IS_ADMIN, required = false) Boolean isAdmin,
                                          HttpSession session) {
         isAdmin = checkAndSetIsAdmin(session, isAdmin);
@@ -116,25 +150,26 @@ public class ArticleController extends BaseController {
 
     @GetMapping(path = ARTICLE_URL)
     public ModelAndView getArticles(@RequestParam(defaultValue = "0") Integer page,
-                                    @RequestParam(defaultValue = "10") Integer pageSize,
+                                    @RequestParam(defaultValue = "5") Integer pageSize,
                                     @SessionAttribute(value = IS_ADMIN, required = false) Boolean isAdmin,
                                     ModelAndView mav, HttpSession session) {
         isAdmin = checkAndSetIsAdmin(session, isAdmin);
         Page<Article> articles = getPagedArticles(page, pageSize, isAdmin);
-        mav.setViewName(ARTICLE_LIST);
-        mav.addObject("articles", articles.getContent());
+        int nums = isAdmin
+                ? (int) articleRepository.count()
+                : articleRepository.countByPublishedAndFinished(true, true);
+
+        preProcessToArticleList(mav, page, pageSize, articles, nums, ALL_ARTICLE, ALL_ARTICLE_URL);
         return mav;
     }
 
-    private Page<Article> getPagedArticles(@RequestParam(defaultValue = "0") Integer page,
-                                           @RequestParam(defaultValue = "10") Integer pageSize,
-                                           Boolean isAdmin) {
+    private Page<Article> getPagedArticles(Integer page, Integer pageSize, Boolean isAdmin) {
         page = isIntValid(page) ? page : 0;
-        pageSize = isIntValid(pageSize) ? pageSize : 0;
+        pageSize = isIntValid(pageSize) ? pageSize : 5;
         isAdmin = isAdmin == null ? false : isAdmin;
         return isAdmin
                 ? articleRepository.findAll(of(page, pageSize, DESC, "createTime"))
-                : articleRepository.findAllByPublishedAndFinished(false, true, of(page, pageSize,
+                : articleRepository.findAllByPublishedAndFinished(true, true, of(page, pageSize,
                 DESC, "createTime"));
     }
 
@@ -148,7 +183,7 @@ public class ArticleController extends BaseController {
 
         Article dto = isAdmin
                 ? articleRepository.findById(id).orElseThrow(ArticleNotFoundException::new)
-                : articleRepository.findByPublishedAndFinishedAndId(false, true, id)
+                : articleRepository.findByPublishedAndFinishedAndId(true, true, id)
                 .orElseThrow(ArticleNotFoundException::new);
         return ok(singletonMap("article", dto));
     }
@@ -167,7 +202,7 @@ public class ArticleController extends BaseController {
 
         Article dto = isAdmin
                 ? articleRepository.findById(id).orElseThrow(ArticleNotFoundException::new)
-                : articleRepository.findByPublishedAndFinishedAndId(false, true, id)
+                : articleRepository.findByPublishedAndFinishedAndId(true, true, id)
                 .orElseThrow(ArticleNotFoundException::new);
         mav.addObject("dto", new CommentCreateDTO());
         mav.addObject("article", dto);

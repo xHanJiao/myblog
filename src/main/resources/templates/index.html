@@ -58,7 +58,7 @@
 
 <div class="container">
     <div class="row">
-        <div class="col m8">
+        <div class="col m8 hoverable" style="padding: 3%">
             <div class="section">
                 <div>
                     <h3>
@@ -83,32 +83,40 @@
             </div>
         </div>
         <div class="col m2 offset-m1 hide-on-med-and-down">
+            <div th:fragment="slideBar">
             <div class="row">
-                <div class="m5 offset-m4 s5 offset-s4">
-                    <div class="card z-depth-0.5">
-                        <div class="card-image">
+                <div class="m5 offset-m4 s5 offset-s4 hoverable">
+                    <div class="card z-depth-0">
+                        <div class="card-image z-depth-0">
                             <img th:src="@{/images/sample-1.jpg}">
                             <span class="card-title" th:text="个人介绍"></span>
                         </div>
-                        <div class="card-content">
+                        <div class="card-content z-depth-0">
                             <p class="flow-text" style="color: #212121;">聂志军</p>
                         </div>
-                        <div class="card-action">
+                        <div class="card-action z-depth-0">
                             <a href="#">这是一个链接</a>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="row">
-                <div class="m5 offset-m4 s5 offset-s4">
-                    <ul>
-                        <li th:each="cate: ${headCate}">
+                <div class="divider"></div>
+            </div>
+            <div class="row">
+                <div class="m5 offset-m4 s5 offset-s4 hoverable">
+                    <ul class="section table-of-contents" id="cats">
+                        <li th:each="cate: ${headCate}" class="actualCate">
                             <a th:text="${cate.getName()}"
                                th:href="'/category/' + ${cate.getName()}"></a></li>
-                        <li><a th:text="#{index.cate.toAll}"
-                               href="#modal2"></a></li>
+                        <li class="dividerLi">
+                            <div class="divider"></div>
+                        </li>
+                        <li><a th:text="全部分类" id="moreCate"></a></li>
+                        <li><a th:text="收起" id="lessCate"></a></li>
                     </ul>
                 </div>
+            </div>
             </div>
         </div>
     </div>
@@ -117,7 +125,7 @@
 <div id="modal1" class="modal" th:fragment="modal">
     <form th:action="@{/add/category}" th:method="POST">
         <div class="modal-content">
-            <h4>创建分类</h4>
+            <h4 style="color: #212121">创建分类</h4>
             <div class="input-field">
                 <label for="cateName" th:text="#{index.cate.cateName}"></label>
                 <input th:placeholder="#{index.cate.placeholder}" type="text"
@@ -125,9 +133,9 @@
                 <!--fixme 放到CSS中-->
             </div>
             <div class="input-field"><label for="cateDescription" th:text="#{index.cate.cateDescription}">
-                </label>
+            </label>
                 <input th:placeholder="#{index.cate.placeholder}" type="text"
-                       style="color: #212121;" id="cateDescription" th:name="description"</div>
+                       style="color: #212121;" id="cateDescription" th:name="description"/></div>
         </div>
         <div class="modal-footer">
             <button class="btn wave-effect wave-light right" type="submit" th:text="#{button.submit}"></button>
@@ -135,24 +143,69 @@
     </form>
 </div>
 
-<div id="modal2" class="modal" th:fragment="modal">
-        <div class="modal-content">
-            <h4 style="color: #212121">创建分类</h4>
-            <ul>
-                <li th:each="cate: ${allCate}">
-                    <a th:text="${cate.getName()}" style="color: #212121"
-                       th:href="'/category/' + ${cate.getName()}"></a></li>
-            </ul>
-        </div>
-</div>
-
 <script src="https://cdn.bootcss.com/jquery/2.2.1/jquery.js"></script>
 <script th:src="@{/js/materialize.min.js}"></script>
 <script>
     $(document).ready(function () {
-        $('.modal').modal();
+        $('#modal1').modal();
         $('select').material_select();
+        $('#lessCate').on('click', function () {
+            $.get('/lessCate', function (data, status) {
+                if (status === 'success') {
+                    var cats = $('#cats');
+                    cats.find('li[class=actualCate]').remove();
+                    for (var k in data) {
+                        console.log("category : " + data[k]);
+                        cats.find('li[class=dividerLi]')
+                            .before($('<li class="actualCate"></li>')
+                                .append($('<a></a>')
+                                    .attr('href', data[k])
+                                    .text(data[k])));
+                    }
+                    $('#moreCate').show();
+                    $('#lessCate').hide();
+                }
+            });
+        }).hide();
+        $('#moreCate').on('click', function () {
+            $.get('/categories', function (data, status) {
+                if (status === 'success') {
+                    var cats = $('#cats');
+                    cats.find('li[class=actualCate]').remove();
+                    for (var k in data) {
+                        console.log("category : " + data[k]);
+                        cats.find('li[class=dividerLi]')
+                            .before($('<li class="actualCate"></li>')
+                                .append($('<a></a>')
+                                    .attr('href', '/category/' + data[k])
+                                    .text(data[k])));
+                    }
+                    $('#lessCate').show();
+                    $('#moreCate').hide();
+                }
+            });
+        });
+
     });
+
+    // .on('click', function () {
+    // $.get('/lessCate', function (data, status) {
+    //     if (status === 'success') {
+    //         var cats = $('#cats');
+    //         cats.empty();
+    //         for (var k in data) {
+    //             console.log("category : " + data[k]);
+    //             cats.append($('<li></li>')
+    //                 .append($('<a></a>')
+    //                     .attr('href', data[k])
+    //                     .text(data[k])));
+    //         }
+    //         cats.append($('<li></li>')
+    //             .append($('<a id="moreCate"></a>')
+    //                 .text('全部分类')));
+    //     }
+    // });
+    // });
 </script>
 </body>
 </html>

@@ -16,6 +16,12 @@ public interface ArticleRepository extends MongoRepository<Article, String> {
 
     Page<Article> findByPublishedAndFinished(Boolean published, Boolean finished, PageRequest pageable);
 
+    int countByCategoryAndPublishedAndFinished(String category, Boolean published, Boolean finished);
+
+    int countByCategory(String category);
+
+    int countByPublishedAndFinished(Boolean published, Boolean finished);
+
     Page<Article> findAllByPublishedAndFinished(Boolean published, Boolean finished, PageRequest pageable);
 
     Page<Article> findAllByPublishedAndFinishedAndCategory(Boolean published, Boolean finished, String category, PageRequest pageRequest);

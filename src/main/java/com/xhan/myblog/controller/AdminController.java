@@ -15,6 +15,8 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -33,7 +35,9 @@ import static org.springframework.util.StringUtils.hasText;
 public class AdminController extends BaseController {
 
     @RequestMapping(value = {LOGIN_DISPATCH_URL})
-    public String Login() {
+    public String Login(HttpSession session, RedirectAttributes model) {
+        model.addFlashAttribute(IS_ADMIN, true);
+        session.setAttribute(IS_ADMIN, true);
         return REDIRECT + INDEX;
     }
 
