@@ -23,7 +23,6 @@ import javax.validation.Valid;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
-import java.util.stream.IntStream;
 
 import static com.xhan.myblog.controller.ControllerConstant.*;
 import static java.util.Collections.singletonMap;
@@ -85,10 +84,6 @@ public class ArticleController extends BaseController {
         return false;
     }
 
-    private boolean isIntValid(Integer i) {
-        return i != null && i >= 0;
-    }
-
     @GetMapping(path = SLASH + CATEGORY + NAME_PATH_VAR)
     public ModelAndView getArticlesOfCategory(@PathVariable String name, ModelAndView mav,
                                               @RequestParam(defaultValue = "0") Integer page,
@@ -107,32 +102,18 @@ public class ArticleController extends BaseController {
                 ? articleRepository.countByCategoryAndState(name, ArticleState.PUBLISHED.getState())
                 : articleRepository.countByCategory(name);
 
-        preProcessToArticleList(mav, page, pageSize, articles, nums, CATE, CATE_URL);
+        preProcessToArticleList(mav, page, pageSize, articles, nums, M_CATE, M_CATE_URL);
         mav.addObject("cateName", name);
         return mav;
-    }
-
-    private void preProcessToArticleList(ModelAndView mav, Integer page, Integer pageSize,
-                                         Page<Article> articles, int nums, String meta, String metaUrl) {
-        mav.setViewName(ARTICLE_LIST);
-        page = isIntValid(page) ? page : 0;
-        int maxPage = nums % pageSize == 0 ? nums / pageSize : nums / pageSize + 1;
-        List<Integer> pages = IntStream.range(0, maxPage).boxed().map(i -> i+1).collect(toList());
-        mav.addObject("articles", articles.getContent());
-        mav.addObject("currentPage", page + 1);
-        mav.addObject("allPages", pages);
-        mav.addObject("meta", meta);
-        mav.addObject("metaUrl", metaUrl);
     }
 
     /**
      * 获取一个分类下的文章
      */
     private Page<Article> getPagedArticles(Integer page, Integer pageSize, Boolean isAdmin, String cateName) {
-        page = isIntValid(page) ? page : 0;
-        pageSize = isIntValid(pageSize) ? pageSize : 5;
+        MyPageRequest myPageRequest = new MyPageRequest(page, pageSize).invoke();
         isAdmin = isAdmin == null ? false : isAdmin;
-        PageRequest request = of(page, pageSize, DESC, "createTime");
+        PageRequest request = of(myPageRequest.getPage(), myPageRequest.getPageSize(), DESC, "createTime");
         return isAdmin
                 ? articleRepository.findAllByCategory(cateName, request)
                 : articleRepository.findAllByStateAndCategory(ArticleState.PUBLISHED.getState(), cateName, request);
@@ -159,17 +140,17 @@ public class ArticleController extends BaseController {
                 ? (int) articleRepository.count()
                 : articleRepository.countByState(ArticleState.PUBLISHED.getState());
 
-        preProcessToArticleList(mav, page, pageSize, articles, nums, ALL_ARTICLE, ALL_ARTICLE_URL);
+        preProcessToArticleList(mav, page, pageSize, articles, nums, ALL_ARTICLE, M_ALL_ARTICLE_URL);
         return mav;
     }
 
     private Page<Article> getPagedArticles(Integer page, Integer pageSize, Boolean isAdmin) {
-        page = isIntValid(page) ? page : 0;
-        pageSize = isIntValid(pageSize) ? pageSize : 5;
+        MyPageRequest mpr = new MyPageRequest(page, pageSize).invoke();
         isAdmin = isAdmin == null ? false : isAdmin;
+        PageRequest pageRequest = of(mpr.getPage(), mpr.getPageSize(), DESC, "createTime");
         return isAdmin
-                ? articleRepository.findAll(of(page, pageSize, DESC, "createTime"))
-                : articleRepository.findAllByState(ArticleState.PUBLISHED.getState(), of(page, pageSize, DESC, "createTime"));
+                ? articleRepository.findAll(pageRequest)
+                : articleRepository.findAllByState(ArticleState.PUBLISHED.getState(), pageRequest);
     }
 
     @GetMapping(path = ARTICLE_URL + ID_PATH_VAR,
@@ -242,6 +223,7 @@ public class ArticleController extends BaseController {
         } else if (!articleRepository.existsById(dto.getArticleId())) {
             return setErrorMav("no article", mav, viewName);
         } else {
+            // todo 这里要处理一下游客的内容
             UpdateResult updateResult = saveComment(dto);
             oneModify(mav, viewName, errMsg, updateResult);
         }

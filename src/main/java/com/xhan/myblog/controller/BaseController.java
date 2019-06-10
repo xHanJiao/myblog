@@ -6,10 +6,17 @@ import com.xhan.myblog.repository.ArticleRepository;
 import com.xhan.myblog.repository.CategoryRepository;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.servlet.ModelAndView;
+
+import java.util.List;
+import java.util.stream.IntStream;
+
+import static com.xhan.myblog.controller.ControllerConstant.ARTICLE_LIST;
+import static java.util.stream.Collectors.toList;
 
 @Controller
 @NoArgsConstructor
@@ -37,5 +44,46 @@ public class BaseController {
         mav.addObject("error", errMsg);
         mav.setViewName(viewName);
         return mav;
+    }
+
+    void preProcessToArticleList(ModelAndView mav, Integer page, Integer pageSize,
+                                         Page<Article> articles, int totalNums, String meta, String metaUrl) {
+        mav.setViewName(ARTICLE_LIST);
+        page = isIntValid(page) ? page : 0;
+        int maxPage = totalNums % pageSize == 0 ? totalNums / pageSize : totalNums / pageSize + 1;
+        List<Integer> pages = IntStream.range(0, maxPage).boxed().map(i -> i+1).collect(toList());
+        mav.addObject("articles", articles.getContent());
+        mav.addObject("currentPage", page + 1);
+        mav.addObject("allPages", pages);
+        mav.addObject("meta", meta);
+        mav.addObject("metaUrl", metaUrl);
+    }
+
+    protected boolean isIntValid(Integer i) {
+        return i != null && i >= 0;
+    }
+
+    protected class MyPageRequest {
+        private Integer page;
+        private Integer pageSize;
+
+        public MyPageRequest(Integer page, Integer pageSize) {
+            this.page = page;
+            this.pageSize = pageSize;
+        }
+
+        public Integer getPage() {
+            return page;
+        }
+
+        public Integer getPageSize() {
+            return pageSize;
+        }
+
+        public MyPageRequest invoke() {
+            page = isIntValid(page) ? page : 0;
+            pageSize = isIntValid(pageSize) ? pageSize : 5;
+            return this;
+        }
     }
 }

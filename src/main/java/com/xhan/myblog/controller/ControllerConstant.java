@@ -13,6 +13,8 @@ public interface ControllerConstant {
     String ADD_URL = SLASH + "add";
     String INDEX = "index";
     String REDIRECT = "redirect:";
+    String RECYCLE = "recycle";
+    String RECYCLED_URL = SLASH + RECYCLE;
     String EDIT = "edit";
     String ID_PATH_VAR = SLASH + "{id}";
     String NAME_PATH_VAR = SLASH + "{name}";
@@ -21,6 +23,7 @@ public interface ControllerConstant {
     String DELETE_URL = SLASH + "del";
     String COMMENT_URL = "/comment";
     String RECOVER_URL = SLASH + "recover";
+    String DRAFT_URL = SLASH + "draft";
     // LOGIN
     String LOGIN_DISPATCH_URL = "/loginsucc";
     String IS_ADMIN = "isAdmin";
@@ -29,17 +32,17 @@ public interface ControllerConstant {
     String LOGIN_URL = SLASH + LOGIN;
     // META INF IN ARTICLE LIST
     String ALL_ARTICLE = "articles.meta.all";
-    String PUBLISHED = "articles.meta.published";
-    String NOT_PUBLISHED = "articles.meta.notPublished";
-    String FINISHED = "articles.meta.finished";
-    String NOT_FINISHED = "articles.meta.notFinished";
-    String CATE = "articles.meta.category";
+    String M_DRAFT_URL = DRAFT_URL + SLASH;
+    String M_RECYCLED_URL = SLASH + RECYCLE + SLASH;
+    String M_RECYCLED = "articles.meta.recycle";
+    String M_DRAFT = "articles.meta.draft";
+    String M_PUBLISHED = "articles.meta.published";
+    String M_HIDDEN = "articles.meta.notPublished";
+    String M_CATE = "articles.meta.category";
     // META URL IN ARTICLE LIST
-    String ALL_ARTICLE_URL = ARTICLE_URL + SLASH;
-//    String PUBLISHED_URL =
-//    String NOT_PUBLISHED_URL =
-//    String FINISHED_URL =
-//    String NOT_FINISHED_URL =
-    String CATE_URL = SLASH + CATEGORY + SLASH;
+    String M_ALL_ARTICLE_URL = ARTICLE_URL + SLASH;
+//    String M_PUBLISHED_URL =
+//    String M_HIDDEN =
+    String M_CATE_URL = SLASH + CATEGORY + SLASH;
 }
 

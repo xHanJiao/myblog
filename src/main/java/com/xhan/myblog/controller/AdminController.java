@@ -7,9 +7,12 @@ import com.xhan.myblog.model.content.dto.ArticleCreateDTO;
 import com.xhan.myblog.model.content.dto.ContentTitleIdDTO;
 import com.xhan.myblog.model.content.dto.DelCommDTO;
 import com.xhan.myblog.model.content.repo.Article;
+import com.xhan.myblog.model.content.repo.ArticleState;
 import com.xhan.myblog.model.content.repo.Category;
 import com.xhan.myblog.model.content.repo.Comment;
 import com.xhan.myblog.utils.BlogUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.http.ResponseEntity;
@@ -28,12 +31,12 @@ import java.net.URISyntaxException;
 
 import static com.xhan.myblog.controller.ControllerConstant.*;
 import static java.util.Collections.singletonMap;
+import static org.springframework.data.domain.Sort.Direction.DESC;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 import static org.springframework.data.mongodb.core.query.Query.query;
 import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static org.springframework.http.ResponseEntity.badRequest;
-import static org.springframework.http.ResponseEntity.ok;
+import static org.springframework.http.ResponseEntity.*;
 import static org.springframework.util.StringUtils.hasText;
 
 @Controller
@@ -96,9 +99,35 @@ public class AdminController extends BaseController {
             UpdateResult updateResult = mongoTemplate.update(Article.class)
                     .matching(query(where("id").is(dto.getArticleId())))
                     .apply(new Update().pull("comments", singletonMap("content", dto.getContent())))
-                    .all();
+                    .first();
             return oneModify(mav, viewName, errMsg, updateResult);
         }
+    }
+
+    @Secured(R_ADMIN)
+    @GetMapping(path = RECYCLED_URL)
+    public ModelAndView getRecycleBin(@RequestParam(defaultValue = "0") Integer page,
+                                      @RequestParam(defaultValue = "5") Integer pageSize,
+                                      ModelAndView mav) {
+        findByState(page, pageSize, mav, ArticleState.RECYCLED.getState(), M_RECYCLED, M_RECYCLED_URL);
+        return mav;
+    }
+
+    @Secured(R_ADMIN)
+    @GetMapping(path = DRAFT_URL)
+    public ModelAndView getDraft(@RequestParam(defaultValue = "0") Integer page,
+                                 @RequestParam(defaultValue = "5") Integer pageSize,
+                                 ModelAndView mav) {
+        findByState(page, pageSize, mav, ArticleState.DRAFT.getState(), M_DRAFT, M_DRAFT_URL);
+        return mav;
+    }
+
+    private void findByState(Integer page, Integer pageSize, ModelAndView mav, int state, String meta, String metaUrl) {
+        MyPageRequest mpr = new MyPageRequest(page, pageSize).invoke();
+        PageRequest pageRequest = PageRequest.of(mpr.getPage(), mpr.getPageSize(), DESC, "createTime");
+        Page<Article> recycledArticles = articleRepository.findAllByState(state, pageRequest);
+        int totalNum = articleRepository.countByState(state);
+        preProcessToArticleList(mav, mpr.getPage(), mpr.getPageSize(), recycledArticles, totalNum, meta, metaUrl);
     }
 
     @Secured(R_ADMIN)
