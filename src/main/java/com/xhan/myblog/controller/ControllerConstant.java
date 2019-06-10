@@ -14,7 +14,7 @@ public interface ControllerConstant {
     String INDEX = "index";
     String REDIRECT = "redirect:";
     String RECYCLE = "recycle";
-    String RECYCLED_URL = SLASH + RECYCLE;
+    String RECYCLE_URL = SLASH + RECYCLE;
     String EDIT = "edit";
     String ID_PATH_VAR = SLASH + "{id}";
     String NAME_PATH_VAR = SLASH + "{name}";

@@ -95,10 +95,12 @@
             var modify = $('#modSig').val();
             var cme = $('#commentEnable').prop('checked');
             var fns = $('#finished').prop('checked');
+            var state = fns === true ? 1 : 0;
             var checkValue = $("#categories").val();
             var data = {
                 title: $('#aTitle').val(), content: content,
-                commentEnable: cme, finished: fns, category: checkValue
+                commentEnable: cme, state: state, category: checkValue
+                // fixme 这里没有对state的处理进行检验
             };
             if (modify) {
                 mockFormKv('/modify/article/' + modify, 'POST', data);

@@ -7,6 +7,7 @@
     <title>小韩博客</title>
     <link href="http://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/materialize.min.css}">
+    <!--<link rel="stylesheet" th:href="@{/css/thyme.css}">-->
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
     <style>
@@ -34,6 +35,11 @@
         h5.flow-text {
             color: #212121;
         }
+        
+        input {
+            color: #212121;
+        }
+
     </style>
 </head>
 <body>
@@ -43,37 +49,14 @@
         <ul class="right hide-on-med-and-down flow-text" style="margin-right: 5%">
             <li><a th:text="#{nav.articles}" style="font-size: x-large" th:href="@{/article}"></a></li>
             <li><a sec:authorize="hasRole('ADMIN')" style="font-size: x-large;" class="dropdown-button"
-                   data-beloworigin="true" th:text="#{index.manage}"
-                   href="#" data-activates="dropdown1">管理</a></li>
+                   data-beloworigin="true" href="#" data-activates="dropdown1">管理</a></li>
         </ul>
         <ul sec:authorize="hasRole('ADMIN')" id="dropdown1" class="dropdown-content">
             <li><a th:href="@{/edit/article}">发布文章</a></li>
-            <li><a th:href="@{/draft}" th:text="#{articles.meta.draft}">草稿箱</a></li>
-            <li><a th:href="@{/recycle}" th:text="#{articles.meta.recycle}">回收站</a></li>
+            <li><a th:href="@{/draft}">草稿箱</a></li>
+            <li><a th:href="@{/recycle}">回收站</a></li>
             <li><a href="#modal1">创建分类</a></li>
         </ul>
-
-        <div id="modal1" class="modal" th:fragment="modal">
-            <form th:action="@{/add/category}" th:method="POST">
-                <div class="modal-content">
-                    <h4 style="color: #212121">创建分类</h4>
-                    <div class="input-field">
-                        <label for="cateName" th:text="#{index.cate.cateName}"></label>
-                        <input th:placeholder="#{index.cate.placeholder}" type="text"
-                               style="color: #212121;" id="cateName" th:name="name">
-                        <!--fixme 放到CSS中-->
-                    </div>
-                    <div class="input-field"><label for="cateDescription" th:text="#{index.cate.cateDescription}">
-                    </label>
-                        <input th:placeholder="#{index.cate.placeholder}" type="text"
-                               style="color: #212121;" id="cateDescription" th:name="description"/></div>
-                </div>
-                <div class="modal-footer">
-                    <button class="btn wave-effect wave-light right" type="submit" th:text="#{button.submit}"></button>
-                </div>
-            </form>
-        </div>
-
     </div>
 </nav>
 
@@ -144,6 +127,28 @@
     </div>
 </div>
 
+<div id="modal1" class="modal" th:fragment="modal">
+    <form th:action="@{/add/category}" th:method="POST">
+        <div class="modal-content">
+            <h4>创建分类</h4>
+            <div class="input-field">
+                <label for="cateName" th:text="#{index.cate.cateName}"></label>
+                <input th:placeholder="#{index.cate.placeholder}" type="text"
+                       id="cateName" th:name="name">
+                <!--style="color: #212121;" -->
+                <!--fixme 放到CSS中-->
+            </div>
+            <div class="input-field"><label for="cateDescription" th:text="#{index.cate.cateDescription}">
+            </label>
+                <input th:placeholder="#{index.cate.placeholder}" type="text"
+                       id="cateDescription" th:name="description"/></div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn wave-effect wave-light right" type="submit" th:text="#{button.submit}"></button>
+        </div>
+    </form>
+</div>
+
 <script src="https://cdn.bootcss.com/jquery/2.2.1/jquery.js"></script>
 <script th:src="@{/js/materialize.min.js}"></script>
 <script>
@@ -188,25 +193,6 @@
         });
 
     });
-
-    // .on('click', function () {
-    // $.get('/lessCate', function (data, status) {
-    //     if (status === 'success') {
-    //         var cats = $('#cats');
-    //         cats.empty();
-    //         for (var k in data) {
-    //             console.log("category : " + data[k]);
-    //             cats.append($('<li></li>')
-    //                 .append($('<a></a>')
-    //                     .attr('href', data[k])
-    //                     .text(data[k])));
-    //         }
-    //         cats.append($('<li></li>')
-    //             .append($('<a id="moreCate"></a>')
-    //                 .text('全部分类')));
-    //     }
-    // });
-    // });
 </script>
 </body>
 </html>

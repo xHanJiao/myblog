@@ -3,6 +3,7 @@ package com.xhan.myblog.controller;
 import com.mongodb.client.result.UpdateResult;
 import com.xhan.myblog.exceptions.content.ArticleNotFoundException;
 import com.xhan.myblog.exceptions.content.BlogException;
+import com.xhan.myblog.model.content.dto.NameDTO;
 import com.xhan.myblog.model.content.repo.Article;
 import com.xhan.myblog.model.content.repo.ArticleState;
 import com.xhan.myblog.model.content.repo.Category;
@@ -41,12 +42,10 @@ import static org.springframework.util.StringUtils.hasText;
 public class ArticleController extends BaseController {
 
     @GetMapping(value = {SLASH + INDEX, SLASH})
-    public ModelAndView index(ModelAndView mav, HttpSession session,
-                              @SessionAttribute(value = IS_ADMIN, required = false) Boolean isAdmin,
+    public ModelAndView index(@RequestParam(defaultValue = "5") Integer pageSize,
                               @RequestParam(defaultValue = "0") Integer page,
-                              @RequestParam(defaultValue = "5") Integer pageSize) {
-        isAdmin = checkAndSetIsAdmin(session, isAdmin);
-        Page<Article> articles = getPagedArticles(page, pageSize, isAdmin);
+                              ModelAndView mav) {
+        Page<Article> articles = getPagedArticles(page, pageSize);
         Article showBoard = articles.isEmpty() ? emptyArticle : articles.getContent().get(0);
         showBoard.convertToShortcut();
         Page<Category> categories = categoryRepository.findAll(of(0, 5));
@@ -62,8 +61,8 @@ public class ArticleController extends BaseController {
 
     @GetMapping(value = SLASH + CATEGORIES)
     public ResponseEntity<?> getCategories() {
-        List<String> categories = categoryRepository.findAll()
-                .stream().map(Category::getName)
+        List<String> categories = categoryRepository.findAllNames()
+                .stream().map(NameDTO::getName)
                 .collect(toList());
         return ResponseEntity.ok(categories);
     }
@@ -77,117 +76,80 @@ public class ArticleController extends BaseController {
         return ResponseEntity.ok(categories);
     }
 
-    private Boolean checkAndSetIsAdmin(HttpSession session, Boolean isAdmin) {
-        if (isAdmin == null) {
-            session.setAttribute(IS_ADMIN, false);
-        }
-        return false;
-    }
-
     @GetMapping(path = SLASH + CATEGORY + NAME_PATH_VAR)
     public ModelAndView getArticlesOfCategory(@PathVariable String name, ModelAndView mav,
                                               @RequestParam(defaultValue = "0") Integer page,
-                                              @RequestParam(defaultValue = "5") Integer pageSize,
-                                              @SessionAttribute(value = IS_ADMIN, required = false) Boolean isAdmin,
-                                              HttpSession session) {
+                                              @RequestParam(defaultValue = "5") Integer pageSize) {
         if (!hasText(name)) {
             mav.setViewName(INDEX);
             mav.setStatus(HttpStatus.BAD_REQUEST);
             mav.addObject("error", "分类名不能为空");
             return mav;
         }
-        isAdmin = checkAndSetIsAdmin(session, isAdmin);
-        Page<Article> articles = getPagedArticles(page, pageSize, isAdmin, name);
-        int nums = isAdmin
-                ? articleRepository.countByCategoryAndState(name, ArticleState.PUBLISHED.getState())
-                : articleRepository.countByCategory(name);
+        Page<Article> articles = getPagedArticles(page, pageSize, name);
+        int nums = articleRepository.countByCategoryAndState(name, ArticleState.PUBLISHED.getState());
 
         preProcessToArticleList(mav, page, pageSize, articles, nums, M_CATE, M_CATE_URL);
         mav.addObject("cateName", name);
         return mav;
     }
 
-    /**
-     * 获取一个分类下的文章
-     */
-    private Page<Article> getPagedArticles(Integer page, Integer pageSize, Boolean isAdmin, String cateName) {
-        MyPageRequest myPageRequest = new MyPageRequest(page, pageSize).invoke();
-        isAdmin = isAdmin == null ? false : isAdmin;
-        PageRequest request = of(myPageRequest.getPage(), myPageRequest.getPageSize(), DESC, "createTime");
-        return isAdmin
-                ? articleRepository.findAllByCategory(cateName, request)
-                : articleRepository.findAllByStateAndCategory(ArticleState.PUBLISHED.getState(), cateName, request);
-    }
-
     @GetMapping(path = ARTICLE_URL, consumes = {APPLICATION_JSON_VALUE, APPLICATION_JSON_UTF8_VALUE})
     public ResponseEntity<?> getArticles(@RequestParam(defaultValue = "0") Integer page,
-                                         @RequestParam(defaultValue = "5") Integer pageSize,
-                                         @SessionAttribute(value = IS_ADMIN, required = false) Boolean isAdmin,
-                                         HttpSession session) {
-        isAdmin = checkAndSetIsAdmin(session, isAdmin);
-        Page<Article> articles = getPagedArticles(page, pageSize, isAdmin);
+                                         @RequestParam(defaultValue = "5") Integer pageSize) {
+        Page<Article> articles = getPagedArticles(page, pageSize);
         return ok(articles.getContent());
     }
 
     @GetMapping(path = ARTICLE_URL)
     public ModelAndView getArticles(@RequestParam(defaultValue = "0") Integer page,
                                     @RequestParam(defaultValue = "5") Integer pageSize,
-                                    @SessionAttribute(value = IS_ADMIN, required = false) Boolean isAdmin,
-                                    ModelAndView mav, HttpSession session) {
-        isAdmin = checkAndSetIsAdmin(session, isAdmin);
-        Page<Article> articles = getPagedArticles(page, pageSize, isAdmin);
-        int nums = isAdmin
-                ? (int) articleRepository.count()
-                : articleRepository.countByState(ArticleState.PUBLISHED.getState());
+                                    ModelAndView mav) {
+        Page<Article> articles = getPagedArticles(page, pageSize);
+        int nums = articleRepository.countByState(ArticleState.PUBLISHED.getState());
 
         preProcessToArticleList(mav, page, pageSize, articles, nums, ALL_ARTICLE, M_ALL_ARTICLE_URL);
         return mav;
     }
 
-    private Page<Article> getPagedArticles(Integer page, Integer pageSize, Boolean isAdmin) {
+    private Page<Article> getPagedArticles(Integer page, Integer pageSize) {
         MyPageRequest mpr = new MyPageRequest(page, pageSize).invoke();
-        isAdmin = isAdmin == null ? false : isAdmin;
         PageRequest pageRequest = of(mpr.getPage(), mpr.getPageSize(), DESC, "createTime");
-        return isAdmin
-                ? articleRepository.findAll(pageRequest)
-                : articleRepository.findAllByState(ArticleState.PUBLISHED.getState(), pageRequest);
+        return articleRepository.findAllByState(ArticleState.PUBLISHED.getState(), pageRequest);
+    }
+
+    private Page<Article> getPagedArticles(Integer page, Integer pageSize, String cateName) {
+        MyPageRequest mpr = new MyPageRequest(page, pageSize).invoke();
+        PageRequest pageRequest = of(mpr.getPage(), mpr.getPageSize(), DESC, "createTime");
+        return articleRepository.findAllByStateAndCategory(ArticleState.PUBLISHED.getState(), cateName, pageRequest);
     }
 
     @GetMapping(path = ARTICLE_URL + ID_PATH_VAR,
             produces = {APPLICATION_JSON_UTF8_VALUE, APPLICATION_JSON_VALUE})
-    public ResponseEntity<?> getCertainArticle(@PathVariable String id, HttpSession session,
-                                               @SessionAttribute(value = IS_ADMIN, required = false) Boolean isAdmin) {
+    public ResponseEntity<?> getCertainArticle(@PathVariable String id) {
         if (!hasText(id))
             return badRequest().body("id cannot be null");
-        Article dto = getArticleDueAdmin(id, session, isAdmin);
+        Article dto = articleRepository
+                .findByStateAndId(ArticleState.PUBLISHED.getState(), id)
+                .orElseThrow(ArticleNotFoundException::new);
         return ok(singletonMap("article", dto));
     }
 
     @GetMapping(path = ARTICLE_URL + ID_PATH_VAR)
-    public ModelAndView getCertainArticle(@PathVariable String id,
-                                          ModelAndView mav, HttpSession session,
-                                          @SessionAttribute(value = IS_ADMIN, required = false) Boolean isAdmin) {
+    public ModelAndView getCertainArticle(@PathVariable String id, ModelAndView mav) {
         if (!hasText(id)) {
             mav.setStatus(HttpStatus.BAD_REQUEST);
             mav.setViewName(INDEX);
             mav.addObject("error", "no such article");
             return mav;
         }
-        Article dto = getArticleDueAdmin(id, session, isAdmin);
+        Article dto = articleRepository.findByStateAndId(ArticleState.PUBLISHED.getState(), id)
+                .orElseThrow(ArticleNotFoundException::new);
         mav.addObject("dto", new CommentCreateDTO());
         mav.addObject("article", dto);
         mav.setViewName(ARTICLE);
 
         return mav;
-    }
-
-    private Article getArticleDueAdmin(@PathVariable String id, HttpSession session, @SessionAttribute(value = IS_ADMIN, required = false) Boolean isAdmin) {
-        isAdmin = checkAndSetIsAdmin(session, isAdmin);
-
-        return isAdmin
-                ? articleRepository.findById(id).orElseThrow(ArticleNotFoundException::new)
-                : articleRepository.findByStateAndId(ArticleState.PUBLISHED.getState(), id)
-                .orElseThrow(ArticleNotFoundException::new);
     }
 
     @PostMapping(path = ADD_COMMENTS, consumes = {APPLICATION_JSON_VALUE, APPLICATION_JSON_UTF8_VALUE})

@@ -22,12 +22,16 @@
                     <div class="section contentHolder">
                         <a th:href="@{'/article/' + ${article.getId()}}"
                            th:text="${article.getTitle()}"></a>
+                        <!--<a th:if="${metaUrl == '/recycle/'}" th:href="@{'/del/article/' + ${article.getId()}}"-->
+                           <!--class="btn-flat waves-effect waves-light">-->
+                           <!--<i class="material-icons">delete</i>-->
+                        <!--</a>-->
                         <span class="right" th:text="${article.getCreateTime()}"></span>
                     </div>
                     <div class="divider"></div>
                 </div>
             </div>
-            <div id="pageHolder" class="right col m2 s2">
+            <div id="pageHolder" th:if="${allPages.size() > 1}" class="right col m2 s2">
                 <input th:value="${metaUrl}" type="hidden" id="metaUrl"/>
                 <label for="pages">页码</label>
                 <select id="pages" onchange="toPage(this)">

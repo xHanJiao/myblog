@@ -30,4 +30,6 @@ public interface ArticleRepository extends MongoRepository<Article, String> {
 
     Optional<ContentTitleIdDTO> getById(String id);
 
+    void deleteByTitleAndState(String title, int state);
+
 }

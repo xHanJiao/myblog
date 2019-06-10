@@ -2,6 +2,7 @@ package com.xhan.myblog.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.xhan.myblog.model.content.repo.Article;
+import com.xhan.myblog.model.content.repo.ArticleState;
 import com.xhan.myblog.model.content.repo.Comment;
 import com.xhan.myblog.model.content.dto.CommentCreateDTO;
 import com.xhan.myblog.model.content.dto.DelCommDTO;
@@ -66,7 +67,7 @@ public class ContentControllerTest {
         savedArticle = new Article();
         savedArticle.setTitle("saved title");
         savedArticle.setContent("saved content");
-        savedArticle.setPublished(false);
+        savedArticle.setState(ArticleState.PUBLISHED.getState());
         Comment savedComment = new Comment();
         savedComment.setCreator("mock creator");
         savedComment.setContent("mock comment");
@@ -75,7 +76,7 @@ public class ContentControllerTest {
         deletedArticle = new Article();
         deletedArticle.setContent("published article");
         deletedArticle.setTitle("published article");
-        deletedArticle.setPublished(true);
+        deletedArticle.setState(ArticleState.PUBLISHED.getState());
         deletedArticle = articleRepository.save(deletedArticle);
         mockComment = new Comment();
         mockComment.setCreator("mock Creator");
@@ -92,7 +93,7 @@ public class ContentControllerTest {
 
     }
 
-//    @Test
+    @Test
     public void insertAdmin() {
         Admin admin = new Admin();
         admin.setAccount("xhanjiao94217");
@@ -178,7 +179,7 @@ public class ContentControllerTest {
 
     @Test
     public void deleteArticle() throws Exception {
-        Assert.assertFalse(savedArticle.getPublished());
+        Assert.assertNotEquals(1, savedArticle.getState());
 
         mockMvc.perform(post(ARTICLE_URL + DELETE_URL + SLASH + savedArticle.getId()))
                 .andExpect(status().isOk())
@@ -187,7 +188,7 @@ public class ContentControllerTest {
 
     @Test
     public void recoverArticle() throws Exception {
-        Assert.assertTrue(deletedArticle.getPublished());
+        Assert.assertEquals(1, deletedArticle.getState());
 
         mockMvc.perform(post(ARTICLE_URL + RECOVER_URL + SLASH + deletedArticle.getId()))
                 .andExpect(status().isOk())

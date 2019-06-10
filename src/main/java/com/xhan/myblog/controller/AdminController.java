@@ -2,6 +2,7 @@ package com.xhan.myblog.controller;
 
 import com.mongodb.client.result.UpdateResult;
 import com.xhan.myblog.exceptions.content.ArticleNotFoundException;
+import com.xhan.myblog.exceptions.content.BlogException;
 import com.xhan.myblog.exceptions.content.CommentNotFoundException;
 import com.xhan.myblog.model.content.dto.ArticleCreateDTO;
 import com.xhan.myblog.model.content.dto.ContentTitleIdDTO;
@@ -15,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Controller;
@@ -30,6 +32,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 import static com.xhan.myblog.controller.ControllerConstant.*;
+import static com.xhan.myblog.model.content.repo.ArticleState.PUBLISHED;
+import static com.xhan.myblog.model.content.repo.ArticleState.RECYCLED;
 import static java.util.Collections.singletonMap;
 import static org.springframework.data.domain.Sort.Direction.DESC;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
@@ -76,10 +80,10 @@ public class AdminController extends BaseController {
                 .lastModified(System.currentTimeMillis()).build();
     }
 
-    private UpdateResult modifyDeleted(Query unDeletedIdQuery, boolean b) {
+    private UpdateResult modifyDeleted(Query unDeletedIdQuery, int state) {
         return mongoTemplate.update(Article.class)
                 .matching(unDeletedIdQuery)
-                .apply(new Update().set("published", b)).all();
+                .apply(new Update().set("state", state)).all();
     }
 
     @Secured(R_ADMIN)
@@ -105,7 +109,7 @@ public class AdminController extends BaseController {
     }
 
     @Secured(R_ADMIN)
-    @GetMapping(path = RECYCLED_URL)
+    @GetMapping(path = RECYCLE_URL)
     public ModelAndView getRecycleBin(@RequestParam(defaultValue = "0") Integer page,
                                       @RequestParam(defaultValue = "5") Integer pageSize,
                                       ModelAndView mav) {
@@ -159,8 +163,8 @@ public class AdminController extends BaseController {
                 : ResponseEntity.status(500).body("cannot delete comment");
     }
 
-    private Query getIdQueryWithDeleteState(String id, boolean state) {
-        return query(where("id").is(id).and("published").is(state));
+    private Query getIdQueryWithDeleteState(String id, int state) {
+        return query(where("id").is(id).and("state").is(state));
     }
 
     @Secured(R_ADMIN)
@@ -169,12 +173,26 @@ public class AdminController extends BaseController {
         if (!hasText(id))
             return badRequest().body("id cannot be null");
 
-        UpdateResult result =
-                modifyDeleted(getIdQueryWithDeleteState(id, false), true);
-
-        return result.getModifiedCount() == 1
-                ? ok("modified")
-                : badRequest().body("check id you input");
+        ResponseEntity<?> responseEntity;
+        Article article = articleRepository.findById(id)
+                .orElseThrow(ArticleNotFoundException::new);
+        try {
+            if (article.getState() == PUBLISHED.getState()) {
+                UpdateResult result =
+                        modifyDeleted(getIdQueryWithDeleteState(id, PUBLISHED.getState()), RECYCLED.getState());
+                responseEntity = result.getModifiedCount() == 1
+                        ? ResponseEntity.status(HttpStatus.FOUND).location(new URI("/recycle")).build()
+                        : badRequest().body("check id you input");
+            } else if (article.getState() == RECYCLED.getState()) {
+                articleRepository.delete(article);
+                responseEntity = ResponseEntity.status(HttpStatus.FOUND).location(new URI("/recycle")).build();
+            } else {
+                throw new IllegalStateException(Integer.toString(article.getState()));
+            }
+        } catch (URISyntaxException e) {
+            throw new BlogException();
+        }
+        return responseEntity;
     }
 
     @Secured(R_ADMIN)
@@ -184,11 +202,15 @@ public class AdminController extends BaseController {
             return badRequest().body("id cannot be null");
 
         UpdateResult result =
-                modifyDeleted(getIdQueryWithDeleteState(id, true), false);
+                modifyDeleted(getIdQueryWithDeleteState(id, RECYCLED.getState()), PUBLISHED.getState());
 
-        return result.getModifiedCount() == 1
-                ? ok("modified")
-                : badRequest().body("check id you input");
+        try {
+            return result.getModifiedCount() == 1
+                    ? ResponseEntity.status(HttpStatus.FOUND).location(new URI("/article/" + id)).build()
+                    : badRequest().body("check id you input");
+        } catch (URISyntaxException e) {
+            throw new BlogException();
+        }
     }
 
     @Secured(R_ADMIN)
