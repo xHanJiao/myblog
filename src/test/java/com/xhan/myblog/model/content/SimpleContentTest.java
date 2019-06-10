@@ -1,8 +1,7 @@
 package com.xhan.myblog.model.content;
 
+import com.xhan.myblog.model.content.repo.SimpleContent;
 import org.junit.Test;
-
-import static org.junit.Assert.*;
 
 public class SimpleContentTest {
 

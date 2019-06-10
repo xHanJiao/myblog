@@ -1,7 +1,7 @@
 package com.xhan.myblog.controller;
 
 import com.mongodb.client.result.UpdateResult;
-import com.xhan.myblog.model.content.Article;
+import com.xhan.myblog.model.content.repo.Article;
 import com.xhan.myblog.repository.ArticleRepository;
 import com.xhan.myblog.repository.CategoryRepository;
 import lombok.NoArgsConstructor;

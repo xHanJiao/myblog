@@ -1,10 +1,10 @@
 package com.xhan.myblog.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.xhan.myblog.model.content.Article;
-import com.xhan.myblog.model.content.Comment;
-import com.xhan.myblog.model.content.CommentCreateDTO;
-import com.xhan.myblog.model.content.DelCommDTO;
+import com.xhan.myblog.model.content.repo.Article;
+import com.xhan.myblog.model.content.repo.Comment;
+import com.xhan.myblog.model.content.dto.CommentCreateDTO;
+import com.xhan.myblog.model.content.dto.DelCommDTO;
 import com.xhan.myblog.model.user.Admin;
 import com.xhan.myblog.model.user.Guest;
 import com.xhan.myblog.repository.ArticleRepository;

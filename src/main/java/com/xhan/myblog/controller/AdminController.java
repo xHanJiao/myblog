@@ -3,7 +3,12 @@ package com.xhan.myblog.controller;
 import com.mongodb.client.result.UpdateResult;
 import com.xhan.myblog.exceptions.content.ArticleNotFoundException;
 import com.xhan.myblog.exceptions.content.CommentNotFoundException;
-import com.xhan.myblog.model.content.*;
+import com.xhan.myblog.model.content.dto.ArticleCreateDTO;
+import com.xhan.myblog.model.content.dto.ContentTitleIdDTO;
+import com.xhan.myblog.model.content.dto.DelCommDTO;
+import com.xhan.myblog.model.content.repo.Article;
+import com.xhan.myblog.model.content.repo.Category;
+import com.xhan.myblog.model.content.repo.Comment;
 import com.xhan.myblog.utils.BlogUtils;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
@@ -82,7 +87,8 @@ public class AdminController extends BaseController {
                 errMsg = "cannot delete comment";
 
         if (result.hasFieldErrors()) {
-            return setErrorMav("error in " + result.getFieldError().getField(),
+            String error = result.getFieldError().getField();
+            return setErrorMav("error in " + (error == null ? "" : error),
                     mav, viewName);
         } else if (!articleRepository.existsById(dto.getArticleId())) {
             return setErrorMav("no article", mav, viewName);
@@ -205,9 +211,9 @@ public class AdminController extends BaseController {
                     .apply(new Update()
                             .set("content", dto.getContent())
                             .set("title", dto.getTitle())
+                            .set("state", dto.getState())
                             .set("commentEnable", dto.getCommentEnable())
-                            .set("category", dto.getCategory())
-                            .set("finished", dto.getFinished())).first();
+                            .set("category", dto.getCategory())).first();
 
             if (updateResult.getModifiedCount() == 0) {
                 mav.addObject("dto", dto);
