@@ -7,6 +7,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.Optional;
 
 @Repository
@@ -21,6 +22,8 @@ public interface ArticleRepository extends MongoRepository<Article, String> {
     int countByCategory(String category);
 
     int countByState(int state);
+
+    Page<Article> findAllByStateIn(Collection<Integer> integers, PageRequest pageRequest);
 
     Page<Article> findAllByState(int state, PageRequest pageable);
 

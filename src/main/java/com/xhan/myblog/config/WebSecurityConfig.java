@@ -26,7 +26,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     private final String IMAGE_PATHS = "/image/**";
     private final String LOGIN_PATHS = "/login/**";
     private final String ADMIN_PATHS = "/admin/**";
-    private final String SUFFIX = "/**";
+
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {

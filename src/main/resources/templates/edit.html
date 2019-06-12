@@ -6,10 +6,16 @@
     <link href="http://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <!--Import materialize.css-->
     <!--<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.8/css/materialize.min.css">-->
-    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/materialize.min.css}">
+    <link th:href="@{/css/quill.css}" rel="stylesheet"/>
+    <!--<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">-->
     <!--Let browser know website is optimized for mobile-->
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <style>
+        .ql-editor strong{
+            font-weight:bold;
+        }
+    </style>
 </head>
 <body>
 <div th:replace="index::header"></div>
@@ -46,12 +52,12 @@
         </div>
         <div class="col m2">
             <p>
-                <input type="checkbox" id="commentEnable"/>
+                <input type="checkbox" id="commentEnable" checked="checked"/>
                 <label for="commentEnable"> 允许评论 </label>
             </p>
             <p>
-                <input type="checkbox" id="finished" checked="checked"/>
-                <label for="finished"> 发布 </label>
+                <input type="checkbox" id="finished"/>
+                <label for="finished"> 草稿 </label>
             </p>
             <label for="categories">请选择分类</label>
             <select id="categories">
@@ -69,12 +75,33 @@
     </div>
 </div>
 
-<div th:replace="index::modal"></div>
+<div id="modal1" class="modal" th:fragment="modal">
+    <form th:action="@{/add/category}" th:method="POST">
+        <div class="modal-content">
+            <h4>创建分类</h4>
+            <div class="input-field">
+                <label for="cateName" th:text="#{index.cate.cateName}"></label>
+                <input th:placeholder="#{index.cate.placeholder}" type="text"
+                       id="cateName" th:name="name">
+                <!--style="color: #212121;" -->
+                <!--fixme 放到CSS中-->
+            </div>
+            <div class="input-field"><label for="cateDescription" th:text="#{index.cate.cateDescription}">
+            </label>
+                <input th:placeholder="#{index.cate.placeholder}" type="text"
+                       id="cateDescription" th:name="description"/></div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn wave-effect wave-light right" type="submit" th:text="#{button.submit}"></button>
+        </div>
+    </form>
+</div>
+
 
 <script src="https://cdn.bootcss.com/jquery/2.2.1/jquery.js"></script>
 <script th:src="@{/js/materialize.min.js}"></script>
+<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>-->
 <script th:src="@{/js/quill.js}"></script>
-<!--<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>-->
 <script>
     function mockFormKv(URL, method, kv) {
         var form = $("<form></form>").attr("action", URL).attr("method", method);
@@ -89,13 +116,14 @@
     }
 
     $(document).ready(function () {
+        $('#modal1').modal();
         $('#categories').material_select();
         $('#sbmt').on('click', function () {
             var content = quill.container.firstChild.innerHTML;
             var modify = $('#modSig').val();
             var cme = $('#commentEnable').prop('checked');
             var fns = $('#finished').prop('checked');
-            var state = fns === true ? 1 : 0;
+            var state = fns === true ? 0 : 1;
             var checkValue = $("#categories").val();
             var data = {
                 title: $('#aTitle').val(), content: content,
@@ -117,7 +145,7 @@
         // [{ 'header': 1 }, { 'header': 2 }],               // custom button values
         [{'list': 'ordered'}, {'list': 'bullet'}],
         [{'script': 'sub'}, {'script': 'super'}],      // superscript/subscript
-        [{'indent': '-1'}, {'indent': '+1'}],          // outdent/indent
+        // [{'indent': '-1'}, {'indent': '+1'}],          // outdent/indent
         // [{ 'direction': 'rtl' }],                         // text direction
 
         // [{ 'size': ['small', false, 'large', 'huge'] }],  // custom dropdown

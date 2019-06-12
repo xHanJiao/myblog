@@ -5,12 +5,14 @@ import com.xhan.myblog.utils.BlogUtils;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class Comment extends SimpleContent{
-    @NotBlank
+    @NotBlank @Max(value = 7, message = "昵称长度不能超过7")
     private String creator;
 
     @Override

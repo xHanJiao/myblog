@@ -6,8 +6,9 @@
     <meta charset="UTF-8">
     <title th:text="${article.getTitle()}"></title>
     <link href="http://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/materialize.min.css}">
+    <link th:href="@{/css/quill.css}" rel="stylesheet"/>
+    <!--<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">-->
     <script th:src="@{/js/util.js}"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <style>
@@ -41,7 +42,8 @@
         <div class="col m8 offset-m2">
             <div class="row">
                 <div>
-                    <h3 class="center-align" th:text="${article.getTitle()}"></h3>
+                    <!--<h3 class="center-align" th:text="${article.getTitle()}"></h3>-->
+                    <p class="flow-text center-align" style="font-size: xx-large" th:text="${article.getTitle()}"></p>
                 </div>
             </div>
             <div class="row">
@@ -50,47 +52,67 @@
                     <input id="articleId" th:value="${article.getId()}" type="hidden"/>
                 </div>
             </div>
-            <div class="row flow-text articleHolder">
+            <div class="row flow-text articleHolder" style="font-size: medium">
                 <p th:utext="${article.getContent()}"></p>
             </div>
-            <div class="fixed-action-btn horizontal">
-                <a class="btn-floating btn-large red" title="menu">
+            <div class="fixed-action-btn verticle">
+                <a class="btn-floating green" title="menu">
                     <i class="material-icons large">menu</i>
                 </a>
                 <ul>
                     <li th:if="${article.getCommentEnable()}">
-                        <a id="commBtn" class="btn-floating blue"
-                           title="发表评论">
-                            <i class="material-icons">mode_edit</i>
-                        </a>
+                        <a id="commBtn" class="btn-floating blue" title="发表评论"
+                           th:if="${article.getState() == 1 || article.getState() == 2}">
+                            <i class="material-icons">mode_edit</i> </a>
                     </li>
                     <li>
-                        <a id="uphead" class="btn-floating yellow"
-                           title="返回顶部">
-                            <i class="material-icons">call_merge</i>
-                        </a>
+                        <a id="uphead" class="btn-floating yellow" title="返回顶部">
+                            <i class="material-icons">call_merge</i> </a>
                     </li>
-                    <li sec:authorize="hasRole('ADMIN')">
-                        <a class="btn-floating red" id="editBtn"
-                           title="修改文章">
+                    <li sec:authorize="hasRole('ADMIN')" th:fragment="editBtn">
+                        <a class="stateBtn red" id="editBtn" title="修改文章">
                             <i class="material-icons">mode_edit</i>
                         </a>
                     </li>
-                    <li sec:authorize="hasRole('ADMIN')" th:if="${article.getState() == 1}">
-                        <a class="btn-floating yellow deleteBtn"
-                           title="删除文章">
+                    <li sec:authorize="hasRole('ADMIN')" th:fragment="softDelBtn"
+                        th:if="${article.getState() == 2 || article.getState() == 1}">
+                        <a class="stateBtn yellow deleteBtn" title="删除文章">
                             <i class="material-icons">delete</i>
                         </a>
                     </li>
-                    <li sec:authorize="hasRole('ADMIN')" th:if="${article.getState() == 3}">
-                        <a class="btn-floating red deleteBtn"
-                           title="彻底删除">
+                    <li sec:authorize="hasRole('ADMIN')" th:fragment="softDelBtn"
+                        th:if="${article.getState() == 1}">
+                        <a class="stateBtn yellow hideBtn" title="隐藏文章">
                             <i class="material-icons">delete</i>
                         </a>
                     </li>
-                    <li sec:authorize="hasRole('ADMIN')" th:if="${article.getState() == 3}">
-                        <a class="btn-floating red" id="recoverBtn"
-                           title="恢复文章">
+                    <li sec:authorize="hasRole('ADMIN')" th:fragment="softDelBtn"
+                        th:if="${article.getState() == 2}">
+                        <a class="stateBtn yellow showBtn" title="显示文章">
+                            <i class="material-icons">delete</i>
+                        </a>
+                    </li>
+                    <li sec:authorize="hasRole('ADMIN')" th:fragment="vPublishBtn"
+                        th:if="${article.getState() == 0}">
+                        <a class="stateBtn yellow" id="vPublishBtn" title="公开发布文章">
+                            <i class="material-icons">tab</i>
+                        </a>
+                    </li>
+                    <li sec:authorize="hasRole('ADMIN')" th:fragment="uvPublishBtn"
+                        th:if="${article.getState() == 0}">
+                        <a class="stateBtn blue" id="uvPublishBtn" title="不公开发布文章">
+                            <i class="material-icons">tab_unselected</i>
+                        </a>
+                    </li>
+                    <li sec:authorize="hasRole('ADMIN')" th:fragment="hardDelBtn"
+                        th:if="${article.getState() == 3}">
+                        <a class="stateBtn red deleteBtn" title="彻底删除">
+                            <i class="material-icons">delete</i>
+                        </a>
+                    </li>
+                    <li sec:authorize="hasRole('ADMIN')" th:fragment="recoverBtn"
+                        th:if="${article.getState() == 3}">
+                        <a class="stateBtn red" id="recoverBtn" title="恢复文章">
                             <i class="material-icons">restore</i>
                         </a>
                     </li>
@@ -158,10 +180,15 @@
 </div>
 <script src="https://cdn.bootcss.com/jquery/2.2.1/jquery.js"></script>
 <script th:src="@{/js/materialize.min.js}"></script>
+<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>-->
 <script th:src="@{/js/quill.js}"></script>
-<!--<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>-->
 <script>
     $(document).ready(function () {
+
+        // $('.fixed-action-btn').floatingActionButton({
+        //     hoverEnabled: false
+        // });
+
         var addCommDiv = $('#addCommDiv');
         addCommDiv.hide();
 
@@ -170,6 +197,8 @@
             $('#content').val("");
             $("html,body").animate({scrollTop: addCommDiv.offset().top}, 1000);
         });
+
+        $('.stateBtn').addClass('btn-floating');
 
         $('.reply').on('click', function () {
             var title = 'reply to: @' +
@@ -203,6 +232,31 @@
             console.log('articleId : ' + articleId);
             mockFormKv('/del/article/' + articleId, 'POST', {});
         });
+
+        $('#vPublishBtn').on('click', function () {
+            var articleId = $('#articleId').val();
+            console.log('articleId : ' + articleId);
+            mockFormKv('/vpub/article/' + articleId, 'POST', {});
+        });
+
+        $('.hideBtn').click(function () {
+            var articleId = $('#articleId').val();
+            console.log('articleId : ' + articleId);
+            mockFormKv('/uvpub/article/' + articleId, 'POST', {});
+        });
+
+        $('.showBtn').click(function () {
+            var articleId = $('#articleId').val();
+            console.log('articleId : ' + articleId);
+            mockFormKv('/vpub/article/' + articleId, 'POST', {});
+        });
+
+        $('#uvPublishBtn').on('click', function () {
+            var articleId = $('#articleId').val();
+            console.log('articleId : ' + articleId);
+            mockFormKv('/uvpub/article/' + articleId, 'POST', {});
+        });
+
         $('#recoverBtn').on('click', function () {
             var articleId = $('#articleId').val();
             console.log('articleId : ' + articleId);

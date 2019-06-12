@@ -4,6 +4,10 @@ import com.xhan.myblog.model.user.Admin;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 public interface AdminRepository extends MongoRepository<Admin, String> {
+
+    Admin findByAccount(String account);
 }

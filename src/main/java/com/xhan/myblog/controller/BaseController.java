@@ -19,7 +19,6 @@ import static com.xhan.myblog.controller.ControllerConstant.ARTICLE_LIST;
 import static java.util.stream.Collectors.toList;
 
 @Controller
-@NoArgsConstructor
 public class BaseController {
 
     @Autowired
@@ -29,6 +28,10 @@ public class BaseController {
     @Autowired
     protected CategoryRepository categoryRepository;
     protected Article emptyArticle = new Article();
+
+    public BaseController() {
+        emptyArticle.setState(1);
+    }
 
     ModelAndView oneModify(ModelAndView mav, String viewName, String errMsg, UpdateResult updateResult) {
         mav.setViewName(viewName);
@@ -57,6 +60,10 @@ public class BaseController {
         mav.addObject("allPages", pages);
         mav.addObject("meta", meta);
         mav.addObject("metaUrl", metaUrl);
+        Article mockArticle = articles.getTotalElements() > 0
+                ? articles.getContent().get(0)
+                : emptyArticle;
+        mav.addObject("article", mockArticle);
     }
 
     protected boolean isIntValid(Integer i) {

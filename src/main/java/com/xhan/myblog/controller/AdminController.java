@@ -11,7 +11,12 @@ import com.xhan.myblog.model.content.repo.Article;
 import com.xhan.myblog.model.content.repo.ArticleState;
 import com.xhan.myblog.model.content.repo.Category;
 import com.xhan.myblog.model.content.repo.Comment;
+import com.xhan.myblog.model.user.Admin;
+import com.xhan.myblog.model.user.Guest;
+import com.xhan.myblog.model.user.ModifyDTO;
+import com.xhan.myblog.repository.AdminRepository;
 import com.xhan.myblog.utils.BlogUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.mongodb.core.query.Query;
@@ -19,6 +24,7 @@ import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -32,8 +38,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 import static com.xhan.myblog.controller.ControllerConstant.*;
-import static com.xhan.myblog.model.content.repo.ArticleState.PUBLISHED;
-import static com.xhan.myblog.model.content.repo.ArticleState.RECYCLED;
+import static com.xhan.myblog.model.content.repo.ArticleState.*;
 import static java.util.Collections.singletonMap;
 import static org.springframework.data.domain.Sort.Direction.DESC;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
@@ -46,11 +51,40 @@ import static org.springframework.util.StringUtils.hasText;
 @Controller
 public class AdminController extends BaseController {
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     @RequestMapping(value = {LOGIN_DISPATCH_URL})
     public String Login(HttpSession session, RedirectAttributes model) {
         model.addFlashAttribute(IS_ADMIN, true);
         session.setAttribute(IS_ADMIN, true);
         return REDIRECT + INDEX;
+    }
+
+    @GetMapping(value = MODI_ADMIN_URL)
+    public String modiAdmin() {
+        return MODI_ADMIN;
+    }
+
+    @PostMapping(value = MODI_ADMIN_URL)
+    public ModelAndView modiAdmin(@Valid ModifyDTO dto, BindingResult result,
+                                  ModelAndView mav) {
+        if (result.hasFieldErrors()) {
+            mav.setStatus(HttpStatus.BAD_REQUEST);
+            mav.setViewName(REDIRECT + SLASH + INDEX);
+        } else {
+            Admin admin = mongoTemplate.findOne(query(where("account").is(dto.getAccount())),
+                    Admin.class, Guest.COLLECTION_NAME);
+            if (admin == null) throw new BlogException();
+            if (passwordEncoder.matches(dto.getPassword(), admin.getPassword())
+                    && dto.isNewPwdValid()) {
+                String newPwd = passwordEncoder.encode(dto.getNewPwd());
+                admin.setPassword(newPwd);
+                mongoTemplate.save(admin, Guest.COLLECTION_NAME);
+                mav.setViewName(REDIRECT + SLASH + LOGIN);
+            }
+        }
+        return mav;
     }
 
     @GetMapping(value = LOGIN_URL)
@@ -211,6 +245,41 @@ public class AdminController extends BaseController {
         } catch (URISyntaxException e) {
             throw new BlogException();
         }
+    }
+
+    @Secured(R_ADMIN)
+    @PostMapping(value = "/vpub/article/{id}")
+    public ModelAndView visiablePublish(@PathVariable String id, ModelAndView mav) {
+        UpdateResult updateResult = mongoTemplate.update(Article.class)
+                .matching(query(where("id").is(id).and("state")
+                        .in(DRAFT.getState(), HIDDEN.getState())))
+                .apply(new Update().set("state", PUBLISHED.getState()))
+                .first();
+
+        String viewName = REDIRECT + ARTICLE_URL + SLASH + id;
+        return oneModify(mav, viewName, "无法修改", updateResult);
+    }
+
+    @Secured(R_ADMIN)
+    @GetMapping(value = "/hidden")
+    public ModelAndView getHiddenArticle(@RequestParam(defaultValue = "0") Integer page,
+                                         @RequestParam(defaultValue = "5") Integer pageSize,
+                                         ModelAndView mav) {
+        findByState(page, pageSize, mav, ArticleState.HIDDEN.getState(), M_HIDDEN, M_HIDDEN_URL);
+        return mav;
+    }
+
+    @Secured(R_ADMIN)
+    @PostMapping(value = "/uvpub/article/{id}")
+    public ModelAndView unVisiablePublish(@PathVariable String id, ModelAndView mav) {
+        UpdateResult updateResult = mongoTemplate.update(Article.class)
+                .matching(query(where("id").is(id).and("state")
+                        .in(DRAFT.getState(), PUBLISHED.getState())))
+                .apply(new Update().set("state", HIDDEN.getState()))
+                .first();
+
+        String viewName = REDIRECT + ARTICLE_URL + SLASH + id;
+        return oneModify(mav, viewName, "无法修改", updateResult);
     }
 
     @Secured(R_ADMIN)

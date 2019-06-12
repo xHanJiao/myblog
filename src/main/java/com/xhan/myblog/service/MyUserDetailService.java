@@ -28,11 +28,10 @@ public class MyUserDetailService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String account) throws UsernameNotFoundException {
         Admin admin = mongoTemplate.findOne(query(Criteria.where("account").is(account)),
-                Admin.class,
-                Guest.COLLECTION_NAME);
+                Admin.class, Guest.COLLECTION_NAME);
         User.UserBuilder builder = User.builder();
         builder.username(account)
-                .password(admin.getPassword())
+                .password(admin.getPassword() == null ? "" : admin.getPassword())
                 .roles("ADMIN")
                 .disabled(false)
                 .accountExpired(false)

@@ -7,7 +7,6 @@
     <title>小韩博客</title>
     <link href="http://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/materialize.min.css}">
-    <!--<link rel="stylesheet" th:href="@{/css/thyme.css}">-->
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
     <style>
@@ -35,7 +34,7 @@
         h5.flow-text {
             color: #212121;
         }
-        
+
         input {
             color: #212121;
         }
@@ -55,7 +54,10 @@
             <li><a th:href="@{/edit/article}">发布文章</a></li>
             <li><a th:href="@{/draft}">草稿箱</a></li>
             <li><a th:href="@{/recycle}">回收站</a></li>
+            <li><a th:href="@{/hidden}">未公开</a></li>
             <li><a href="#modal1">创建分类</a></li>
+            <li><a th:href="@{/logout}">登出</a></li>
+            <li><a th:href="@{/modiadmin}">修改密码</a></li>
         </ul>
     </div>
 </nav>
@@ -63,7 +65,7 @@
 
 <div class="container">
     <div class="row">
-        <div class="col m8 hoverable" style="padding: 3%">
+        <div class="col l8 hoverable" style="padding: 3%">
             <div class="section">
                 <div>
                     <h3>
@@ -82,25 +84,27 @@
                     <a class="flow-text aTitles" th:href="'/article/' + ${article.getId()}"
                        th:text="${article.getTitle()}" th:name="${article.getId()}"></a>
                     <!--<span class="right" style="float: right;" th:text="${article.getCreateTime()}"></span>-->
+                    <i th:if="${article.getState()==2}" class="material-icons">tab_unselected</i>
                     <span class="flow-text right" th:text="${article.getCreateTime()}"></span>
                 </div>
                 <div class="divider"></div>
             </div>
         </div>
-        <div class="col m2 offset-m1 hide-on-med-and-down">
-            <div th:fragment="slideBar">
+        <div class="col l2 offset-l1 hide-on-med-and-down">
             <div class="row">
                 <div class="m5 offset-m4 s5 offset-s4 hoverable">
                     <div class="card z-depth-0">
                         <div class="card-image z-depth-0">
-                            <img th:src="@{/images/sample-1.jpg}">
-                            <span class="card-title" th:text="个人介绍"></span>
+                            <img th:src="@{/images/sample-2.jpg}">
+                            <!--<span class="card-title" th:text="个人介绍"></span>-->
                         </div>
                         <div class="card-content z-depth-0">
                             <p class="flow-text" style="color: #212121;">聂志军</p>
                         </div>
                         <div class="card-action z-depth-0">
-                            <a href="#">这是一个链接</a>
+                            <a href="#">我的简历</a>
+                            <div class="divider"></div>
+                            <a sec:authorize="hasRole('ADMIN')" th:href="@{/modiadmin}">修改个人信息</a>
                         </div>
                     </div>
                 </div>
@@ -111,17 +115,12 @@
             <div class="row">
                 <div class="m5 offset-m4 s5 offset-s4 hoverable">
                     <ul class="section table-of-contents" id="cats">
-                        <li th:each="cate: ${headCate}" class="actualCate">
+                        <li th:each="cate: ${allCate}" class="actualCate">
                             <a th:text="${cate.getName()}"
-                               th:href="'/category/' + ${cate.getName()}"></a></li>
-                        <li class="dividerLi">
-                            <div class="divider"></div>
+                               th:href="'/category/' + ${cate.getName()}"></a>
                         </li>
-                        <li><a th:text="全部分类" id="moreCate"></a></li>
-                        <li><a th:text="收起" id="lessCate"></a></li>
                     </ul>
                 </div>
-            </div>
             </div>
         </div>
     </div>
@@ -151,6 +150,7 @@
 
 <script src="https://cdn.bootcss.com/jquery/2.2.1/jquery.js"></script>
 <script th:src="@{/js/materialize.min.js}"></script>
+<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>-->
 <script>
     $(document).ready(function () {
         $('#modal1').modal();
@@ -191,7 +191,6 @@
                 }
             });
         });
-
     });
 </script>
 </body>

@@ -1,8 +1,13 @@
 package com.xhan.myblog.controller;
 
 public interface ControllerConstant {
+    long PEOPLE_MAX_VISIT_PER_10_SECOND = 15;
+    long ALL_MAX_VISIT_PER_5_SECOND = 50;
     // ARTICLES
     String SLASH = "/";
+    String SUFFIX = "/**";
+    String MODI_ADMIN = "modiadmin";
+    String MODI_ADMIN_URL = SLASH + MODI_ADMIN;
     String ARTICLE = "article";
     String ARTICLE_URL = SLASH + ARTICLE;
     String CATEGORY = "category";
@@ -38,6 +43,7 @@ public interface ControllerConstant {
     String M_DRAFT = "articles.meta.draft";
     String M_PUBLISHED = "articles.meta.published";
     String M_HIDDEN = "articles.meta.notPublished";
+    String M_HIDDEN_URL = "/hidden";
     String M_CATE = "articles.meta.category";
     // META URL IN ARTICLE LIST
     String M_ALL_ARTICLE_URL = ARTICLE_URL + SLASH;

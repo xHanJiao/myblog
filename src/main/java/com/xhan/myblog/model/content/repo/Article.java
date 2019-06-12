@@ -21,6 +21,7 @@ public class Article extends ArticleCreateDTO {
     @Id
     private String id;
     private List<Comment> comments = new ArrayList<>();
+    private Long visitTimes;
 
     public void preProcessBeforeSave() {
     }
