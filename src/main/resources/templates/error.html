@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>有一些错误发生了</title>
+    <link href="http://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/materialize.min.css}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+</head>
+<body>
+<div th:replace="index::header"></div>
+
+<div class="container">
+    <div class="row">
+        <div class="col s12 m8 center-align offset-m2">
+            <h5>有一些错误发生了</h5>
+            <h5 th:if="${error}" th:text="${error}"></h5>
+            <h5 th:href="@{/index}" th:text="返回主页" class="center-align"></h5>
+        </div>
+    </div>
+</div>
+</body>
+</html>

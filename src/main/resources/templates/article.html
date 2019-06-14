@@ -12,20 +12,11 @@
     <script th:src="@{/js/util.js}"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <style>
-        body {
-            color: #FFF5EB;
-        }
-
-        div.m8 {
-            color: #212121;
-        }
-
         p.createTime {
             font-size: medium;
         }
 
         textarea {
-            /*resize: none;*/
             height: 200px;
         }
 
@@ -39,7 +30,7 @@
 <div th:replace="index::header"></div>
 <div class="container">
     <div class="row">
-        <div class="col m8 offset-m2">
+        <div class="black-text col m10 offset-m1">
             <div class="row">
                 <div>
                     <!--<h3 class="center-align" th:text="${article.getTitle()}"></h3>-->
@@ -52,7 +43,7 @@
                     <input id="articleId" th:value="${article.getId()}" type="hidden"/>
                 </div>
             </div>
-            <div class="row flow-text articleHolder" style="font-size: medium">
+            <div class="row flow-text articleHolder">
                 <p th:utext="${article.getContent()}"></p>
             </div>
             <div class="fixed-action-btn verticle">
@@ -153,7 +144,7 @@
                             </div>
                             <div class="row">
                                 <div class="right">
-                                    <a sec:authrize="hasRole('ADMIN')" class="btn-floating btn red delcomm">
+                                    <a sec:authorize="hasRole('ADMIN')" class="btn-floating btn red delcomm">
                                         <i class="material-icons">delete</i>
                                     </a>
                                     <input th:value="${comment.creator}" class="replyTo" type="hidden"/>
@@ -184,10 +175,6 @@
 <script th:src="@{/js/quill.js}"></script>
 <script>
     $(document).ready(function () {
-
-        // $('.fixed-action-btn').floatingActionButton({
-        //     hoverEnabled: false
-        // });
 
         var addCommDiv = $('#addCommDiv');
         addCommDiv.hide();

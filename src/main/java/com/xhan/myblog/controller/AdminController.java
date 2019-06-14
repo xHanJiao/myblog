@@ -14,9 +14,10 @@ import com.xhan.myblog.model.content.repo.Comment;
 import com.xhan.myblog.model.user.Admin;
 import com.xhan.myblog.model.user.Guest;
 import com.xhan.myblog.model.user.ModifyDTO;
-import com.xhan.myblog.repository.AdminRepository;
-import com.xhan.myblog.utils.BlogUtils;
+import com.xhan.myblog.utils.MapCache;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.mongodb.core.query.Query;
@@ -27,19 +28,24 @@ import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
+import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 
 import static com.xhan.myblog.controller.ControllerConstant.*;
 import static com.xhan.myblog.model.content.repo.ArticleState.*;
 import static java.util.Collections.singletonMap;
+import static java.util.Collections.unmodifiableSet;
+import static org.apache.tomcat.util.http.fileupload.IOUtils.copy;
 import static org.springframework.data.domain.Sort.Direction.DESC;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 import static org.springframework.data.mongodb.core.query.Query.query;
@@ -53,6 +59,9 @@ public class AdminController extends BaseController {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private ControllerPropertiesBean propertiesBean;
+    private MapCache cache = MapCache.single();
 
     @RequestMapping(value = {LOGIN_DISPATCH_URL})
     public String Login(HttpSession session, RedirectAttributes model) {
@@ -340,7 +349,6 @@ public class AdminController extends BaseController {
                 mav.addObject("modify", id);
                 mav.addObject("error", "cannot modify this article");
                 mav.addObject("categories", categoryRepository.findAll());
-//                mav.setViewName(EDIT);
                 mav.setViewName(REDIRECT + ARTICLE_URL + SLASH + id);
             } else {
                 mav.setViewName(REDIRECT + ARTICLE_URL + SLASH + id);
@@ -352,15 +360,52 @@ public class AdminController extends BaseController {
     @Secured(R_ADMIN)
     @PostMapping(value = ADD_URL + SLASH + CATEGORY)
     public ModelAndView addCategory(@Valid Category category, BindingResult result,
-                                    ModelAndView mav) {
+                                    @RequestParam(value = "pic") MultipartFile file, ModelAndView mav) {
         if (result.hasFieldErrors()) {
             setErrorMav(result.getFieldError().getField(), mav, EDIT);
         } else {
-            category.setCreateTime(BlogUtils.getCurrentTime());
-            categoryRepository.save(category);
-            mav.setViewName(REDIRECT + SLASH + INDEX);
+            mav.setViewName(REDIRECT + SLASH + CATEGORY);
+            if (file != null && !file.isEmpty()) {
+                File classpathFile = new File("./noPath"), backupFile;
+                try {
+                    File dir = new ClassPathResource("/static/images/").getFile();
+                    File backDir = new FileSystemResource(propertiesBean.getImagePath()).getFile();
+                    if (!dir.exists()) dir.mkdirs();
+                    classpathFile = File.createTempFile("categoryPic",
+                            "." + StringUtils.getFilenameExtension(file.getOriginalFilename()), dir);
+                    backupFile = File.createTempFile("categoryPic",
+                            "." + StringUtils.getFilenameExtension(file.getOriginalFilename()), backDir);
+
+                    classpathFile.createNewFile();
+                    backupFile.createNewFile();
+                } catch (IOException e) {
+                    throw new BlogException("cannot save image at " + classpathFile.getPath());
+                }
+                try (InputStream in = file.getInputStream();
+                     OutputStream out = new FileOutputStream(classpathFile)) {
+                    copy(in, out);
+                    category.setFilePath("/images/" + classpathFile.getName());
+                } catch (IOException e) {
+                    throw new BlogException("cannot save image at " + e.getMessage());
+                }
+                try (InputStream in = new FileInputStream(classpathFile);
+                     OutputStream out = new FileOutputStream(backupFile)) {
+                    copy(in, out);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    throw new BlogException("cannot save back image at " + e.getMessage());
+                }
+            }
         }
+        category.postProcess();
+        categoryRepository.save(category);
         return mav;
+    }
+
+    @Secured(R_ADMIN)
+    @GetMapping(value = "/ipSets")
+    public ResponseEntity<?> getIpSets() {
+        return ResponseEntity.ok(unmodifiableSet(cache.get(IP_SET)));
     }
 
 }

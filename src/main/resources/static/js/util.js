@@ -1,9 +1,16 @@
-// var token = $("meta[name='_csrf']").attr("content");
-// var header = $("meta[name='_csrf_header']").attr("content");
+
+function truncateTextOfCertainClass(clazz, maxLen) {
+    $(clazz).each(function () {
+        var text = $(this).text();
+        if (text.length > maxLen) {
+            $(this).attr('title', text);
+            var chunk = text.substring(0, maxLen-1) + '...';
+            $(this).text(chunk);
+        }
+    });
+}
 
 function mockFormKv(URL, method, kv) {
-    // var token = $("meta[name='_csrf']").attr("content");
-    // var header = $("meta[name='_csrf_header']").attr("content");
 
     var form = $("<form></form>").attr("action", URL).attr("method", method);
     for (var k in kv) {
@@ -13,17 +20,5 @@ function mockFormKv(URL, method, kv) {
             .attr("value", kv[k]));
         console.log(k + ' : ' + kv[k]);
     }
-    // if (method === "post" || method === " POST") {
-    //     form.append($("<input/>")
-    //         .attr("type", "hidden")
-    //         .attr("name", "_csrf")
-    //         .attr("value", token));
-    //     form.append($("<input/>")
-    //         .attr("type", "hidden")
-    //         .attr("name", "_csrf_header")
-    //         .attr("value", header));
-    // }
-    console.log("add mock form");
-
     form.appendTo('body').submit().remove();
 }

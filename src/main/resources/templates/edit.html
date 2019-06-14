@@ -61,35 +61,37 @@
             </p>
             <label for="categories">请选择分类</label>
             <select id="categories">
-                <!--<option th:text="#{edit.category.default}"-->
-                        <!--th:value="#{edit.category.default}"></option>-->
                 <option th:each="category : ${categories}"
                         th:text="${category.getName()}"
                         th:value="${category.getName()}"></option>
             </select>
-            <!--<a class='dropdown-button btn' href='#' data-activates='dropdown1'>选择分类</a>-->
-            <!--<ul id='dropdown1' class='dropdown-content'>-->
-            <!--<li th:each="category : ${headCate}"><a href="#"></a></li>-->
-            <!--</ul>-->
         </div>
     </div>
 </div>
 
 <div id="modal1" class="modal" th:fragment="modal">
-    <form th:action="@{/add/category}" th:method="POST">
+    <form th:action="@{/add/category}" th:method="POST" enctype="multipart/form-data">
         <div class="modal-content">
             <h4>创建分类</h4>
             <div class="input-field">
                 <label for="cateName" th:text="#{index.cate.cateName}"></label>
                 <input th:placeholder="#{index.cate.placeholder}" type="text"
                        id="cateName" th:name="name">
-                <!--style="color: #212121;" -->
-                <!--fixme 放到CSS中-->
             </div>
-            <div class="input-field"><label for="cateDescription" th:text="#{index.cate.cateDescription}">
-            </label>
+            <div class="input-field">
+                <label for="cateDescription" th:text="#{index.cate.cateDescription}"></label>
                 <input th:placeholder="#{index.cate.placeholder}" type="text"
-                       id="cateDescription" th:name="description"/></div>
+                       id="cateDescription" th:name="description"/>
+            </div>
+            <div class="file-field input-field">
+                <div class="btn">
+                    <span>文件</span>
+                    <input name="pic" type="file">
+                </div>
+                <div class="file-path-wrapper">
+                    <input class="file-path" type="text"/>
+                </div>
+            </div>
         </div>
         <div class="modal-footer">
             <button class="btn wave-effect wave-light right" type="submit" th:text="#{button.submit}"></button>
@@ -97,10 +99,8 @@
     </form>
 </div>
 
-
 <script src="https://cdn.bootcss.com/jquery/2.2.1/jquery.js"></script>
 <script th:src="@{/js/materialize.min.js}"></script>
-<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>-->
 <script th:src="@{/js/quill.js}"></script>
 <script>
     function mockFormKv(URL, method, kv) {
@@ -144,13 +144,14 @@
 
         // [{ 'header': 1 }, { 'header': 2 }],               // custom button values
         [{'list': 'ordered'}, {'list': 'bullet'}],
-        [{'script': 'sub'}, {'script': 'super'}],      // superscript/subscript
+        // [{'script': 'sub'}, {'script': 'super'}],      // superscript/subscript
         // [{'indent': '-1'}, {'indent': '+1'}],          // outdent/indent
         // [{ 'direction': 'rtl' }],                         // text direction
 
-        // [{ 'size': ['small', false, 'large', 'huge'] }],  // custom dropdown
+        [{ 'size': ['small', false, 'large', 'huge'] }],  // custom dropdown
         [{'header': [1, 2, 3, 4, 5, 6, false]}],
 
+        ['image'],
         [{'color': []}, {'background': []}],          // dropdown with defaults from theme
         [{'font': []}],
         [{'align': []}],
@@ -159,11 +160,6 @@
     ];
     var quill = new Quill('.editor', {
         modules: {
-            // toolbar: [
-            //     [{ header: [1, 2, false] }],
-            //     ['bold', 'italic', 'underline'],
-            //     ['image', 'code-block']
-            // ]
             toolbar: toolbarOptions
         },
         placeholder: 'Compose an epic...',

@@ -8,17 +8,17 @@ import javax.imageio.ImageIO;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import java.awt.*;
-import java.io.File;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.Normalizer;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static java.time.LocalDate.now;
 
 /**
  * Blog工具类
@@ -110,7 +110,7 @@ public class BlogUtils {
         return "";
     }
 
-    public static String getCurrentTime() {
+    public static String getCurrentDateTime() {
         return LocalDateTime.now()
                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
     }
@@ -223,5 +223,14 @@ public class BlogUtils {
         }
 
         return num;
+    }
+
+    public static int getCurrentDateValue() {
+        String date = getCurrentDateTime().split(" ")[0];
+        return LocalDate.parse(date).getDayOfMonth();
+    }
+
+    public static String getCurrentDateString() {
+        return getCurrentDateTime().split(" ")[0];
     }
 }

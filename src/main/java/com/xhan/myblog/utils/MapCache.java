@@ -15,9 +15,18 @@ public class MapCache {
      */
     private static final int DEFAULT_CACHES = 1024;
 
-    private static final MapCache INS = new MapCache();
+//    private static volatile MapCache INS = new MapCache();
+
+    private volatile static MapCache INS;
 
     public static MapCache single() {
+        if (INS == null) {
+            synchronized (MapCache.class) {
+                if (INS == null) {
+                    INS = new MapCache();
+                }
+            }
+        }
         return INS;
     }
 

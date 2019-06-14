@@ -3,10 +3,8 @@ package com.xhan.myblog.model.content.repo;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
-import static com.xhan.myblog.utils.BlogUtils.getCurrentTime;
+import static com.xhan.myblog.utils.BlogUtils.getCurrentDateTime;
 
 @Data
 public class SimpleContent {
@@ -15,7 +13,7 @@ public class SimpleContent {
     private String createTime;
 
     public SimpleContent() {
-        setCreateTime(getCurrentTime());
+        setCreateTime(getCurrentDateTime());
     }
 
     public void preProcessBeforeSave() {

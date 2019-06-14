@@ -10,42 +10,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
     <style>
-        body {
-            color: #FFF5EB;
-        }
-
-        .section {
-            color: #212121;
-        }
-
-        .aTitles {
-            color: #212121;
-            text-decoration: underline;
-        }
-
         a.flow-text {
-            font-size: large;
+            margin: 3%;
         }
-
-        span.flow-text {
-            font-size: large;
-        }
-
-        h5.flow-text {
-            color: #212121;
-        }
-
-        input {
-            color: #212121;
-        }
-
     </style>
 </head>
 <body>
 <nav th:fragment="header" class="brown darken-2">
     <div class="nav-wrapper">
-        <a th:href="@{/index}" style="margin-left: 5%" class="brand-logo" th:text="#{nav.brand}"></a>
-        <ul class="right hide-on-med-and-down flow-text" style="margin-right: 5%">
+        <a th:href="@{/index}" class="brand-logo show-on-small hide-on-med-and-up" th:text="#{nav.brand}"></a>
+        <a th:href="@{/index}" style="margin-left: 5%" class="brand-logo left hide-on-small-and-down"
+           th:text="#{nav.brand}"></a>
+        <ul class="right hide-on-small-and-down flow-text" style="margin-right: 5%">
+            <li><a class="nav-a right" style="font-size: x-large" th:href="@{/category}">分类浏览</a></li>
             <li><a th:text="#{nav.articles}" style="font-size: x-large" th:href="@{/article}"></a></li>
             <li><a sec:authorize="hasRole('ADMIN')" style="font-size: x-large;" class="dropdown-button"
                    data-beloworigin="true" href="#" data-activates="dropdown1">管理</a></li>
@@ -64,12 +41,12 @@
 
 
 <div class="container">
-    <div class="row">
-        <div class="col l8 hoverable" style="padding: 3%">
+    <div class="row black-text">
+        <div class="col m8 m8 hoverable" id="board" style="padding: 3%">
             <div class="section">
                 <div>
                     <h3>
-                        <a class="aTitles" th:href="'/article/' + ${showBoard.getId()}"
+                        <a class="black-text" th:href="'/article/' + ${showBoard.getId()}"
                            th:text="${showBoard.getTitle()}"></a>
                     </h3>
                 </div>
@@ -81,28 +58,36 @@
             <div><h5 class="flow-text">最新文章</h5></div>
             <div th:each="article: ${articles}">
                 <div class="section">
-                    <a class="flow-text aTitles" th:href="'/article/' + ${article.getId()}"
+                    <span>
+                    <a class="flow-text black-text aTitles" th:href="'/article/' + ${article.getId()}"
                        th:text="${article.getTitle()}" th:name="${article.getId()}"></a>
-                    <!--<span class="right" style="float: right;" th:text="${article.getCreateTime()}"></span>-->
                     <i th:if="${article.getState()==2}" class="material-icons">tab_unselected</i>
-                    <span class="flow-text right" th:text="${article.getCreateTime()}"></span>
+                    <span class="flow-text right hide-on-small-and-down" th:text="${article.getCreateTime()}"></span>
+                        </span>
                 </div>
-                <div class="divider"></div>
+                <div class="divider col s12"></div>
+            </div>
+            <div class="row">
+                <div class="flow-text hide-on-med-and-up show-on-small right">
+                    <a class="flow-text btn-inline black-text waves-effect waves-light" th:href="@{/category}">
+                        分类浏览<i class="material-icons right">send</i></a>
+                    <a class="flow-text btn-inline black-text waves-effect waves-light" th:href="@{/article}" >
+                        <i class="material-icons right">send</i>文章列表</a>
+                </div>
             </div>
         </div>
-        <div class="col l2 offset-l1 hide-on-med-and-down">
+        <div class="col m2 offset-m1 hide-on-small-and-down">
             <div class="row">
                 <div class="m5 offset-m4 s5 offset-s4 hoverable">
-                    <div class="card z-depth-0">
+                    <div class="card z-depth-0 orange lighten-3">
                         <div class="card-image z-depth-0">
                             <img th:src="@{/images/sample-2.jpg}">
-                            <!--<span class="card-title" th:text="个人介绍"></span>-->
                         </div>
                         <div class="card-content z-depth-0">
-                            <p class="flow-text" style="color: #212121;">聂志军</p>
+                            <p class="deep-orange-text">聂志钧</p>
                         </div>
                         <div class="card-action z-depth-0">
-                            <a href="#">我的简历</a>
+                            <a href="#" class="deep-orange-text">我的简历</a>
                             <div class="divider"></div>
                             <a sec:authorize="hasRole('ADMIN')" th:href="@{/modiadmin}">修改个人信息</a>
                         </div>
@@ -114,7 +99,7 @@
             </div>
             <div class="row">
                 <div class="m5 offset-m4 s5 offset-s4 hoverable">
-                    <ul class="section table-of-contents" id="cats">
+                    <ul class="section table-of-contents">
                         <li th:each="cate: ${allCate}" class="actualCate">
                             <a th:text="${cate.getName()}"
                                th:href="'/category/' + ${cate.getName()}"></a>
@@ -127,20 +112,28 @@
 </div>
 
 <div id="modal1" class="modal" th:fragment="modal">
-    <form th:action="@{/add/category}" th:method="POST">
+    <form th:action="@{/add/category}" th:method="POST" enctype="multipart/form-data">
         <div class="modal-content">
             <h4>创建分类</h4>
             <div class="input-field">
                 <label for="cateName" th:text="#{index.cate.cateName}"></label>
                 <input th:placeholder="#{index.cate.placeholder}" type="text"
                        id="cateName" th:name="name">
-                <!--style="color: #212121;" -->
-                <!--fixme 放到CSS中-->
             </div>
-            <div class="input-field"><label for="cateDescription" th:text="#{index.cate.cateDescription}">
-            </label>
+            <div class="input-field">
+                <label for="cateDescription" th:text="#{index.cate.cateDescription}"></label>
                 <input th:placeholder="#{index.cate.placeholder}" type="text"
-                       id="cateDescription" th:name="description"/></div>
+                       id="cateDescription" th:name="description"/>
+            </div>
+            <div class="file-field input-field">
+                <div class="btn">
+                    <span>文件</span>
+                    <input name="pic" type="file">
+                </div>
+                <div class="file-path-wrapper">
+                    <input class="file-path" type="text"/>
+                </div>
+            </div>
         </div>
         <div class="modal-footer">
             <button class="btn wave-effect wave-light right" type="submit" th:text="#{button.submit}"></button>
@@ -150,47 +143,13 @@
 
 <script src="https://cdn.bootcss.com/jquery/2.2.1/jquery.js"></script>
 <script th:src="@{/js/materialize.min.js}"></script>
-<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>-->
+<script th:src="@{/js/util.js}"></script>
+
 <script>
     $(document).ready(function () {
         $('#modal1').modal();
         $('select').material_select();
-        $('#lessCate').on('click', function () {
-            $.get('/lessCate', function (data, status) {
-                if (status === 'success') {
-                    var cats = $('#cats');
-                    cats.find('li[class=actualCate]').remove();
-                    for (var k in data) {
-                        console.log("category : " + data[k]);
-                        cats.find('li[class=dividerLi]')
-                            .before($('<li class="actualCate"></li>')
-                                .append($('<a></a>')
-                                    .attr('href', data[k])
-                                    .text(data[k])));
-                    }
-                    $('#moreCate').show();
-                    $('#lessCate').hide();
-                }
-            });
-        }).hide();
-        $('#moreCate').on('click', function () {
-            $.get('/categories', function (data, status) {
-                if (status === 'success') {
-                    var cats = $('#cats');
-                    cats.find('li[class=actualCate]').remove();
-                    for (var k in data) {
-                        console.log("category : " + data[k]);
-                        cats.find('li[class=dividerLi]')
-                            .before($('<li class="actualCate"></li>')
-                                .append($('<a></a>')
-                                    .attr('href', '/category/' + data[k])
-                                    .text(data[k])));
-                    }
-                    $('#lessCate').show();
-                    $('#moreCate').hide();
-                }
-            });
-        });
+        truncateTextOfCertainClass('.aTitles', 8);
     });
 </script>
 </body>

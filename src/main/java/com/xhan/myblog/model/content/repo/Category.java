@@ -1,17 +1,13 @@
 package com.xhan.myblog.model.content.repo;
 
-import com.xhan.myblog.utils.BlogUtils;
 import lombok.Data;
-import org.springframework.boot.convert.DataSizeUnit;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import javax.validation.constraints.NotBlank;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Date;
 
-import static com.xhan.myblog.utils.BlogUtils.getCurrentTime;
+import static com.xhan.myblog.utils.BlogUtils.getCurrentDateTime;
+import static org.springframework.util.StringUtils.hasText;
 
 @Data
 @Document
@@ -24,8 +20,15 @@ public class Category {
     private String name;
     private String description;
     private String createTime;
+    private String filePath;
 
     public Category() {
-        createTime = getCurrentTime();
+        createTime = getCurrentDateTime();
+    }
+
+    public void postProcess() {
+        if (!hasText(getDescription())) {
+            setDescription("这是建立在" + getCurrentDateTime() + "的一个关于" + name + "的分类");
+        }
     }
 }

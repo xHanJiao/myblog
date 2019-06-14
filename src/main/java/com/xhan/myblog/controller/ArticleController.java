@@ -1,23 +1,20 @@
 package com.xhan.myblog.controller;
 
 import com.mongodb.client.result.UpdateResult;
-import com.mongodb.operation.AbortTransactionOperation;
 import com.xhan.myblog.exceptions.content.ArticleNotFoundException;
 import com.xhan.myblog.exceptions.content.BlogException;
 import com.xhan.myblog.model.content.repo.Article;
-import com.xhan.myblog.model.content.repo.ArticleState;
 import com.xhan.myblog.model.content.repo.Category;
 import com.xhan.myblog.model.content.repo.Comment;
 import com.xhan.myblog.model.content.dto.CommentCreateDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
@@ -27,9 +24,7 @@ import org.springframework.web.servlet.ModelAndView;
 import javax.validation.Valid;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 import static com.xhan.myblog.controller.ControllerConstant.*;
@@ -39,6 +34,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.data.domain.PageRequest.of;
+import static org.springframework.data.domain.Sort.Direction.ASC;
 import static org.springframework.data.domain.Sort.Direction.DESC;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 import static org.springframework.data.mongodb.core.query.Query.query;
@@ -55,19 +51,19 @@ public class ArticleController extends BaseController {
     public ModelAndView index(@RequestParam(defaultValue = "5") Integer pageSize,
                               @RequestParam(defaultValue = "0") Integer page,
                               ModelAndView mav) {
-        Page<Article> articles = getArticleSDueIsAdmin(pageSize, page);
-        Article showBoard = articles.isEmpty() ? emptyArticle : articles.getContent().get(0);
+        List<Article> articles = getArticleSDueIsAdmin(pageSize, page).getContent();
+        Article showBoard = articles.isEmpty() ? emptyArticle : articles.get(0);
         showBoard.convertToShortcut();
         mav.setViewName(INDEX);
         mav.addObject("category", new Category());
         mav.addObject("showBoard", showBoard);
-        mav.addObject("articles", articles.getContent());
+        mav.addObject("articles", articles);
         return mav;
     }
 
     @ModelAttribute(name = "allCate")
     public List<Category> getAllCate() {
-        return categoryRepository.findAll();
+        return categoryRepository.findAll(Sort.by(ASC, "createTime"));
     }
 
     private Page<Article> getArticleSDueIsAdmin(@RequestParam(defaultValue = "5") Integer pageSize, @RequestParam(defaultValue = "0") Integer page) {
@@ -86,13 +82,9 @@ public class ArticleController extends BaseController {
         return ResponseEntity.ok(categories);
     }
 
-    @GetMapping(value = SLASH + "lessCate", consumes = {APPLICATION_JSON_UTF8_VALUE, APPLICATION_JSON_VALUE})
-    public ResponseEntity<?> getLessCategories() {
-        List<String> categories = categoryRepository.findAll(of(0, 5))
-                .getContent().stream()
-                .map(Category::getName)
-                .collect(toList());
-        return ResponseEntity.ok(categories);
+    @GetMapping(path = SLASH + CATEGORY)
+    public String getCategoryPage() {
+        return CATEGORY;
     }
 
     @GetMapping(path = SLASH + CATEGORY + NAME_PATH_VAR)
@@ -201,14 +193,14 @@ public class ArticleController extends BaseController {
             return badRequest().body(result.getFieldError());
         else if (!articleRepository.existsById(dto.getArticleId()))
             return badRequest().body("no article");
-        UpdateResult updateResult = saveComment(dto);
+        UpdateResult updateResult = saveCommentDTO(dto);
 
         return updateResult.getModifiedCount() == 1
                 ? ResponseEntity.created(new URI(ARTICLE_URL + SLASH + dto.getArticleId())).body("success")
                 : ResponseEntity.status(500).body("cannot save comment");
     }
 
-    private UpdateResult saveComment(@RequestBody CommentCreateDTO dto) {
+    private UpdateResult saveCommentDTO(CommentCreateDTO dto) {
         dto.preProcessBeforeSave();
         Comment comment = dto.toComment();
         return mongoTemplate.update(Article.class)
@@ -225,9 +217,10 @@ public class ArticleController extends BaseController {
             return setErrorMav("error in " + result.getFieldError().getField(),
                     mav, viewName);
         } else if (!articleRepository.existsById(dto.getArticleId())) {
+            viewName = REDIRECT + SLASH + INDEX;
             return setErrorMav("no article", mav, viewName);
         } else {
-            UpdateResult updateResult = saveComment(dto);
+            UpdateResult updateResult = saveCommentDTO(dto);
             oneModify(mav, viewName, errMsg, updateResult);
         }
         return mav;

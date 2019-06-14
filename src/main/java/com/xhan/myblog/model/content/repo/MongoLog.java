@@ -7,6 +7,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
+import java.util.Set;
 
 @Data
 @Document(collection = MongoLog.COLLECTION_NAME)
@@ -18,17 +19,20 @@ public class MongoLog {
     private String id;
     private String host;
     private String time;
+    private String date;
     private String requestURI;
     private String userAgent;
     private String queryString;
-    private Map<String, String[]> parameterMap;
+    private Set<String> parameterNames;
 
     public MongoLog(HttpServletRequest request) {
         setHost(request.getRemoteAddr());
-        setTime(BlogUtils.getCurrentTime());
+        String dateTime = BlogUtils.getCurrentDateTime();
+        setTime(dateTime.split(" ")[1]);
+        setDate(dateTime.split(" ")[0]);
         setRequestURI(request.getRequestURI());
         setQueryString(request.getQueryString());
-        setParameterMap(request.getParameterMap());
+        setParameterNames(request.getParameterMap().keySet());
         setUserAgent(request.getHeader("user-agent"));
     }
 }

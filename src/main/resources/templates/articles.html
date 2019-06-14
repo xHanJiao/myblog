@@ -14,26 +14,32 @@
 
 <div class="container">
     <div class="row">
-        <div id="listHolder" class="col m8 offset-m2 flow-text">
+        <div id="listHolder" class="col m8 s12 offset-m2 flow-text">
             <div class="section">
                 <h3 th:unless="${cateName}" th:text="#{|${meta}|}"></h3>
                 <h3 th:if="${cateName}" class="metainf" th:text="${cateName}"></h3>
             </div>
             <div class="section">
-                <form>
-                    <div th:each="article: ${articles}">
-                        <div class="section contentHolder">
-                            <a th:href="@{'/article/' + ${article.getId()}}"
-                               th:text="${article.getTitle()}"></a>
-                            <i th:if="${article.getState()==2}" class="material-icons">tab_unselected</i>
-                            <span class="right" th:text="${article.getCreateTime()}"></span>
-                        </div>
-                        <!--<input type="checkbox" class="idHolder" th:value="${article.getId()}"/>-->
-                        <div class="divider"></div>
+                <div th:if="${articles.size() == 0}" class="section contentHolder flow-text black-text">
+                    <p>啊哦，该分类暂时还没有文章</p>
+                    <div>
+                        <a th:href="@{/category}" class="deep-orange-text">返回分类列表</a>
                     </div>
-                </form>
+                    <div>
+                        <a th:href="@{/index}" class="deep-orange-text">返回主页</a>
+                    </div>
+                </div>
+                <div th:each="article: ${articles}">
+                    <div class="section contentHolder">
+                        <a th:href="@{'/article/' + ${article.getId()}}" class="black-text aTitles"
+                           th:text="${article.getTitle()}"></a>
+                        <i th:if="${article.getState()==2}" class="material-icons">tab_unselected</i>
+                        <span class="right hide-on-small-only" th:text="${article.getCreateTime()}"></span>
+                    </div>
+                    <div class="divider"></div>
+                </div>
             </div>
-            <div id="pageHolder" th:if="${allPages.size() > 1}" class="right col m2 s2">
+            <div id="pageHolder" th:if="${allPages.size() > 1}" class="right col m4 s4">
                 <input th:value="${metaUrl}" type="hidden" id="metaUrl"/>
                 <label for="pages">页码</label>
                 <select id="pages" onchange="toPage(this)">
@@ -95,11 +101,12 @@
 
 <script src="https://cdn.bootcss.com/jquery/2.2.1/jquery.js"></script>
 <script th:src="@{/js/materialize.min.js}"></script>
-<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>-->
 <script th:src="@{/js/util.js}"></script>
 <script>
     $(document).ready(function () {
         $('#pages').material_select();
+        $('.fixed-action-btn').hide();
+        truncateTextOfCertainClass('.aTitles', 9);
     });
 
     function toPage(sobj) {
