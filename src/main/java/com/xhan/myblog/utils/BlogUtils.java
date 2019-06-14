@@ -19,6 +19,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static java.time.LocalDate.now;
+import static org.springframework.util.StringUtils.hasText;
 
 /**
  * Blog工具类
@@ -131,6 +132,31 @@ public class BlogUtils {
         value = value.replaceAll("[\\\"\\\'][\\s]*javascript:(.*)[\\\"\\\']", "\"\"");
         value = value.replaceAll("script", "");
         return value;
+    }
+
+    /**
+     * 在使用一些富文本编辑器时，它会把<、>、' " 等符号转义，
+     * 这个函数是为了将这些符号转义回来
+     * @param str
+     * @return
+     */
+    public static String deEscape(String str) {
+        if (!hasText(str)) {
+            return "";
+        } else {
+            return str.replaceAll("&gt;", ">")
+                    .replaceAll("&lt;", "<")
+                    .replaceAll("&mdash;", "—")
+                    .replaceAll("&nbsp;", " ")
+                    .replaceAll("&amp;", "&")
+                    .replaceAll("&#39;", "'")
+                    .replaceAll("&quot;", "\"")
+                    .replaceAll("&rdquo;", "“")
+                    .replaceAll("&ldquo;", "”")
+                    .replaceAll("&rsquo;", "‘")
+                    .replaceAll("&lsquo;", "’");
+
+        }
     }
 
     /**

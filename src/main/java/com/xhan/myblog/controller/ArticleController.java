@@ -61,6 +61,11 @@ public class ArticleController extends BaseController {
         return mav;
     }
 
+    @GetMapping("testck")
+    public String test() {
+        return "testck";
+    }
+
     @ModelAttribute(name = "allCate")
     public List<Category> getAllCate() {
         return categoryRepository.findAll(Sort.by(ASC, "createTime"));
@@ -143,7 +148,7 @@ public class ArticleController extends BaseController {
                 : articleRepository.findAllByStateAndCategory(PUBLISHED.getState(), cateName, pageRequest);
     }
 
-    @GetMapping(path = ARTICLE_URL + ID_PATH_VAR,
+    @GetMapping(path = CONTENT_URL + ID_PATH_VAR,
             produces = {APPLICATION_JSON_UTF8_VALUE, APPLICATION_JSON_VALUE})
     public ResponseEntity<?> getCertainArticle(@PathVariable String id) {
         if (!hasText(id))
@@ -152,7 +157,7 @@ public class ArticleController extends BaseController {
         mongoTemplate.update(Article.class)
                 .matching(query(Criteria.where("id").is(id)))
                 .apply(new Update().inc("visitTime", 1)).first();
-        return ok(singletonMap("article", dto));
+        return ok(singletonMap("article", dto.getContent()));
     }
 
     @GetMapping(path = ARTICLE_URL + ID_PATH_VAR)

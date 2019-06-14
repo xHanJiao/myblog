@@ -37,6 +37,8 @@ public class Article extends ArticleCreateDTO {
                 ? getContent().substring(0, 80) + "..."
                 : getContent();
         content = BlogUtils.htmlToText(content);
+        content = BlogUtils.deEscape(content);
         setContent(content);
     }
+
 }

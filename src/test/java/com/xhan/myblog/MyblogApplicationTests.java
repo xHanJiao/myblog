@@ -1,20 +1,11 @@
 package com.xhan.myblog;
 
-import com.xhan.myblog.model.content.repo.MongoLog;
 import com.xhan.myblog.utils.BlogUtils;
-import lombok.Data;
-import org.bson.Document;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.aggregation.Aggregation;
-import org.springframework.data.mongodb.core.aggregation.AggregationResults;
-import org.springframework.data.mongodb.core.aggregation.TypedAggregation;
-import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.test.context.junit4.SpringRunner;
 
 
@@ -27,6 +18,33 @@ public class MyblogApplicationTests {
 
     @Test
     public void contextLoads() {
+        String s = "<p>&gt;&lt;</p>\n" +
+                "\n" +
+                "<p>》《</p>\n" +
+                "\n" +
+                "<p>、?</p>\n" +
+                "\n" +
+                "<p>[]</p>\n" +
+                "\n" +
+                "<p>{}</p>\n" +
+                "\n" +
+                "<p>\\</p>\n" +
+                "\n" +
+                "<p>|</p>\n" +
+                "\n" +
+                "<p>;:；：</p>\n" +
+                "\n" +
+                "<p>+=&mdash;&mdash;-_</p>\n" +
+                "\n" +
+                "<p>!!@#$%^&amp;*()~`</p>\n" +
+                "\n" +
+                "<p>&rdquo;&ldquo;</p>\n" +
+                "\n" +
+                "<p>&rsquo;&lsquo;</p>" +
+                "";
+        System.out.println(s);
+        System.out.println("------------------------------------------------");
+        System.out.println(BlogUtils.deEscape(s));
     }
 
 //    @Test
