@@ -9,6 +9,9 @@ import lombok.EqualsAndHashCode;
 
 import javax.validation.constraints.NotBlank;
 
+import java.util.Collections;
+import java.util.List;
+
 import static com.xhan.myblog.model.content.repo.ArticleState.PUBLISHED;
 import static org.springframework.util.StringUtils.hasText;
 
@@ -21,12 +24,14 @@ public class ArticleCreateDTO extends SimpleContent {
 
     private String category;
     private Boolean commentEnable;
+    private List<String> imagePaths;
     private int state;
 
     public Article toArticle() {
         setCategory(hasText(category) ? category : Category.DEFAULT_NAME);
         Article article = new Article();
         article.setState(getState());
+        article.setImagePaths(getImagePaths() == null ? Collections.emptyList(): getImagePaths());
         article.setCommentEnable(getCommentEnable() == null ? false : getCommentEnable());
         article.setCategory(getCategory());
         article.setTitle(getTitle());

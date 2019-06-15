@@ -30,10 +30,15 @@
 <div th:replace="index::header"></div>
 <div class="container">
     <div class="row">
-        <div class="black-text col m10 offset-m1">
+        <div class="black-text col m10 s12 offset-m1">
             <div class="row">
                 <div>
                     <p class="flow-text center-align" style="font-size: xx-large" th:text="${article.getTitle()}"></p>
+                </div>
+            </div>
+            <div class="row">
+                <div>
+                    <p class="flow-text right" style="font-size: medium" th:text="${article.getCategory()}"></p>
                 </div>
             </div>
             <div class="row">
@@ -79,7 +84,7 @@
                     <li sec:authorize="hasRole('ADMIN')" th:fragment="softDelBtn"
                         th:if="${article.getState() == 2}">
                         <a class="stateBtn yellow showBtn" title="显示文章">
-                            <i class="material-icons">delete</i>
+                            <i class="material-icons">blur_on</i>
                         </a>
                     </li>
                     <li sec:authorize="hasRole('ADMIN')" th:fragment="vPublishBtn"
@@ -97,7 +102,7 @@
                     <li sec:authorize="hasRole('ADMIN')" th:fragment="hardDelBtn"
                         th:if="${article.getState() == 3}">
                         <a class="stateBtn red deleteBtn" title="彻底删除">
-                            <i class="material-icons">delete</i>
+                            <i class="material-icons">delete_forever</i>
                         </a>
                     </li>
                     <li sec:authorize="hasRole('ADMIN')" th:fragment="recoverBtn"

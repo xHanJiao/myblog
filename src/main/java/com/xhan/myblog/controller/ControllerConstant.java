@@ -26,6 +26,7 @@ public interface ControllerConstant {
     String EDIT = "edit";
     String ID_PATH_VAR = SLASH + "{id}";
     String NAME_PATH_VAR = SLASH + "{name}";
+    String DEL_IMAGE_URL = SLASH + "delImage" + SLASH;
     String MODIFY = "modify";
     String CATEGORIES = "categories";
     String DELETE_URL = SLASH + "del";

@@ -61,11 +61,6 @@ public class ArticleController extends BaseController {
         return mav;
     }
 
-    @GetMapping("testck")
-    public String test() {
-        return "testck";
-    }
-
     @ModelAttribute(name = "allCate")
     public List<Category> getAllCate() {
         return categoryRepository.findAll(Sort.by(ASC, "createTime"));

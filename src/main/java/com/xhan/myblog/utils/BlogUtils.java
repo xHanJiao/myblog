@@ -160,6 +160,18 @@ public class BlogUtils {
     }
 
     /**
+     * 去除html标签
+     * @param str
+     * @return
+     */
+    public static String delHtmlTag(String str){
+        String newstr = "";
+        newstr = str.replaceAll("<[.[^>]]*>","");
+        newstr = newstr.replaceAll(" ", "");
+        return newstr;
+    }
+
+    /**
      * 过滤XSS注入
      *
      * @param value

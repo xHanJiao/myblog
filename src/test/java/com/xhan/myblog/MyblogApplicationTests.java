@@ -18,33 +18,10 @@ public class MyblogApplicationTests {
 
     @Test
     public void contextLoads() {
-        String s = "<p>&gt;&lt;</p>\n" +
-                "\n" +
-                "<p>》《</p>\n" +
-                "\n" +
-                "<p>、?</p>\n" +
-                "\n" +
-                "<p>[]</p>\n" +
-                "\n" +
-                "<p>{}</p>\n" +
-                "\n" +
-                "<p>\\</p>\n" +
-                "\n" +
-                "<p>|</p>\n" +
-                "\n" +
-                "<p>;:；：</p>\n" +
-                "\n" +
-                "<p>+=&mdash;&mdash;-_</p>\n" +
-                "\n" +
-                "<p>!!@#$%^&amp;*()~`</p>\n" +
-                "\n" +
-                "<p>&rdquo;&ldquo;</p>\n" +
-                "\n" +
-                "<p>&rsquo;&lsquo;</p>" +
-                "";
+        String s = "<p>这是一个假图</p>";
         System.out.println(s);
         System.out.println("------------------------------------------------");
-        System.out.println(BlogUtils.deEscape(s));
+        System.out.println(BlogUtils.delHtmlTag(s));
     }
 
 //    @Test

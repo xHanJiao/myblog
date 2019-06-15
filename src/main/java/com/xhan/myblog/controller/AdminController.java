@@ -16,6 +16,7 @@ import com.xhan.myblog.model.user.Guest;
 import com.xhan.myblog.model.user.ModifyDTO;
 import com.xhan.myblog.utils.MapCache;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.data.domain.Page;
@@ -52,6 +53,7 @@ import static org.springframework.data.mongodb.core.query.Query.query;
 import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.ResponseEntity.*;
+import static org.springframework.util.StringUtils.getFilenameExtension;
 import static org.springframework.util.StringUtils.hasText;
 
 @Controller
@@ -59,8 +61,10 @@ public class AdminController extends BaseController {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
-    @Autowired
-    private ControllerPropertiesBean propertiesBean;
+    //    @Autowired
+//    private ControllerPropertiesBean propertiesBean;
+    @Value("${controller.imagePath}")
+    private String imageBase;
     private MapCache cache = MapCache.single();
 
     @RequestMapping(value = {LOGIN_DISPATCH_URL})
@@ -127,6 +131,55 @@ public class AdminController extends BaseController {
         return mongoTemplate.update(Article.class)
                 .matching(unDeletedIdQuery)
                 .apply(new Update().set("state", state)).all();
+    }
+
+    @Secured(R_ADMIN)
+    @PostMapping(path = DEL_IMAGE_URL + NAME_PATH_VAR)
+    public ResponseEntity<?> delImage(@PathVariable String name) {
+        FileSystemResource resource = new FileSystemResource(imageBase);
+        File file = new File(resource.getFile(), name);
+        boolean isSuccess = file.delete();
+        return (isSuccess ? ResponseEntity.ok() : ResponseEntity.status(500)).build();
+    }
+
+    @Secured(R_ADMIN)
+    @GetMapping(path = "/getImages/{id}")
+    public ResponseEntity<?> getImagesOfCertainArticle(@PathVariable String id) {
+        Article article = articleRepository.findById(id)
+                .orElseThrow(ArticleNotFoundException::new);
+
+        return ResponseEntity.ok(article.getImagePaths());
+    }
+
+    @Secured(R_ADMIN)
+    @PostMapping(value = "/upload")
+    public ResponseEntity<?> uploadFile(@RequestParam(name = "picture") MultipartFile pic) {
+        if (pic == null)
+            return ResponseEntity.badRequest().body("empty file");
+        if (!hasText(imageBase))
+            return ResponseEntity.badRequest().body("cannnot get properties");
+
+        FileSystemResource resource = new FileSystemResource(imageBase);
+        File temp;
+        try {
+            temp = File.createTempFile("pic",
+                    "." + getFilenameExtension(pic.getOriginalFilename()),
+                    resource.getFile());
+
+        } catch (IOException e) {
+            System.err.println(e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.valueOf(500)).body("不能创建临时文件");
+        }
+        try {
+            pic.transferTo(temp);
+        } catch (IOException e) {
+            System.err.println(e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.valueOf(500)).body("不能存储");
+        }
+
+        return ResponseEntity.ok(temp.getName());
     }
 
     @Secured(R_ADMIN)
@@ -220,9 +273,9 @@ public class AdminController extends BaseController {
         Article article = articleRepository.findById(id)
                 .orElseThrow(ArticleNotFoundException::new);
         try {
-            if (article.getState() == PUBLISHED.getState()) {
-                UpdateResult result =
-                        modifyDeleted(getIdQueryWithDeleteState(id, PUBLISHED.getState()), RECYCLED.getState());
+            if (article.getState() != RECYCLED.getState()) {
+                UpdateResult result = mongoTemplate.update(Article.class)
+                        .apply(new Update().set("state", RECYCLED.getState())).first();
                 responseEntity = result.getModifiedCount() == 1
                         ? ResponseEntity.status(HttpStatus.FOUND).location(new URI("/recycle")).build()
                         : badRequest().body("check id you input");
@@ -342,6 +395,7 @@ public class AdminController extends BaseController {
                             .set("title", dto.getTitle())
                             .set("state", dto.getState())
                             .set("commentEnable", dto.getCommentEnable())
+                            .set("imagePaths", dto.getImagePaths())
                             .set("category", dto.getCategory())).first();
 
             if (updateResult.getModifiedCount() == 0) {
@@ -369,12 +423,12 @@ public class AdminController extends BaseController {
                 File classpathFile = new File("./noPath"), backupFile;
                 try {
                     File dir = new ClassPathResource("/static/images/").getFile();
-                    File backDir = new FileSystemResource(propertiesBean.getImagePath()).getFile();
+                    File backDir = new FileSystemResource(imageBase).getFile();
                     if (!dir.exists()) dir.mkdirs();
                     classpathFile = File.createTempFile("categoryPic",
-                            "." + StringUtils.getFilenameExtension(file.getOriginalFilename()), dir);
+                            "." + getFilenameExtension(file.getOriginalFilename()), dir);
                     backupFile = File.createTempFile("categoryPic",
-                            "." + StringUtils.getFilenameExtension(file.getOriginalFilename()), backDir);
+                            "." + getFilenameExtension(file.getOriginalFilename()), backDir);
 
                     classpathFile.createNewFile();
                     backupFile.createNewFile();

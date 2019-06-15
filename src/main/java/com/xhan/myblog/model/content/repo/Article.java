@@ -33,11 +33,12 @@ public class Article extends ArticleCreateDTO {
     @JsonIgnore
     public void convertToShortcut() {
         if (getContent() == null) return;
-        String content = getContent().length() > 80
-                ? getContent().substring(0, 80) + "..."
-                : getContent();
-        content = BlogUtils.htmlToText(content);
+        String content = getContent();
         content = BlogUtils.deEscape(content);
+        content = BlogUtils.delHtmlTag(content);
+        content = content.length() > 80
+                ? content.substring(0, 80) + "..."
+                : content;
         setContent(content);
     }
 
