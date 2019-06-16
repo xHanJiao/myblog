@@ -33,7 +33,7 @@
                     <div class="section contentHolder">
                         <a th:href="@{'/article/' + ${article.getId()}}" class="black-text aTitles"
                            th:text="${article.getTitle()}"></a>
-                        <i th:if="${article.getState()==2}" class="material-icons">tab_unselected</i>
+                        <i th:if="${article.getState()==2}" class="material-icons">blur_on</i>
                         <span class="right hide-on-small-only" th:text="${article.getCreateTime()}"></span>
                     </div>
                     <div class="divider"></div>
@@ -68,7 +68,7 @@
                 </li>
                 <li th:fragment="softDelBtn"
                     th:if="${article.getState() == 2 || article.getState() == 1}">
-                    <a class="btn-floating stateBtn yellow deleteBtn" title="删除文章">
+                    <a class="btn-floating stateBtn red deleteBtn" title="删除文章">
                         <i class="material-icons">delete</i>
                     </a>
                 </li>

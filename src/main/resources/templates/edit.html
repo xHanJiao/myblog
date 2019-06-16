@@ -42,18 +42,11 @@
                     <input placeholder="标题" type="text" id="aTitle"
                            th:value="${dto.getTitle()}">
                     <label for="aTitle">标题</label>
-                    <input type="hidden" id="modSig" th:value="${modify}">
                 </div>
             </div>
             <div class="row">
                 <div class="input-field">
                     <textarea name="editor1"></textarea>
-                </div>
-            </div>
-            <div class="row">
-                <div class="right">
-                    <button class="btn waves-effect waves-light pull-s5" type="submit" id="sbmt">提交</button>
-                    <button class="btn waves-effect waves-light pull-s5" type="reset" id="rst">重置</button>
                 </div>
             </div>
             <div class="row">
@@ -81,6 +74,16 @@
                         th:text="${category.getName()}"
                         th:value="${category.getName()}"></option>
             </select>
+
+            <div class="row">
+                <div class="section center-align">
+                    <button class="btn-flat waves-effect waves-light" type="submit" id="sbmt">提交</button>
+                    <button class="btn-flat waves-effect waves-light" type="reset" id="rst">重置</button>
+                    <button class="btn-flat waves-effect waves-light" id="saveDraft">保存草稿</button>
+                    <input type="hidden" id="modSig" th:value="${modify}">
+                    <input type="hidden" id="draftId">
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -181,8 +184,41 @@
     var editor = CKEDITOR.replace('editor1');
     var content = null;
 
+    function getImagePaths() {
+        var paths = [];
+        $('.href-holder').each(function () {
+            paths.push($(this).text());
+        });
+        return paths;
+    }
+
     $(document).ready(function () {
         var articleId = $('#modSig').val();
+
+        $('#draftId').val(articleId);
+
+        $('#saveDraft').click(function () {
+            var cme = $('#commentEnable').prop('checked'),
+                category = $("#categories").val(),
+                paths = getImagePaths(), state = 0,
+                content = editor.getData();
+
+            var draftId = $('#draftId').val();
+            var data = {
+                title: $('#aTitle').val(), content: content,
+                commentEnable: cme, state: state, category: category,
+                imagePaths: paths, id: draftId
+            };
+            console.log('id : ' + data['id']);
+            console.log('imagePaths : ' + data['imagePaths']);
+
+            mockFormKv('/saveDraft', 'POST', data);
+            // $.post('/saveDraft', data, function (data, status) {
+            //     if (status === 'success') {
+            //         $('#draftId').val(data);
+            //     }
+            // });
+        });
 
         if (articleId) {
             console.log('modify mode');
@@ -194,7 +230,7 @@
 
             $.get('/getImages/' + articleId, function (data, status) {
                 if (status === "success") {
-                    for (var i = 0; i <data.length; i++){
+                    for (var i = 0; i < data.length; i++) {
                         console.log(data[i]);
                         addCardOfImage(data[i])
                     }
@@ -207,10 +243,12 @@
         $('#categories').material_select();
         $('#sbmt').on('click', function () {
             content = editor.getData();
-            var modify = $('#modSig').val();
-            var cme = $('#commentEnable').prop('checked');
-            var pub = $('#isPublished').prop('checked');
-            var fns = $('#finished').prop('checked');
+            var modify = $('#modSig').val(),
+                cme = $('#commentEnable').prop('checked'),
+                pub = $('#isPublished').prop('checked'),
+                fns = $('#finished').prop('checked'),
+                checkValue = $("#categories").val(),
+                paths = getImagePaths();
             var state;
             if (fns) {
                 state = 0;
@@ -219,12 +257,6 @@
             } else {
                 state = 2;
             }
-            var checkValue = $("#categories").val();
-            var paths = [];
-            $('.href-holder').each(function () {
-                paths.push($(this).text());
-            });
-            console.log(paths);
             var data = {
                 title: $('#aTitle').val(), content: content,
                 commentEnable: cme, state: state, category: checkValue,

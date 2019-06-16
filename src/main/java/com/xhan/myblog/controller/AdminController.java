@@ -16,11 +16,11 @@ import com.xhan.myblog.model.user.Guest;
 import com.xhan.myblog.model.user.ModifyDTO;
 import com.xhan.myblog.utils.MapCache;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.http.HttpStatus;
@@ -29,7 +29,7 @@ import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.util.StringUtils;
+import org.springframework.util.Assert;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -52,7 +52,8 @@ import static org.springframework.data.mongodb.core.query.Criteria.where;
 import static org.springframework.data.mongodb.core.query.Query.query;
 import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static org.springframework.http.ResponseEntity.*;
+import static org.springframework.http.ResponseEntity.badRequest;
+import static org.springframework.http.ResponseEntity.ok;
 import static org.springframework.util.StringUtils.getFilenameExtension;
 import static org.springframework.util.StringUtils.hasText;
 
@@ -61,10 +62,10 @@ public class AdminController extends BaseController {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
-    //    @Autowired
-//    private ControllerPropertiesBean propertiesBean;
-    @Value("${controller.imagePath}")
-    private String imageBase;
+    @Autowired
+    private ControllerPropertiesBean propertiesBean;
+    //    @Value("${controller.imagePath}")
+//    private String imageBase;
     private MapCache cache = MapCache.single();
 
     @RequestMapping(value = {LOGIN_DISPATCH_URL})
@@ -135,8 +136,8 @@ public class AdminController extends BaseController {
 
     @Secured(R_ADMIN)
     @PostMapping(path = DEL_IMAGE_URL + NAME_PATH_VAR)
-    public ResponseEntity<?> delImage(@PathVariable String name) {
-        FileSystemResource resource = new FileSystemResource(imageBase);
+    public ResponseEntity<?> delImageOfArticle(@PathVariable String name) {
+        FileSystemResource resource = new FileSystemResource(propertiesBean.getArticleImages());
         File file = new File(resource.getFile(), name);
         boolean isSuccess = file.delete();
         return (isSuccess ? ResponseEntity.ok() : ResponseEntity.status(500)).build();
@@ -151,15 +152,14 @@ public class AdminController extends BaseController {
         return ResponseEntity.ok(article.getImagePaths());
     }
 
+    // todo 这还得再改改
     @Secured(R_ADMIN)
     @PostMapping(value = "/upload")
-    public ResponseEntity<?> uploadFile(@RequestParam(name = "picture") MultipartFile pic) {
+    public ResponseEntity<?> uploadArticleImage(@RequestParam(name = "picture") MultipartFile pic) {
         if (pic == null)
             return ResponseEntity.badRequest().body("empty file");
-        if (!hasText(imageBase))
-            return ResponseEntity.badRequest().body("cannnot get properties");
 
-        FileSystemResource resource = new FileSystemResource(imageBase);
+        FileSystemResource resource = new FileSystemResource(propertiesBean.getArticleImages());
         File temp;
         try {
             temp = File.createTempFile("pic",
@@ -191,7 +191,7 @@ public class AdminController extends BaseController {
 
         if (result.hasFieldErrors()) {
             String error = result.getFieldError().getField();
-            return setErrorMav("error in " + (error == null ? "" : error),
+            return setErrorMav("error in " + (error),
                     mav, viewName);
         } else if (!articleRepository.existsById(dto.getArticleId())) {
             return setErrorMav("no article", mav, viewName);
@@ -275,6 +275,7 @@ public class AdminController extends BaseController {
         try {
             if (article.getState() != RECYCLED.getState()) {
                 UpdateResult result = mongoTemplate.update(Article.class)
+                        .matching(Query.query(Criteria.where("id").is(id)))
                         .apply(new Update().set("state", RECYCLED.getState())).first();
                 responseEntity = result.getModifiedCount() == 1
                         ? ResponseEntity.status(HttpStatus.FOUND).location(new URI("/recycle")).build()
@@ -310,11 +311,11 @@ public class AdminController extends BaseController {
     }
 
     @Secured(R_ADMIN)
-    @PostMapping(value = "/vpub/article/{id}")
+    @PostMapping(value = "/vpub/{id}")
     public ModelAndView visiablePublish(@PathVariable String id, ModelAndView mav) {
         UpdateResult updateResult = mongoTemplate.update(Article.class)
                 .matching(query(where("id").is(id).and("state")
-                        .in(DRAFT.getState(), HIDDEN.getState())))
+                        .in(DRAFT.getState(), ArticleState.HIDDEN.getState())))
                 .apply(new Update().set("state", PUBLISHED.getState()))
                 .first();
 
@@ -323,7 +324,7 @@ public class AdminController extends BaseController {
     }
 
     @Secured(R_ADMIN)
-    @GetMapping(value = "/hidden")
+    @GetMapping(value = HIDDEN_URL)
     public ModelAndView getHiddenArticle(@RequestParam(defaultValue = "0") Integer page,
                                          @RequestParam(defaultValue = "5") Integer pageSize,
                                          ModelAndView mav) {
@@ -332,16 +333,80 @@ public class AdminController extends BaseController {
     }
 
     @Secured(R_ADMIN)
-    @PostMapping(value = "/uvpub/article/{id}")
+    @PostMapping(value = "/uvpub/{id}")
     public ModelAndView unVisiablePublish(@PathVariable String id, ModelAndView mav) {
         UpdateResult updateResult = mongoTemplate.update(Article.class)
                 .matching(query(where("id").is(id).and("state")
                         .in(DRAFT.getState(), PUBLISHED.getState())))
-                .apply(new Update().set("state", HIDDEN.getState()))
+                .apply(new Update().set("state", ArticleState.HIDDEN.getState()))
                 .first();
 
         String viewName = REDIRECT + ARTICLE_URL + SLASH + id;
         return oneModify(mav, viewName, "无法修改", updateResult);
+    }
+
+    /**
+     * 这个函数的作用是通过分类名来得到分类并且将该分类下的所有
+     * 文章的状态都根据URL进行修改，这里要注意的是有全部删除和
+     * 恢复以及隐藏的选项，但是没有全部变成草稿的选项
+     *
+     * @param name 分类名
+     * @return ResponseEntity.ok(修改条目数)
+     */
+    @Secured(R_ADMIN)
+    @PostMapping(value = CATEGORY_URL + "/{operate}" + NAME_PATH_VAR)
+    public ResponseEntity<?> modifyStateByCategory(@PathVariable String name,
+                                                   @PathVariable String operate) {
+        int state;
+        switch (operate) {
+            case DELETE:
+                state = ArticleState.RECYCLED.getState();
+                break;
+            case ControllerConstant.HIDDEN:
+                state = ArticleState.HIDDEN.getState();
+                break;
+            case RECOVER:
+                state = ArticleState.PUBLISHED.getState();
+                break;
+            default:
+                return ResponseEntity.badRequest().body("error type");
+        }
+        if (state == ArticleState.RECYCLED.getState()
+                && articleRepository.countByCategory(name) == 0) {
+            categoryRepository.deleteByName(name);
+        }
+        UpdateResult result = mongoTemplate.update(Article.class)
+                .matching(query(Criteria.where("category").is(name)))
+                .apply(new Update().set("state", state))
+                .all();
+        return ok(result.getModifiedCount());
+    }
+
+    @Secured(R_ADMIN)
+    @PostMapping(value = "/saveDraft")
+    public ResponseEntity<?> saveDraft(@Valid Article article, BindingResult result) {
+        if (result.hasFieldErrors()) {
+            return ResponseEntity.badRequest().body(result.getFieldError().getField());
+        } else if (!article.isDraftValid()) {
+            return ResponseEntity.badRequest().body("草稿内容不合法");
+        } else {
+            article.setId(article.getId().equals("") ? null : article.getId());
+            article = mongoTemplate.save(article, Article.COLLECTION_NAME);
+            Assert.isTrue(hasText(article.getId()), "保存后id必定有值");
+            return ResponseEntity.status(HttpStatus.FOUND)
+                    .location(URI.create(SLASH + EDIT + ARTICLE_URL + SLASH +  article.getId()))
+                    .build();
+        }
+    }
+
+    @Secured(R_ADMIN)
+    @PostMapping(value = HIDDEN_URL + CATEGORY + NAME_PATH_VAR)
+    public ResponseEntity<?> hideArticlesOfCategory(@PathVariable String name) {
+        UpdateResult result = mongoTemplate.update(Article.class)
+                .matching(query(Criteria.where("category").is(name)))
+                .apply(new Update().set("state", ArticleState.HIDDEN))
+                .all();
+        return ok(result.getModifiedCount());
     }
 
     @Secured(R_ADMIN)
@@ -423,7 +488,7 @@ public class AdminController extends BaseController {
                 File classpathFile = new File("./noPath"), backupFile;
                 try {
                     File dir = new ClassPathResource("/static/images/").getFile();
-                    File backDir = new FileSystemResource(imageBase).getFile();
+                    File backDir = new FileSystemResource(propertiesBean.getCategoryImages()).getFile();
                     if (!dir.exists()) dir.mkdirs();
                     classpathFile = File.createTempFile("categoryPic",
                             "." + getFilenameExtension(file.getOriginalFilename()), dir);

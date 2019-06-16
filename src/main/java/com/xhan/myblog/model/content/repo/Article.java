@@ -11,12 +11,14 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.springframework.util.StringUtils.hasText;
+
 @Data
 @Document
 @EqualsAndHashCode(callSuper = true)
 public class Article extends ArticleCreateDTO {
 
-    public static final String COLLECTION_NAME = "articles";
+    public static final String COLLECTION_NAME = "article";
 
     @Id
     private String id;
@@ -28,6 +30,21 @@ public class Article extends ArticleCreateDTO {
 
     public Article() {
         setComments(new ArrayList<>());
+    }
+
+    @JsonIgnore
+    public boolean isDraftValid() {
+        if (!hasText(getContent()))
+            return false;
+        else if (getState() != ArticleState.DRAFT.getState())
+            return false;
+        else if (!hasText(getTitle()))
+            return false;
+        else if (!hasText(getCategory()))
+            return false;
+        else if (getCommentEnable() == null)
+            return false;
+        else return true;
     }
 
     @JsonIgnore

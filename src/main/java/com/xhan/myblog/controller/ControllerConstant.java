@@ -13,6 +13,7 @@ public interface ControllerConstant {
     String ARTICLE = "article";
     String ARTICLE_URL = SLASH + ARTICLE;
     String CATEGORY = "category";
+    String CATEGORY_URL = SLASH + CATEGORY;
     String ARTICLE_LIST = "articles";
     String CONTENT_URL = SLASH + "content";
     // COMMENTS
@@ -29,8 +30,12 @@ public interface ControllerConstant {
     String DEL_IMAGE_URL = SLASH + "delImage" + SLASH;
     String MODIFY = "modify";
     String CATEGORIES = "categories";
-    String DELETE_URL = SLASH + "del";
+    String DELETE = "del";
+    String DELETE_URL = SLASH + DELETE;
+    String HIDDEN = "hidden";
+    String HIDDEN_URL = SLASH + HIDDEN;
     String COMMENT_URL = "/comment";
+    String RECOVER = "recover";
     String RECOVER_URL = SLASH + "recover";
     String DRAFT_URL = SLASH + "draft";
     // LOGIN

@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
 import java.util.Collections;
 import java.util.List;
@@ -19,13 +20,16 @@ import static org.springframework.util.StringUtils.hasText;
 @EqualsAndHashCode(callSuper = true)
 public class ArticleCreateDTO extends SimpleContent {
 
-    @NotBlank
+    @NotBlank(message = "标题不能为空")
     private String title;
 
+    @NotBlank(message = "目录不能为空")
     private String category;
+    @NotNull(message = "请确认是否允许评论")
     private Boolean commentEnable;
     private List<String> imagePaths;
-    private int state;
+    @NotNull(message = "请确认状态")
+    private Integer state;
 
     public Article toArticle() {
         setCategory(hasText(category) ? category : Category.DEFAULT_NAME);
@@ -36,6 +40,7 @@ public class ArticleCreateDTO extends SimpleContent {
         article.setCategory(getCategory());
         article.setTitle(getTitle());
         article.setContent(getContent());
+        article.setVisitTimes(0L);
         return article;
     }
 }

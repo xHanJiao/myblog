@@ -10,5 +10,8 @@ import org.springframework.stereotype.Component;
 @EnableConfigurationProperties
 @ConfigurationProperties(prefix = "controller")
 public class ControllerPropertiesBean {
-    private String imagePath;
+
+    private String articleImages;
+
+    private String categoryImages;
 }

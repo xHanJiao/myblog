@@ -14,18 +14,22 @@
     <div class="row">
         <div class="col m8 offset-m2">
             <div class="row" th:each="cate : ${allCate}">
-                    <div class="card small blue-grey darken-1">
-                        <div class="card-image hide-on-small-only" th:if="${cate.getFilePath() != null}">
-                            <img th:src="@{${cate.getFilePath()}}"/>
-                        </div>
-                        <div class="card-content white-text">
-                            <span th:text="${cate.getName()}" class="card-title"></span>
-                            <p class="flow-text" th:text="${cate.getDescription()}"></p>
-                        </div>
-                        <div class="card-action">
-                            <a th:href="@{'/category/' + ${cate.getName()}}">点击查看所有文章</a>
-                        </div>
+                <div class="card small blue-grey darken-1">
+                    <div class="card-image hide-on-small-only" th:if="${cate.getFilePath() != null}">
+                        <img th:src="@{${cate.getFilePath()}}"/>
                     </div>
+                    <div class="card-content white-text">
+                        <span th:text="${cate.getName()}" class="card-title"></span>
+                        <p class="flow-text" th:text="${cate.getDescription()}"></p>
+                    </div>
+                    <div class="card-action">
+                        <a class="btn btn-flat orange-text" th:href="@{'/category/' + ${cate.getName()}}">点击查看所有文章</a>
+                        <a class="modi delete btn btn-flat orange-text">删除</a>
+                        <a class="modi hidee btn btn-flat orange-text">隐藏</a>
+                        <a class="modi pub btn btn-flat orange-text">公开</a>
+                        <input th:value="${cate.getName()}" type="hidden"/>
+                    </div>
+                </div>
             </div>
         </div>
         <div class="col m2 hide-on-med-and-down">
@@ -35,5 +39,30 @@
 </div>
 <script src="https://cdn.bootcss.com/jquery/2.2.1/jquery.js"></script>
 <script th:src="@{/js/materialize.min.js}"></script>
+<script>
+    var baseURL = '/category';
+    $(document).ready(function () {
+        $('.modi').on('click', function () {
+                var name = $(this).siblings('input[type=hidden]').val();
+                console.log('articleId : ' + name);
+                var modiOper = "";
+                if ($(this).hasClass('delete')) {
+                    modiOper = '/del/';
+                } else if ($(this).hasClass('pub')) {
+                    modiOper = '/recover/';
+                } else if ($(this).hasClass('hidee')) {
+                    modiOper = '/hidden/'
+                } else {
+                    console.log('cannot get modiOper');
+                    return false;
+                }
+                console.log('modiOper : ' + modiOper);
+                $.post(baseURL + modiOper + name, function () {
+                    window.location.reload();
+                });
+            }
+        );
+    });
+</script>
 </body>
 </html>

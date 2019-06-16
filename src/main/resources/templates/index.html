@@ -61,7 +61,7 @@
                     <span>
                     <a class="flow-text black-text aTitles" th:href="'/article/' + ${article.getId()}"
                        th:text="${article.getTitle()}" th:name="${article.getId()}"></a>
-                    <i th:if="${article.getState()==2}" class="material-icons">tab_unselected</i>
+                    <i th:if="${article.getState()==2}" class="material-icons">blur_on</i>
                     <span class="flow-text right hide-on-small-and-down" th:text="${article.getCreateTime()}"></span>
                         </span>
                 </div>
