@@ -400,6 +400,15 @@ public class AdminController extends BaseController {
     }
 
     @Secured(R_ADMIN)
+    @GetMapping(value = ARTICLE_URL + STATE_URL + ID_PATH_VAR)
+    public ResponseEntity<?> getStateOfCertainArticle(@PathVariable String id) {
+        Integer state = articleRepository.findById(id)
+                .orElseThrow(ArithmeticException::new)
+                .getState();
+        return ResponseEntity.ok(state);
+    }
+
+    @Secured(R_ADMIN)
     @PostMapping(value = HIDDEN_URL + CATEGORY + NAME_PATH_VAR)
     public ResponseEntity<?> hideArticlesOfCategory(@PathVariable String name) {
         UpdateResult result = mongoTemplate.update(Article.class)
