@@ -79,9 +79,9 @@
 
             <div class="row">
                 <div class="section center-align">
-                    <button class="btn-flat waves-effect waves-light" type="submit" id="sbmt">提交</button>
-                    <button class="btn-flat waves-effect waves-light" type="reset" id="rst">重置</button>
-                    <button class="btn-flat waves-effect waves-light" id="saveDraft">保存草稿</button>
+                    <button class="btn green waves-effect brown-text slide-btn waves-light" type="submit" id="sbmt">提交文章</button>
+                    <button class="btn red waves-effect brown-text slide-btn waves-light" type="reset" id="rst">重置内容</button>
+                    <button class="btn yellow waves-effect brown-text slide-btn waves-light" id="saveDraft">保存草稿</button>
                     <input type="hidden" id="modSig" th:value="${modify}">
                     <input type="hidden" id="draftId">
                 </div>
@@ -186,6 +186,8 @@
 
     $(document).ready(function () {
         var articleId = $('#modSig').val();
+
+        $('.slide-btn').css('margin', '3%');
 
         $('#draftId').val(articleId);
 
