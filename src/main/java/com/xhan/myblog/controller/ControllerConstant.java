@@ -16,6 +16,7 @@ public interface ControllerConstant {
     String STATE_URL = SLASH + "state";
     String CATEGORY = "category";
     String CATEGORY_URL = SLASH + CATEGORY;
+    String MODI_URL = SLASH + "modify";
     String ARTICLE_LIST = "articles";
     String CONTENT_URL = SLASH + "content";
     // COMMENTS

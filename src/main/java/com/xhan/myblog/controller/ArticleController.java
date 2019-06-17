@@ -226,7 +226,6 @@ public class ArticleController extends BaseController {
         return mav;
     }
 
-
     @ExceptionHandler(value = BlogException.class)
     public ResponseEntity<?> handleException(BlogException e) {
         return badRequest().body(e.getMessage());

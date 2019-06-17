@@ -6,7 +6,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.stereotype.Component;
 
 @Data
-@Component
+@Component(value = "controllerPropertiesBean")
 @EnableConfigurationProperties
 @ConfigurationProperties(prefix = "controller")
 public class ControllerPropertiesBean {

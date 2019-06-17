@@ -13,9 +13,9 @@
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
 
     <style>
-        a.flow-text {
-            margin: 3%;
-        }
+        /*a.flow-text {*/
+        /*margin: 3%;*/
+        /*}*/
     </style>
 </head>
 <body>
@@ -26,6 +26,7 @@
            th:text="#{nav.brand}"></a>
         <ul class="right hide-on-small-and-down flow-text" style="margin-right: 5%">
             <li><a class="nav-a right" style="font-size: x-large" th:href="@{/category}">分类浏览</a></li>
+            <li><a class="nav-a right" id="switch" style="font-size: x-large">分类/看板</a></li>
             <li><a th:text="#{nav.articles}" style="font-size: x-large" th:href="@{/article}"></a></li>
             <li><a sec:authorize="hasRole('ADMIN')" style="font-size: x-large;" class="dropdown-button"
                    data-beloworigin="true" href="#" data-activates="dropdown1">管理</a></li>
@@ -35,7 +36,7 @@
             <li><a th:href="@{/draft}">草稿箱</a></li>
             <li><a th:href="@{/recycle}">回收站</a></li>
             <li><a th:href="@{/hidden}">未公开</a></li>
-            <li><a href="#modal1">创建分类</a></li>
+            <li><a href="#modal1" id="createCate">创建分类</a></li>
             <li><a id="logout">登出</a></li>
             <li><a th:href="@{/modiadmin}">修改密码</a></li>
         </ul>
@@ -45,23 +46,18 @@
 
 <div class="container">
     <div class="row black-text">
-        <div class="col m8 m8 hoverable" id="board" style="padding: 3%">
-            <div class="section">
-                <div>
-                    <h3>
-                        <a class="black-text" th:href="'/article/' + ${showBoard.getId()}"
-                           th:text="${showBoard.getTitle()}"></a>
-                    </h3>
-                </div>
-                <div style="margin-left: 3%">
+        <div class="col m8 hoverable" id="board">
+            <!--style="padding: 3%">-->
+            <div id="articleListHolder">
+                <div class="section">
+                    <h3><a class="black-text" th:href="'/article/' + ${showBoard.getId()}"
+                           th:text="${showBoard.getTitle()}"></a></h3>
                     <p class="flow-text" th:text="${showBoard.getContent()}"></p>
                 </div>
-            </div>
-            <div class="divider"></div>
-            <div><h5 class="flow-text">最新文章</h5></div>
-            <div th:each="article: ${articles}">
-                <div class="section">
-                    <span>
+                <div class="divider"></div>
+                <div><h5 class="flow-text">最新文章</h5></div>
+                <div th:each="article: ${articles}">
+                    <div class="section">
                         <span sec:authorize="hasRole('ADMIN')" th:fragment="stateIcons">
                             <i th:if="${article.getState()==0}" class="material-icons">drafts</i>
                             <i th:if="${article.getState()==1}" class="material-icons">visibility</i>
@@ -72,9 +68,36 @@
                            th:text="${article.getTitle()}" th:name="${article.getId()}"></a>
                         <span class="flow-text right hide-on-small-and-down"
                               th:text="${article.getCreateTime()}"></span>
-                    </span>
+                    </div>
+                    <div class="divider col s12"></div>
                 </div>
-                <div class="divider col s12"></div>
+            </div>
+            <div id="categoryHolder">
+                <div th:each="cate : ${allCate}" class="cardHolder">
+                    <div class="card hoverable s12 light-green cateCard">
+                        <div class="card-image hide-on-small-only" th:if="${cate.getFilePath() != null}">
+                            <img class="responsive-img" th:src="@{${cate.getFilePath()}}"/>
+                        </div>
+                        <div class="card-content white-text">
+                            <span th:text="${cate.getName()}" class="card-title cate_title"></span>
+                            <p th:text="${cate.getDescription()}" class="cate_dscrp"></p>
+                        </div>
+                        <div class="card-action">
+                            <a class="btn btn-flat orange-text"
+                               th:href="@{'/category/' + ${cate.getName()}}">所有文章</a>
+                            <span sec:authorize="hasRole('ADMIN')">
+                                <a class="setBtn btn right btn-flat">
+                                    <i class="material-icons">settings</i>
+                                </a>
+                                <a class="modi delete btn btn-flat orange-text">删除</a>
+                                <a class="modi hidee btn btn-flat orange-text">隐藏</a>
+                                <a class="modi pub btn btn-flat orange-text">公开</a>
+                                <a class="modi btn modiCate btn-flat orange-text" href="#modal1">修改分类</a>
+                            </span>
+                            <input th:value="${cate.getName()}" type="hidden"/>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="row">
                 <div class="flow-text hide-on-med-and-up show-on-small right">
@@ -121,7 +144,7 @@
 </div>
 
 <div id="modal1" class="modal" th:fragment="modal">
-    <form th:action="@{/add/category}" th:method="POST" enctype="multipart/form-data">
+    <form th:action="@{/add/category}" th:method="POST" id="cateForm" enctype="multipart/form-data">
         <div class="modal-content">
             <h4>创建分类</h4>
             <div class="input-field">
@@ -155,12 +178,65 @@
 <script th:src="@{/js/util.js}"></script>
 
 <script>
+
+    function addArticleTitle(data) {
+        $('#articleListHolder')
+            .append($('<div></div>').addClass('section')
+                .append($('<a></a>').addClass("flow-text black-text aTitles")
+                    .text(data['title'])
+                    .attr('href', '/article/' + data['id'])
+                    .after($('<span></span>')
+                        .addClass("flow-text right hide-on-small-and-down")
+                        .text(data['createTime'])))
+                .after($('<div></div>').addClass('divider col s12')));
+    }
+
     $(document).ready(function () {
+
+        $('#categoryHolder').hide();
+
+        $('#switch').click(function () {
+            $('#categoryHolder').toggle();
+            $('#articleListHolder').toggle();
+        });
+
+        $('.modi').hide();
+
+        $('.setBtn').click(function () {
+            $(this).siblings().toggle();
+        });
+
+        $('.cateCard').each(function () {
+            if ($(this).find('div[class=card-image]').length > 0) {
+                $(this).addClass('large');
+            } else {
+                $(this).addClass('small');
+            }
+        });
+
+        $('#createCate').click(function () {
+            $('#cateForm').attr('action', '/add/category');
+            return true;
+        });
+
+        $('.modiCate').click(function () {
+            var contentHolder = $(this).parents('div[class=card-action]').prev();
+            var title = contentHolder.children('span').text();
+            var content = contentHolder.children('p').text();
+            console.log('title : ' + title);
+            console.log('content : ' + content);
+            $('#cateName').val(title);
+            $('#cateDescription').val(content);
+            $('#cateForm').attr('action', '/modify/category');
+            return true;
+        });
+
         $('#logout').click(function () {
             $.post('/logout', csrf_kv, function () {
                 window.location.reload();
             });
         });
+
         $('#modal1').modal();
         $('select').material_select();
         truncateTextOfCertainClass('.aTitles', 8);

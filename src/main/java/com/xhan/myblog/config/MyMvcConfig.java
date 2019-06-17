@@ -18,7 +18,7 @@ public class MyMvcConfig implements WebMvcConfigurer {
     @Resource(name = "logInterceptor")
     private HandlerInterceptor logInterceptor;
 
-    @Autowired
+    @Resource(name = "controllerPropertiesBean")
     private ControllerPropertiesBean propertiesBean;
 
     @Override
@@ -38,7 +38,9 @@ public class MyMvcConfig implements WebMvcConfigurer {
                 .excludePathPatterns("/fonts/**")
                 .excludePathPatterns("/js/**")
                 .excludePathPatterns("/css/**")
-                .excludePathPatterns("/image/**");
+                .excludePathPatterns("/image/**")
+                .excludePathPatterns(ARTICLE_IMAGES_URL)
+                .excludePathPatterns(CATEGORY_IMAGES_URL);
 
     }
 }

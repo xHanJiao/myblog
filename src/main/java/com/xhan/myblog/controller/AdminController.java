@@ -3,6 +3,7 @@ package com.xhan.myblog.controller;
 import com.mongodb.client.result.UpdateResult;
 import com.xhan.myblog.exceptions.content.ArticleNotFoundException;
 import com.xhan.myblog.exceptions.content.BlogException;
+import com.xhan.myblog.exceptions.content.CategoryNotFoundException;
 import com.xhan.myblog.exceptions.content.CommentNotFoundException;
 import com.xhan.myblog.model.content.dto.ArticleCreateDTO;
 import com.xhan.myblog.model.content.dto.ContentTitleIdDTO;
@@ -14,9 +15,7 @@ import com.xhan.myblog.model.content.repo.Comment;
 import com.xhan.myblog.model.user.Admin;
 import com.xhan.myblog.model.user.Guest;
 import com.xhan.myblog.model.user.ModifyDTO;
-import com.xhan.myblog.utils.MapCache;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -25,6 +24,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.NonNull;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
@@ -45,7 +45,6 @@ import java.net.URISyntaxException;
 import static com.xhan.myblog.controller.ControllerConstant.*;
 import static com.xhan.myblog.model.content.repo.ArticleState.*;
 import static java.util.Collections.singletonMap;
-import static java.util.Collections.unmodifiableSet;
 import static org.apache.tomcat.util.http.fileupload.IOUtils.copy;
 import static org.springframework.data.domain.Sort.Direction.DESC;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
@@ -64,7 +63,6 @@ public class AdminController extends BaseController {
     private PasswordEncoder passwordEncoder;
     @Autowired
     private ControllerPropertiesBean propertiesBean;
-    private MapCache cache = MapCache.single();
 
     @RequestMapping(value = {LOGIN_DISPATCH_URL})
     public String Login(HttpSession session, RedirectAttributes model) {
@@ -151,7 +149,7 @@ public class AdminController extends BaseController {
     }
 
     @Secured(R_ADMIN)
-    @PostMapping(value = ARTICLE_URL + SLASH + UPLOAD_PIC )
+    @PostMapping(value = ARTICLE_URL + SLASH + UPLOAD_PIC)
     public ResponseEntity<?> uploadArticleImage(@RequestParam(name = "picture") MultipartFile pic) {
         if (pic == null)
             return ResponseEntity.badRequest().body("empty file");
@@ -282,7 +280,8 @@ public class AdminController extends BaseController {
                     String filename = p.replace(ARTICLE_IMAGES_URL, "");
                     String path = propertiesBean.getArticleImages() + filename;
                     File toDelete = new File(path);
-                    while (!toDelete.delete()) {}
+                    while (!toDelete.delete()) {
+                    }
                 });
                 articleRepository.delete(article);
                 responseEntity = ResponseEntity.ok().build();
@@ -395,7 +394,7 @@ public class AdminController extends BaseController {
             article = mongoTemplate.save(article, Article.COLLECTION_NAME);
             Assert.isTrue(hasText(article.getId()), "保存后id必定有值");
             return ResponseEntity.status(HttpStatus.FOUND)
-                    .location(URI.create(SLASH + EDIT + ARTICLE_URL + SLASH +  article.getId()))
+                    .location(URI.create(SLASH + EDIT + ARTICLE_URL + SLASH + article.getId()))
                     .build();
         }
     }
@@ -487,48 +486,75 @@ public class AdminController extends BaseController {
     }
 
     @Secured(R_ADMIN)
-    @PostMapping(value = ADD_URL + SLASH + CATEGORY)
+    @PostMapping(value = MODI_URL + CATEGORY_URL)
+    public ResponseEntity<?> modifyCategory(@Valid Category category, BindingResult result,
+                                          @RequestParam(value = "pic", required = false) MultipartFile file) {
+        if (result.hasFieldErrors()) {
+            return ResponseEntity.badRequest().body(result.getFieldError().getField());
+        } else {
+            Category oldCate = categoryRepository
+                    .findByName(category.getName())
+                    .orElseThrow(CategoryNotFoundException::new);
+
+            oldCate.setName(category.getName());
+            oldCate.setDescription(category.getDescription());
+            if (file != null) {
+                if (hasText(oldCate.getFilePath()))
+                    deleteCategoryImage(oldCate.getFilePath());
+                saveCategoryImage(oldCate, file);
+            }
+            categoryRepository.save(oldCate);
+            return ResponseEntity.status(HttpStatus.FOUND)
+                    .location(URI.create("/index"))
+                    .body("");
+        }
+    }
+
+    private void deleteCategoryImage(String filePath) {
+        File dir = new File(propertiesBean.getCategoryImages());
+        File image = new File(dir, filePath);
+        if (!image.delete()) {
+            throw new BlogException("cannot delete category image");
+        }
+    }
+
+    @Secured(R_ADMIN)
+    @PostMapping(value = ADD_URL + CATEGORY_URL)
     public ModelAndView addCategory(@Valid Category category, BindingResult result,
-                                    @RequestParam(value = "pic") MultipartFile file, ModelAndView mav) {
+                                    @RequestParam(value = "pic", required = false) MultipartFile file, ModelAndView mav) {
         if (result.hasFieldErrors()) {
             setErrorMav(result.getFieldError().getField(), mav, EDIT);
         } else {
             mav.setViewName(REDIRECT + SLASH + CATEGORY);
             if (file != null && !file.isEmpty()) {
-                File classpathFile = new File("./noPath"), backupFile;
-                try {
-                    File dir = new ClassPathResource("/static/images/").getFile();
-                    File backDir = new FileSystemResource(propertiesBean.getCategoryImages()).getFile();
-                    if (!dir.exists()) dir.mkdirs();
-                    classpathFile = File.createTempFile("categoryPic",
-                            "." + getFilenameExtension(file.getOriginalFilename()), dir);
-                    backupFile = File.createTempFile("categoryPic",
-                            "." + getFilenameExtension(file.getOriginalFilename()), backDir);
-
-                    classpathFile.createNewFile();
-                    backupFile.createNewFile();
-                } catch (IOException e) {
-                    throw new BlogException("cannot save image at " + classpathFile.getPath());
-                }
-                try (InputStream in = file.getInputStream();
-                     OutputStream out = new FileOutputStream(classpathFile)) {
-                    copy(in, out);
-                    category.setFilePath("/images/" + classpathFile.getName());
-                } catch (IOException e) {
-                    throw new BlogException("cannot save image at " + e.getMessage());
-                }
-                try (InputStream in = new FileInputStream(classpathFile);
-                     OutputStream out = new FileOutputStream(backupFile)) {
-                    copy(in, out);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    throw new BlogException("cannot save back image at " + e.getMessage());
-                }
+                saveCategoryImage(category, file);
             }
         }
         category.postProcess();
         categoryRepository.save(category);
         return mav;
+    }
+
+    private void saveCategoryImage(Category category, @NonNull MultipartFile file) {
+        File image = new File("./noPath");
+        try {
+            File dir = new File(propertiesBean.getCategoryImages());
+            if (!dir.exists()) dir.mkdirs();
+            image = File.createTempFile("categoryPic",
+                    "." + getFilenameExtension(file.getOriginalFilename()), dir);
+            image.createNewFile();
+//            if (!image.createNewFile())
+//                throw new BlogException("cannot create temp file at " + dir.getPath() + "/" + dir.getName());
+        } catch (IOException e) {
+            throw new BlogException("cannot save image at " + image.getPath());
+        }
+        try (InputStream in = file.getInputStream();
+             OutputStream out = new FileOutputStream(image)) {
+            copy(in, out);
+            category.setFilePath("/categoryImages/" + image.getName());
+        } catch (IOException e) {
+            throw new BlogException("cannot save image at " + e.getMessage());
+        }
     }
 
 }
