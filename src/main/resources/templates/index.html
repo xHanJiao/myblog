@@ -9,6 +9,9 @@
     <link rel="stylesheet" th:href="@{/css/materialize.min.css}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+
     <style>
         a.flow-text {
             margin: 3%;
@@ -59,7 +62,7 @@
             <div th:each="article: ${articles}">
                 <div class="section">
                     <span>
-                        <span th:fragment="stateIcons">
+                        <span sec:authorize="hasRole('ADMIN')" th:fragment="stateIcons">
                             <i th:if="${article.getState()==0}" class="material-icons">drafts</i>
                             <i th:if="${article.getState()==1}" class="material-icons">visibility</i>
                             <i th:if="${article.getState()==2}" class="material-icons">visibility_off</i>

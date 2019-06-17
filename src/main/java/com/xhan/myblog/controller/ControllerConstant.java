@@ -12,6 +12,7 @@ public interface ControllerConstant {
     String MODI_ADMIN_URL = SLASH + MODI_ADMIN;
     String ARTICLE = "article";
     String ARTICLE_URL = SLASH + ARTICLE;
+    String UPLOAD_PIC = "uploadPic";
     String STATE_URL = SLASH + "state";
     String CATEGORY = "category";
     String CATEGORY_URL = SLASH + CATEGORY;
@@ -60,5 +61,9 @@ public interface ControllerConstant {
 //    String M_PUBLISHED_URL =
 //    String M_HIDDEN =
     String M_CATE_URL = SLASH + CATEGORY + SLASH;
+
+    String ARTICLE_IMAGES_URL = SLASH + "articleImages";
+    String CATEGORY_IMAGES_URL = SLASH + "categoryImages";
+
 }
 

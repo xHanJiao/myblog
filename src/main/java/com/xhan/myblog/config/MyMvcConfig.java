@@ -10,7 +10,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import javax.annotation.Resource;
 
-import static com.xhan.myblog.controller.ControllerConstant.SUFFIX;
+import static com.xhan.myblog.controller.ControllerConstant.*;
 
 @Configuration
 public class MyMvcConfig implements WebMvcConfigurer {
@@ -24,8 +24,8 @@ public class MyMvcConfig implements WebMvcConfigurer {
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry.addResourceHandler(
-                "/articleImages/**",
-                "/categoryImages/**")
+                ARTICLE_IMAGES_URL + SUFFIX,
+                CATEGORY_IMAGES_URL + SUFFIX)
                 .addResourceLocations(
                         "file:" + propertiesBean.getArticleImages(),
                         "file:" + propertiesBean.getCategoryImages());

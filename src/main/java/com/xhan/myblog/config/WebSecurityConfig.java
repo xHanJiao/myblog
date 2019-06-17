@@ -21,13 +21,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Resource(name = "myPasswordEncoder")
     private PasswordEncoder passwordEncoder;
 
-    private final String JS_PATHS = "/js/**";
-    private final String CSS_PATHS = "/css/**";
-    private final String IMAGE_PATHS = "/image/**";
-    private final String LOGIN_PATHS = "/login/**";
-    private final String ADMIN_PATHS = "/admin/**";
-
-
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         super.configure(auth);
@@ -37,8 +30,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         super.configure(http);
-        http.csrf().disable()
-                .authorizeRequests()
+        http.authorizeRequests()
                 .antMatchers(SLASH + EDIT + SUFFIX,
                         RECOVER_URL + SUFFIX,
                         DELETE_URL + SUFFIX,

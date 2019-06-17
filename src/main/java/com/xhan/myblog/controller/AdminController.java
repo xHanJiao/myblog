@@ -150,9 +150,8 @@ public class AdminController extends BaseController {
         return ResponseEntity.ok(article.getImagePaths());
     }
 
-    // todo 这还得再改改
     @Secured(R_ADMIN)
-    @PostMapping(value = "/upload")
+    @PostMapping(value = ARTICLE_URL + SLASH + UPLOAD_PIC )
     public ResponseEntity<?> uploadArticleImage(@RequestParam(name = "picture") MultipartFile pic) {
         if (pic == null)
             return ResponseEntity.badRequest().body("empty file");
@@ -253,7 +252,7 @@ public class AdminController extends BaseController {
                 .apply(new Update().pull("comments", toDelete)).all();
 
         return updateResult.getModifiedCount() == 1
-                ? ok("success")
+                ? ok("deleted successfully")
                 : ResponseEntity.status(500).body("cannot delete comment");
     }
 
@@ -279,8 +278,15 @@ public class AdminController extends BaseController {
                         ? ResponseEntity.status(HttpStatus.FOUND).location(new URI("/recycle")).build()
                         : badRequest().body("check id you input");
             } else {
+                article.getImagePaths().forEach(p -> {
+                    String filename = p.replace(ARTICLE_IMAGES_URL, "");
+                    String path = propertiesBean.getArticleImages() + filename;
+                    File toDelete = new File(path);
+                    while (!toDelete.delete()) {}
+                });
                 articleRepository.delete(article);
-                responseEntity = ResponseEntity.status(HttpStatus.FOUND).location(new URI("/recycle")).build();
+//                responseEntity = ResponseEntity.status(HttpStatus.FOUND).location(new URI("/recycle")).build();
+                responseEntity = ResponseEntity.ok().build();
             }
         } catch (URISyntaxException e) {
             throw new BlogException();

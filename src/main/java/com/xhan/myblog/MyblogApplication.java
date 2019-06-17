@@ -28,7 +28,6 @@ import java.util.Map;
 @EnableConfigurationProperties
 public class MyblogApplication {
 
-
     public static void main(String[] args) {
         SpringApplication springApplication = new SpringApplication(MyblogApplication.class);
         springApplication.run(args);

@@ -1,4 +1,12 @@
 
+var token = $("meta[name='_csrf']").attr("content");
+var header = $("meta[name='_csrf_header']").attr("content");
+var token_name = "_csrf";
+var header_name = "_csrf_header";
+var csrf_kv = {};
+csrf_kv[token_name] = token
+csrf_kv[header_name] = header
+
 function truncateTextOfCertainClass(clazz, maxLen) {
     $(clazz).each(function () {
         var text = $(this).text();
@@ -20,5 +28,17 @@ function mockFormKv(URL, method, kv) {
             .attr("value", kv[k]));
         console.log(k + ' : ' + kv[k]);
     }
+    if (method === "post" || method === "POST") {
+        form.append($("<input/>")
+            .attr("type", "hidden")
+            .attr("name", "_csrf")
+            .attr("value", token));
+        form.append($("<input/>")
+            .attr("type", "hidden")
+            .attr("name", "_csrf_header")
+            .attr("value", header));
+    }
+    console.log('token : ' + token);
+    console.log('header : ' + header);
     form.appendTo('body').submit().remove();
 }

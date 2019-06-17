@@ -7,13 +7,16 @@
     <link href="http://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/materialize.min.css}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
 </head>
 <body>
 <div th:replace="index::header"></div>
 
 <div class="container">
     <div class="row">
-        <div id="listHolder" class="col m8 s12 offset-m2 flow-text">
+        <div id="listHolder" class="col m10 s12 offset-m1 flow-text">
             <div class="section">
                 <h3 th:unless="${cateName}" th:text="#{|${meta}|}"></h3>
                 <h3 th:if="${cateName}" class="metainf" th:text="${cateName}"></h3>
@@ -35,7 +38,7 @@
                            th:text="${article.getTitle()}"></a>
                         <a sec:authorize="hasRole('ADMIN')" class="modiState btn-flat right waves-effect waves-light">
                             <i class="material-icons">settings</i></a>
-                        <span class="right hide-on-small-only" th:text="${article.getCreateTime()}"></span>
+                        <span class="right hide-on-med-and-down" th:text="${article.getCreateTime()}"></span>
                         <input type="hidden" th:value="${article.getId()}">
                     </div>
                     <div class="divider"></div>
@@ -78,17 +81,22 @@
 
     $('.articlesHolder').on('click', '.visibility_off', function () {
         var articleId = getArticleId.call(this);
-        $.post('/uvpub/' + articleId, function () {
+        $.post('/uvpub/' + articleId, csrf_kv, function () {
             window.location.reload();
         })
     }).on('click', '.visibility', function () {
         var articleId = getArticleId.call(this);
-        $.post('/vpub/' + articleId, function () {
+        $.post('/vpub/' + articleId, csrf_kv, function () {
             window.location.reload();
         })
     }).on('click', '.delete', function () {
         var articleId = getArticleId.call(this);
-        $.post('/del/article/' + articleId, function () {
+        $.post('/del/article/' + articleId, csrf_kv, function () {
+            window.location.reload();
+        })
+    }).on('click', '.delete_forever', function () {
+        var articleId = getArticleId.call(this);
+        $.post('/del/article/' + articleId, csrf_kv, function () {
             window.location.reload();
         })
     });
