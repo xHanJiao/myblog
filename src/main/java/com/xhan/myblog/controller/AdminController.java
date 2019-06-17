@@ -133,7 +133,7 @@ public class AdminController extends BaseController {
     }
 
     @Secured(R_ADMIN)
-    @PostMapping(path = DEL_IMAGE_URL + NAME_PATH_VAR)
+    @PostMapping(path = DELETE_URL + IMAGE_URL + NAME_PATH_VAR)
     public ResponseEntity<?> delImageOfArticle(@PathVariable String name) {
         FileSystemResource resource = new FileSystemResource(propertiesBean.getArticleImages());
         File file = new File(resource.getFile(), name);
@@ -142,7 +142,7 @@ public class AdminController extends BaseController {
     }
 
     @Secured(R_ADMIN)
-    @GetMapping(path = "/getImages/{id}")
+    @GetMapping(path = ARTICLE_URL + IMAGE_URL + ID_PATH_VAR)
     public ResponseEntity<?> getImagesOfCertainArticle(@PathVariable String id) {
         Article article = articleRepository.findById(id)
                 .orElseThrow(ArticleNotFoundException::new);
@@ -312,7 +312,7 @@ public class AdminController extends BaseController {
     }
 
     @Secured(R_ADMIN)
-    @PostMapping(value = "/vpub/{id}")
+    @PostMapping(value = VISIABLE_PUBLISH_URL + ID_PATH_VAR)
     public ModelAndView visiablePublish(@PathVariable String id, ModelAndView mav) {
         UpdateResult updateResult = mongoTemplate.update(Article.class)
                 .matching(query(where("id").is(id).and("state")
@@ -334,7 +334,7 @@ public class AdminController extends BaseController {
     }
 
     @Secured(R_ADMIN)
-    @PostMapping(value = "/uvpub/{id}")
+    @PostMapping(value = UNVISIABLE_PUBLISH_URL + ID_PATH_VAR)
     public ModelAndView unVisiablePublish(@PathVariable String id, ModelAndView mav) {
         UpdateResult updateResult = mongoTemplate.update(Article.class)
                 .matching(query(where("id").is(id).and("state")
@@ -384,7 +384,7 @@ public class AdminController extends BaseController {
     }
 
     @Secured(R_ADMIN)
-    @PostMapping(value = "/saveDraft")
+    @PostMapping(value = ADD_URL + DRAFT_URL)
     public ResponseEntity<?> saveDraft(@Valid Article article, BindingResult result) {
         if (result.hasFieldErrors()) {
             return ResponseEntity.badRequest().body(result.getFieldError().getField());
@@ -529,12 +529,6 @@ public class AdminController extends BaseController {
         category.postProcess();
         categoryRepository.save(category);
         return mav;
-    }
-
-    @Secured(R_ADMIN)
-    @GetMapping(value = "/ipSets")
-    public ResponseEntity<?> getIpSets() {
-        return ResponseEntity.ok(unmodifiableSet(cache.get(IP_SET)));
     }
 
 }

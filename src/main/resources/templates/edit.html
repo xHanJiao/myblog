@@ -165,7 +165,7 @@
     function delImg(obj) {
         var name = $(obj).next().val();
         name = name.replace(articleImageFolder, '');
-        $.post('/delImage/' + name, csrf_kv, function (data, status) {
+        $.post('/del/image/' + name, csrf_kv, function (data, status) {
             if (status === "success") {
                 $(obj).parents('.onePic').remove();
             }
@@ -203,10 +203,8 @@
                 commentEnable: cme, state: state, category: category,
                 imagePaths: paths, id: draftId
             };
-            console.log('id : ' + data['id']);
-            console.log('imagePaths : ' + data['imagePaths']);
 
-            mockFormKv('/saveDraft', 'POST', data);
+            mockFormKv('/add/draft', 'POST', data);
         });
 
         if (articleId) {
@@ -216,7 +214,7 @@
                 }
             });
 
-            $.get('/getImages/' + articleId, function (data, status) {
+            $.get('/article/image/' + articleId, function (data, status) {
                 if (status === "success") {
                     for (var i = 0; i < data.length; i++) {
                         console.log(data[i]);

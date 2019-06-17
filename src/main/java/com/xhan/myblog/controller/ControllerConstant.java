@@ -34,6 +34,9 @@ public interface ControllerConstant {
     String CATEGORIES = "categories";
     String DELETE = "del";
     String DELETE_URL = SLASH + DELETE;
+    String IMAGE_URL = SLASH + "image";
+    String VISIABLE_PUBLISH_URL = "/vpub";
+    String UNVISIABLE_PUBLISH_URL = "/uvpub";
     String HIDDEN = "hidden";
     String HIDDEN_URL = SLASH + HIDDEN;
     String COMMENT_URL = "/comment";

@@ -33,7 +33,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         http.authorizeRequests()
                 .antMatchers(SLASH + EDIT + SUFFIX,
                         RECOVER_URL + SUFFIX,
+                        MODI_ADMIN_URL,
                         DELETE_URL + SUFFIX,
+                        RECYCLE_URL, DRAFT_URL,
                         ADD_URL + SUFFIX,
                         SLASH + MODIFY + SUFFIX).authenticated()
                 .anyRequest().permitAll()
