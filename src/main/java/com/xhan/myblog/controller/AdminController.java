@@ -285,7 +285,6 @@ public class AdminController extends BaseController {
                     while (!toDelete.delete()) {}
                 });
                 articleRepository.delete(article);
-//                responseEntity = ResponseEntity.status(HttpStatus.FOUND).location(new URI("/recycle")).build();
                 responseEntity = ResponseEntity.ok().build();
             }
         } catch (URISyntaxException e) {

@@ -40,6 +40,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .formLogin().loginPage(LOGIN_URL)
                 .usernameParameter("account")
-                .successForwardUrl(LOGIN_DISPATCH_URL);
+                .successForwardUrl(LOGIN_DISPATCH_URL)
+                .and().logout().logoutUrl("/logout");
     }
 }
