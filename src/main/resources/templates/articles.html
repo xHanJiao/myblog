@@ -28,16 +28,15 @@
                         <a th:href="@{/index}" class="deep-orange-text">返回主页</a>
                     </div>
                 </div>
-                <div th:each="article: ${articles}">
+                <div class="articlesHolder" th:each="article: ${articles}">
                     <div class="section contentHolder">
+                        <span th:replace="index :: stateIcons"></span>
                         <a th:href="@{'/article/' + ${article.getId()}}" class="black-text aTitles"
                            th:text="${article.getTitle()}"></a>
-                        <i th:if="${article.getState()==2}" class="material-icons">blur_on</i>
+                        <a sec:authorize="hasRole('ADMIN')" class="modiState btn-flat right waves-effect waves-light">
+                            <i class="material-icons">settings</i></a>
                         <span class="right hide-on-small-only" th:text="${article.getCreateTime()}"></span>
                         <input type="hidden" th:value="${article.getId()}">
-                        <a sec:authorize="hasRole('ADMIN')" class="modiState btn-flat waves-effect waves-light">
-                            <i class="material-icons">settings</i>
-                        </a>
                     </div>
                     <div class="divider"></div>
                 </div>
@@ -74,24 +73,24 @@
     }
 
     function getArticleId() {
-        var articleId = $(this).parent().prev().find('input[type=hidden]').val();
-        console.log('articleId : ' + articleId);
-        return articleId;
+        return $(this).parent().prev().find('input[type=hidden]').val();
     }
 
-    $('.blur_on').on('click', function () {
+    $('.articlesHolder').on('click', '.visibility_off', function () {
         var articleId = getArticleId.call(this);
-        mockFormKv('/uvpub/' + articleId, 'POST', {});
-    });
-
-    $('.blur_circular').on('click', function () {
+        $.post('/uvpub/' + articleId, function () {
+            window.location.reload();
+        })
+    }).on('click', '.visibility', function () {
         var articleId = getArticleId.call(this);
-        mockFormKv('/vpub/' + articleId, 'post', {});
-    });
-
-    $('.delete').on('click', function () {
+        $.post('/vpub/' + articleId, function () {
+            window.location.reload();
+        })
+    }).on('click', '.delete', function () {
         var articleId = getArticleId.call(this);
-        mockFormKv('/del/article/' + articleId, 'POST', {});
+        $.post('/del/article/' + articleId, function () {
+            window.location.reload();
+        })
     });
 
     $(document).ready(function () {
@@ -102,7 +101,7 @@
         $('.modiState').click(function () {
             // 先清理所有已经存在的修改按钮
             var btnHolder = $('.btnHolder');
-            if (btnHolder.length > 0) {
+            if ($(this).parent().siblings('.btnHolder').length > 0) {
                 btnHolder.remove();
                 return;
             }
@@ -116,21 +115,22 @@
                 if (status === 'success') {
                     switch (data) {
                         case 0:
-                            addBtn('blur_circular');
-                            addBtn('blur_on');
+                            addBtn('visibility');
+                            addBtn('visibility_off');
                             break;
                         case 1:
                             addBtn('delete');
-                            addBtn('blur_on');
+                            addBtn('visibility_off');
                             break;
                         case 2:
                             addBtn('delete');
-                            addBtn('blur_circular');
+                            addBtn('visibility');
                             break;
                         case 3:
-                            // blur_circular
-                            addBtn('blur_on');
-                            addBtn('blur_circular');
+                            // visibility
+                            addBtn('visibility_off');
+                            addBtn('visibility');
+                            addBtn('delete_forever');
                             break;
                         default:
                             break;

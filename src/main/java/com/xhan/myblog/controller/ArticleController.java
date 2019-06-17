@@ -66,7 +66,7 @@ public class ArticleController extends BaseController {
         return categoryRepository.findAll(Sort.by(ASC, "createTime"));
     }
 
-    private Page<Article> getArticleSDueIsAdmin(@RequestParam(defaultValue = "5") Integer pageSize, @RequestParam(defaultValue = "0") Integer page) {
+    private Page<Article> getArticleSDueIsAdmin(Integer pageSize, Integer page) {
         boolean isAdmin = false;
         Collection<? extends GrantedAuthority> authorities = SecurityContextHolder.getContext().getAuthentication().getAuthorities();
         for (GrantedAuthority ga : authorities)
@@ -131,7 +131,7 @@ public class ArticleController extends BaseController {
         MyPageRequest mpr = new MyPageRequest(page, pageSize).invoke();
         PageRequest pageRequest = of(mpr.getPage(), mpr.getPageSize(), DESC, "createTime");
         return isAdmin
-                ? articleRepository.findAllByStateIn(asList(PUBLISHED.getState(), HIDDEN.getState()), pageRequest)
+                ? articleRepository.findAll(pageRequest)
                 : articleRepository.findAllByState(PUBLISHED.getState(), pageRequest);
     }
 

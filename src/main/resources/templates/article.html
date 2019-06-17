@@ -72,25 +72,25 @@
                     <li sec:authorize="hasRole('ADMIN')" th:fragment="softDelBtn"
                         th:if="${article.getState() == 1}">
                         <a class="stateBtn blue-grey hideBtn" title="隐藏文章">
-                            <i class="material-icons">blur_on</i>
+                            <i class="material-icons">visibility_off</i>
                         </a>
                     </li>
                     <li sec:authorize="hasRole('ADMIN')" th:fragment="softDelBtn"
                         th:if="${article.getState() == 0}">
                         <a class="stateBtn blue-grey" id="uvpub" title="不可见发布文章">
-                            <i class="material-icons">blur_on</i>
+                            <i class="material-icons">visibility_off</i>
                         </a>
                     </li>
                     <li sec:authorize="hasRole('ADMIN')" th:fragment="softDelBtn"
                         th:if="${article.getState() == 0}">
                         <a class="stateBtn blue-grey" id="vpub" title="可见发布文章">
-                            <i class="material-icons">blur_circular</i>
+                            <i class="material-icons">visibility</i>
                         </a>
                     </li>
                     <li sec:authorize="hasRole('ADMIN')"
                         th:if="${article.getState() == 2}">
                         <a class="stateBtn blue-grey showBtn" title="显示文章">
-                            <i class="material-icons">blur_circular</i>
+                            <i class="material-icons">visibility</i>
                         </a>
                     </li>
                     <li sec:authorize="hasRole('ADMIN')" th:fragment="hardDelBtn"

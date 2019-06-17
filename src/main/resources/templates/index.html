@@ -59,11 +59,17 @@
             <div th:each="article: ${articles}">
                 <div class="section">
                     <span>
-                    <a class="flow-text black-text aTitles" th:href="'/article/' + ${article.getId()}"
-                       th:text="${article.getTitle()}" th:name="${article.getId()}"></a>
-                    <i th:if="${article.getState()==2}" class="material-icons">blur_on</i>
-                    <span class="flow-text right hide-on-small-and-down" th:text="${article.getCreateTime()}"></span>
+                        <span th:fragment="stateIcons">
+                            <i th:if="${article.getState()==0}" class="material-icons">drafts</i>
+                            <i th:if="${article.getState()==1}" class="material-icons">visibility</i>
+                            <i th:if="${article.getState()==2}" class="material-icons">visibility_off</i>
+                            <i th:if="${article.getState()==3}" class="material-icons">delete</i>
                         </span>
+                        <a class="flow-text black-text aTitles" th:href="'/article/' + ${article.getId()}"
+                           th:text="${article.getTitle()}" th:name="${article.getId()}"></a>
+                        <span class="flow-text right hide-on-small-and-down"
+                              th:text="${article.getCreateTime()}"></span>
+                    </span>
                 </div>
                 <div class="divider col s12"></div>
             </div>
@@ -71,7 +77,7 @@
                 <div class="flow-text hide-on-med-and-up show-on-small right">
                     <a class="flow-text btn-inline black-text waves-effect waves-light" th:href="@{/category}">
                         分类浏览<i class="material-icons right">send</i></a>
-                    <a class="flow-text btn-inline black-text waves-effect waves-light" th:href="@{/article}" >
+                    <a class="flow-text btn-inline black-text waves-effect waves-light" th:href="@{/article}">
                         <i class="material-icons right">send</i>文章列表</a>
                 </div>
             </div>

@@ -64,8 +64,6 @@ public class AdminController extends BaseController {
     private PasswordEncoder passwordEncoder;
     @Autowired
     private ControllerPropertiesBean propertiesBean;
-    //    @Value("${controller.imagePath}")
-//    private String imageBase;
     private MapCache cache = MapCache.single();
 
     @RequestMapping(value = {LOGIN_DISPATCH_URL})
@@ -280,11 +278,9 @@ public class AdminController extends BaseController {
                 responseEntity = result.getModifiedCount() == 1
                         ? ResponseEntity.status(HttpStatus.FOUND).location(new URI("/recycle")).build()
                         : badRequest().body("check id you input");
-            } else if (article.getState() == RECYCLED.getState()) {
+            } else {
                 articleRepository.delete(article);
                 responseEntity = ResponseEntity.status(HttpStatus.FOUND).location(new URI("/recycle")).build();
-            } else {
-                throw new IllegalStateException(Integer.toString(article.getState()));
             }
         } catch (URISyntaxException e) {
             throw new BlogException();
@@ -315,7 +311,7 @@ public class AdminController extends BaseController {
     public ModelAndView visiablePublish(@PathVariable String id, ModelAndView mav) {
         UpdateResult updateResult = mongoTemplate.update(Article.class)
                 .matching(query(where("id").is(id).and("state")
-                        .in(DRAFT.getState(), ArticleState.HIDDEN.getState())))
+                        .in(DRAFT.getState(), ArticleState.HIDDEN.getState(), RECYCLED.getState())))
                 .apply(new Update().set("state", PUBLISHED.getState()))
                 .first();
 
@@ -337,7 +333,7 @@ public class AdminController extends BaseController {
     public ModelAndView unVisiablePublish(@PathVariable String id, ModelAndView mav) {
         UpdateResult updateResult = mongoTemplate.update(Article.class)
                 .matching(query(where("id").is(id).and("state")
-                        .in(DRAFT.getState(), PUBLISHED.getState())))
+                        .in(DRAFT.getState(), RECYCLED.getState(), PUBLISHED.getState())))
                 .apply(new Update().set("state", ArticleState.HIDDEN.getState()))
                 .first();
 
