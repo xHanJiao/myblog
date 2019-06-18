@@ -488,7 +488,7 @@ public class AdminController extends BaseController {
     @Secured(R_ADMIN)
     @PostMapping(value = MODI_URL + CATEGORY_URL)
     public ResponseEntity<?> modifyCategory(@Valid Category category, BindingResult result,
-                                          @RequestParam(value = "pic", required = false) MultipartFile file) {
+                                            @RequestParam(value = "pic", required = false) MultipartFile file) {
         if (result.hasFieldErrors()) {
             return ResponseEntity.badRequest().body(result.getFieldError().getField());
         } else {
@@ -512,9 +512,9 @@ public class AdminController extends BaseController {
 
     private void deleteCategoryImage(String filePath) {
         File dir = new File(propertiesBean.getCategoryImages());
-        File image = new File(dir, filePath);
+        File image = new File(dir.getParentFile(), filePath);
         if (!image.delete()) {
-            throw new BlogException("cannot delete category image");
+            throw new BlogException("cannot delete category image " + image.getName());
         }
     }
 
@@ -542,18 +542,17 @@ public class AdminController extends BaseController {
             if (!dir.exists()) dir.mkdirs();
             image = File.createTempFile("categoryPic",
                     "." + getFilenameExtension(file.getOriginalFilename()), dir);
-            image.createNewFile();
-//            if (!image.createNewFile())
-//                throw new BlogException("cannot create temp file at " + dir.getPath() + "/" + dir.getName());
+            try (InputStream in = file.getInputStream();
+                 OutputStream out = new FileOutputStream(image)) {
+                copy(in, out);
+                String[] splits = propertiesBean.getCategoryImages().split("/");
+
+                category.setFilePath("/" + splits[splits.length - 1] + "/" + image.getName());
+            } catch (IOException e) {
+                throw new BlogException("cannot save image at " + e.getMessage());
+            }
         } catch (IOException e) {
             throw new BlogException("cannot save image at " + image.getPath());
-        }
-        try (InputStream in = file.getInputStream();
-             OutputStream out = new FileOutputStream(image)) {
-            copy(in, out);
-            category.setFilePath("/categoryImages/" + image.getName());
-        } catch (IOException e) {
-            throw new BlogException("cannot save image at " + e.getMessage());
         }
     }
 

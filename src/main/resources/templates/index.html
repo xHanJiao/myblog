@@ -93,6 +93,7 @@
                                 <a class="modi hidee btn btn-flat orange-text">隐藏</a>
                                 <a class="modi pub btn btn-flat orange-text">公开</a>
                                 <a class="modi btn modiCate btn-flat orange-text" href="#modal1">修改分类</a>
+                                <input th:value="${cate.getName()}" type="hidden"/>
                             </span>
                             <input th:value="${cate.getName()}" type="hidden"/>
                         </div>
@@ -191,7 +192,30 @@
                 .after($('<div></div>').addClass('divider col s12')));
     }
 
+    var baseURL = '/category';
+
     $(document).ready(function () {
+
+        $('.modi').on('click', function () {
+                var name = $(this).siblings('input[type=hidden]').val();
+                console.log('articleId : ' + name);
+                var modiOper = "";
+                if ($(this).hasClass('delete')) {
+                    modiOper = '/del/';
+                } else if ($(this).hasClass('pub')) {
+                    modiOper = '/recover/';
+                } else if ($(this).hasClass('hidee')) {
+                    modiOper = '/hidden/'
+                } else {
+                    console.log('cannot get modiOper');
+                    return false;
+                }
+                console.log('modiOper : ' + modiOper);
+                $.post(baseURL + modiOper + name, csrf_kv, function () {
+                    window.location.reload();
+                });
+            }
+        ).hide();
 
         $('#categoryHolder').hide();
 
@@ -200,19 +224,17 @@
             $('#articleListHolder').toggle();
         });
 
-        $('.modi').hide();
-
         $('.setBtn').click(function () {
             $(this).siblings().toggle();
         });
-
-        $('.cateCard').each(function () {
-            if ($(this).find('div[class=card-image]').length > 0) {
-                $(this).addClass('large');
-            } else {
-                $(this).addClass('small');
-            }
-        });
+        //
+        // $('.cateCard').each(function () {
+        //     if ($(this).find('div[class=card-image]').length > 0) {
+        //         $(this).addClass('large');
+        //     } else {
+        //         $(this).addClass('small');
+        //     }
+        // });
 
         $('#createCate').click(function () {
             $('#cateForm').attr('action', '/add/category');
