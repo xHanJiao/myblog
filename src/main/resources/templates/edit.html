@@ -10,35 +10,17 @@
     <meta name="_csrf" th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <script src="https://cdn.ckeditor.com/4.11.4/standard/ckeditor.js"></script>
+    <style>
+        .btn {
+            margin: 5%;
+        }
+    </style>
 </head>
 <body>
 <div th:replace="index::header"></div>
 <div class="container">
     <div class="row">
-        <div class="col m2">
-            <div class="row">
-                <form enctype="multipart/form-data">
-                    <div class="file-field input-field">
-                        <div class="btn">
-                            <span>文件</span>
-                            <input id="pic" name="pic" type="file">
-                        </div>
-                        <div class="file-path-wrapper">
-                            <input class="file-path" type="text"/>
-                        </div>
-                        <div>
-                            <a class="btn btn-flat" id="submitPic">提交</a>
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div class="row">
-                <div id="picHolder">
-
-                </div>
-            </div>
-        </div>
-        <div class="col m8">
+        <div class="col m10">
             <div class="row">
                 <div class="input-field">
                     <input placeholder="标题" type="text" id="aTitle"
@@ -86,12 +68,34 @@
                     <input type="hidden" id="draftId">
                 </div>
             </div>
+
+            <div class="row">
+                <form enctype="multipart/form-data">
+                    <div class="file-field input-field">
+                        <div class="btn">
+                            <span>文件</span>
+                            <input id="pic" name="pic" type="file">
+                        </div>
+                        <div class="file-path-wrapper">
+                            <input class="file-path" type="text"/>
+                        </div>
+                        <div>
+                            <a class="btn waves-effect waves-light purple" id="submitPic">提交</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="row">
+                <div id="picHolder">
+
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
 <div id="modal1" class="modal" th:fragment="modal">
-    <form th:action="@{/add/category}" th:method="POST" enctype="multipart/form-data">
+    <form th:action="@{/add/category}" th:method="POST" id="cateForm" enctype="multipart/form-data">
         <div class="modal-content">
             <h4>创建分类</h4>
             <div class="input-field">
@@ -120,6 +124,7 @@
     </form>
 </div>
 
+
 <script src="https://cdn.bootcss.com/jquery/2.2.1/jquery.js"></script>
 <script th:src="@{/js/materialize.min.js}"></script>
 <script th:src="@{/js/util.js}"></script>
@@ -130,6 +135,7 @@
     function addCardOfImage(data) {
         $('#picHolder')
             .append($("<div class='onePic card yellow darken-1'></div>")
+                .css('margin', '3%')
                 .append($("<div class='card-content'></div>").css('word-break', 'break-all')
                     .append($("<img class=\"responsive-img\">").attr('src', data))
                     .append($("<p class='flow-text href-holder'>").text(data).css('font-size', 'xx-small')))
@@ -173,7 +179,9 @@
     }
 
 
-    var editor = CKEDITOR.replace('editor1');
+    var editor = CKEDITOR.replace('editor1', {
+        height: 800
+    });
     var content = null;
 
     function getImagePaths() {
