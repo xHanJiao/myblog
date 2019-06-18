@@ -99,6 +99,10 @@
         $.post('/del/article/' + articleId, csrf_kv, function () {
             window.location.reload();
         })
+    }).on('click', '.mode_edit', function () {
+        var articleId = getArticleId.call(this);
+        mockFormKv('/edit/article', 'get', {id: articleId});
+
     });
 
     $(document).ready(function () {
@@ -125,20 +129,23 @@
                         case 0:
                             addBtn('visibility');
                             addBtn('visibility_off');
+                            addBtn('mode_edit');
                             break;
                         case 1:
                             addBtn('delete');
                             addBtn('visibility_off');
+                            addBtn('mode_edit');
                             break;
                         case 2:
                             addBtn('delete');
                             addBtn('visibility');
+                            addBtn('mode_edit');
                             break;
                         case 3:
-                            // visibility
                             addBtn('visibility_off');
                             addBtn('visibility');
                             addBtn('delete_forever');
+                            addBtn('mode_edit');
                             break;
                         default:
                             break;

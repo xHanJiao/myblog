@@ -82,11 +82,6 @@ public class ArticleController extends BaseController {
         return ResponseEntity.ok(categories);
     }
 
-    @GetMapping(path = SLASH + CATEGORY)
-    public String getCategoryPage() {
-        return CATEGORY;
-    }
-
     @GetMapping(path = SLASH + CATEGORY + NAME_PATH_VAR)
     public ModelAndView getArticlesOfCategory(@PathVariable String name, ModelAndView mav,
                                               @RequestParam(defaultValue = "0") Integer page,

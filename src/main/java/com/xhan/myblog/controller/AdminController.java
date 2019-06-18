@@ -103,7 +103,7 @@ public class AdminController extends BaseController {
     }
 
     @Secured(R_ADMIN)
-    @GetMapping(value = SLASH + EDIT + ARTICLE_URL)
+    @GetMapping(value = EDIT_URL + ARTICLE_URL, params = {})
     public String getEditPage(Model model) {
         model.addAttribute("dto", new ArticleCreateDTO());
         model.addAttribute("modify", "");
@@ -394,7 +394,7 @@ public class AdminController extends BaseController {
             article = mongoTemplate.save(article, Article.COLLECTION_NAME);
             Assert.isTrue(hasText(article.getId()), "保存后id必定有值");
             return ResponseEntity.status(HttpStatus.FOUND)
-                    .location(URI.create(SLASH + EDIT + ARTICLE_URL + SLASH + article.getId()))
+                    .location(URI.create(EDIT_URL + ARTICLE_URL + SLASH + article.getId()))
                     .build();
         }
     }
@@ -440,19 +440,30 @@ public class AdminController extends BaseController {
     }
 
     @Secured(R_ADMIN)
-    @GetMapping(value = SLASH + EDIT + ARTICLE_URL + ID_PATH_VAR)
+    @GetMapping(value = EDIT_URL + ARTICLE_URL + ID_PATH_VAR)
     public String getEditPage(Model model, @PathVariable String id) {
+        compareForRedrct(model, id);
+        return EDIT;
+    }
+
+    @Secured(R_ADMIN)
+    @GetMapping(value = EDIT_URL + ARTICLE_URL, params = {"id"})
+    public String getEditPage(@RequestParam String id, Model model) {
+        compareForRedrct(model, id);
+        return EDIT;
+    }
+
+    private void compareForRedrct(Model model, @PathVariable String id) {
         ContentTitleIdDTO dto = articleRepository.getById(id)
                 .orElseThrow(ArticleNotFoundException::new);
         model.addAttribute("dto", dto);
         model.addAttribute("modify", id);
         model.addAttribute("categories", categoryRepository.findAll());
-        return EDIT;
     }
 
 
     @Secured(R_ADMIN)
-    @PostMapping(value = SLASH + MODIFY + ARTICLE_URL + ID_PATH_VAR)
+    @PostMapping(value = MODIFY_URL + ARTICLE_URL + ID_PATH_VAR)
     public ModelAndView modifyArticle(@PathVariable String id, @Valid ArticleCreateDTO dto,
                                       BindingResult result, ModelAndView mav) {
         if (result.hasFieldErrors()) {
@@ -486,9 +497,9 @@ public class AdminController extends BaseController {
     }
 
     @Secured(R_ADMIN)
-    @PostMapping(value = MODI_URL + CATEGORY_URL)
+    @PostMapping(value = MODIFY_URL + CATEGORY_URL)
     public ResponseEntity<?> modifyCategory(@Valid Category category, BindingResult result,
-                                            @RequestParam(value = "pic", required = false) MultipartFile file) {
+                                            @RequestParam(value = "pic") MultipartFile file) {
         if (result.hasFieldErrors()) {
             return ResponseEntity.badRequest().body(result.getFieldError().getField());
         } else {
@@ -496,13 +507,14 @@ public class AdminController extends BaseController {
                     .findByName(category.getName())
                     .orElseThrow(CategoryNotFoundException::new);
 
-            oldCate.setName(category.getName());
-            oldCate.setDescription(category.getDescription());
-            if (file != null) {
+            oldCate.copyForModify(category);
+
+            if (file != null && !file.isEmpty()) {
                 if (hasText(oldCate.getFilePath()))
                     deleteCategoryImage(oldCate.getFilePath());
                 saveCategoryImage(oldCate, file);
             }
+
             categoryRepository.save(oldCate);
             return ResponseEntity.status(HttpStatus.FOUND)
                     .location(URI.create("/index"))

@@ -2,6 +2,7 @@ package com.xhan.myblog.interceptor;
 
 import com.xhan.myblog.model.content.repo.MongoLog;
 import com.xhan.myblog.repository.LogRepository;
+import com.xhan.myblog.utils.BlogUtils;
 import com.xhan.myblog.utils.MapCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +26,8 @@ public class LogInterceptor extends HandlerInterceptorAdapter {
     private final LogRepository logRepository;
     private MapCache cache = MapCache.single();
 
+    private static final Logger logger = LoggerFactory.getLogger(LogInterceptor.class);
+
     @Autowired
     public LogInterceptor(LogRepository logRepository) {
         this.logRepository = logRepository;
@@ -47,6 +50,9 @@ public class LogInterceptor extends HandlerInterceptorAdapter {
             cache.hset("BANNED_IP", log.getHost(),
                     now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")), 300);
         }
+
+        logger.info(String.format("[ip: %s] ---- [time: %s] ---- [URI: %s]", request.getRemoteAddr(),
+                BlogUtils.getCurrentDateTime(), request.getRequestURI()));
 
         return oneValue <= PEOPLE_MAX_VISIT_PER_10_SECOND && allValue <= ALL_MAX_VISIT_PER_5_SECOND;
     }

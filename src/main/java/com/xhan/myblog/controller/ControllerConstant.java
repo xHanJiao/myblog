@@ -16,7 +16,8 @@ public interface ControllerConstant {
     String STATE_URL = SLASH + "state";
     String CATEGORY = "category";
     String CATEGORY_URL = SLASH + CATEGORY;
-    String MODI_URL = SLASH + "modify";
+    String MODIFY = "modify";
+    String MODIFY_URL = SLASH + MODIFY;
     String ARTICLE_LIST = "articles";
     String CONTENT_URL = SLASH + "content";
     // COMMENTS
@@ -28,10 +29,10 @@ public interface ControllerConstant {
     String RECYCLE = "recycle";
     String RECYCLE_URL = SLASH + RECYCLE;
     String EDIT = "edit";
+    String EDIT_URL = SLASH + EDIT;
     String ID_PATH_VAR = SLASH + "{id}";
     String NAME_PATH_VAR = SLASH + "{name}";
     String DEL_IMAGE_URL = SLASH + "delImage" + SLASH;
-    String MODIFY = "modify";
     String CATEGORIES = "categories";
     String DELETE = "del";
     String DELETE_URL = SLASH + DELETE;

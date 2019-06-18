@@ -31,4 +31,9 @@ public class Category {
             setDescription("这是建立在" + getCurrentDateTime() + "的一个关于" + name + "的分类");
         }
     }
+
+    public void copyForModify(Category category) {
+        setName(category.getName());
+        setDescription(category.getDescription());
+    }
 }
