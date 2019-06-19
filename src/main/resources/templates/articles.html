@@ -13,11 +13,11 @@
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
 </head>
 <body>
-<div th:replace="header::header_slim"></div>
+<div th:replace="fragments::header_slim"></div>
 
 <div class="container">
     <div class="row">
-        <div id="listHolder" class="col m10 s12 offset-m1 flow-text">
+        <div id="listHolder" class="col m9 s12 flow-text">
             <div class="section">
                 <h3 th:unless="${cateName}" th:text="#{|${meta}|}"></h3>
                 <h3 th:if="${cateName}" class="metainf" th:text="${cateName}"></h3>
@@ -52,7 +52,7 @@
                 </select>
             </div>
         </div>
-        <div class="col m2 hide-on-med-and-down">
+        <div class="col m2 hide-on-med-and-down" th:replace="fragments::sideBar">
         </div>
     </div>
 </div>

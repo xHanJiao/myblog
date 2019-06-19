@@ -27,9 +27,11 @@ $(document).ready(function () {
             } else if ($(this).hasClass('hidee')) {
                 modiOper = '/hidden/'
             } else if ($(this).hasClass('modiCate')) {
-                var contentHolder = $(this).parents('div[class=card-action]').prev();
-                var title = contentHolder.children('span').text();
-                var content = contentHolder.children('p').text();
+                var contentHolder = $(this).parent().prev();
+                var title = contentHolder.children('a').text();
+                var content = contentHolder.children('p[class=cate_dscrp]').text();
+                console.log('title : ' + title);
+                console.log('content : ' + content);
                 $('#cateName').val(title);
                 $('#cateDescription').val(content);
                 $('#cateForm').attr('action', '/modify/category');

@@ -14,11 +14,11 @@
     <link rel="stylesheet" th:href="@{/css/header.css}">
 </head>
 <body>
-<div th:replace="header::header"></div>
+<div th:replace="fragments::header"></div>
 
 <div class="container">
     <div class="row black-text">
-        <div class="col m8" id="board">
+        <div class="col m9 s12" id="board">
             <div id="articleListHolder">
                 <div class="section">
                     <h3><a class="black-text" th:href="'/article/' + ${showBoard.getId()}"
@@ -44,29 +44,29 @@
                 </div>
             </div>
             <div id="categoryHolder">
-                <div th:each="cate : ${allCate}" class="cardHolder">
-                    <div class="s12 col l4 m6">
-                        <div class="card hoverable cateCard">
-                            <div class="card-image" th:if="${cate.getFilePath() != null}">
-                                <img class="responsive-img" th:src="@{${cate.getFilePath()}}"/>
-                            </div>
-                            <div class="card-content">
-                                <a th:text="${cate.getName()}" th:href="@{'/category/' + ${cate.getName()}}"
-                                   class="deep-orange-text cate_title"></a>
-                                <p th:text="${cate.getDescription()}" class="cate_dscrp"></p>
-                                <input type="hidden" th:value="${cate.getNum()}"/>
-                            </div>
-                            <div class="card-action" sec:authorize="hasRole('ADMIN')">
-                                <a class="modi flow-text delete btn btn-flat orange-text"
-                                   sec:authorize="hasRole('ADMIN')">删除</a>
-                                <a class="modi flow-text hidee btn btn-flat orange-text"
-                                   sec:authorize="hasRole('ADMIN')">隐藏</a>
-                                <a class="modi flow-text pub btn btn-flat orange-text"
-                                   sec:authorize="hasRole('ADMIN')">公开</a>
-                                <a class="modi flow-text btn modiCate btn-flat orange-text" href="#modal1"
-                                   sec:authorize="hasRole('ADMIN')">修改</a>
-                                <input th:value="${cate.getName()}" type="hidden"/>
-                            </div>
+                <div th:each="cate : ${allCate}" class="s12 col cardHolder">
+                    <div class="card hoverable cateCard">
+                        <div class="card-image" th:if="${cate.getFilePath() != null}">
+                            <img class="responsive-img" th:src="@{${cate.getFilePath()}}"/>
+                        </div>
+                        <div class="card-content flow-text">
+                            <a th:text="${cate.getName()}" th:href="@{'/category/' + ${cate.getName()}}"
+                               class="deep-orange-text cate_title"></a>
+                            <p th:text="${cate.getDescription()}" class="cate_dscrp"></p>
+                            <input type="hidden" th:value="${cate.getNum()}"/>
+                        </div>
+                        <div class="card-action flow-text" sec:authorize="hasRole('ADMIN')">
+                            <a class="setBtn flow-text delete btn-floating right waves-effect waves-blue"
+                               sec:authorize="hasRole('ADMIN')"><i class="material-icons">settings</i></a>
+                            <a class="modi delete btn btn-flat orange-text"
+                               sec:authorize="hasRole('ADMIN')">删除</a>
+                            <a class="modi hidee btn btn-flat orange-text"
+                               sec:authorize="hasRole('ADMIN')">隐藏</a>
+                            <a class="modi pub btn btn-flat orange-text"
+                               sec:authorize="hasRole('ADMIN')">公开</a>
+                            <a class="modi btn modiCate btn-flat orange-text" href="#modal1"
+                               sec:authorize="hasRole('ADMIN')">修改</a>
+                            <input th:value="${cate.getName()}" type="hidden"/>
                         </div>
                     </div>
                 </div>
@@ -92,25 +92,7 @@
                     登出</a>
             </div>
         </div>
-        <div class="col m2 offset-m1 hide-on-small-and-down">
-            <div class="row">
-                <div class="m5 offset-m4 s5 offset-s4 hoverable">
-                    <div class="card z-depth-0 orange lighten-3">
-                        <div class="card-image z-depth-0">
-                            <img th:src="@{/images/sample-2.jpg}">
-                        </div>
-                        <div class="card-content z-depth-0">
-                            <p class="brown-text flow-text">人间正道是沧桑</p>
-                        </div>
-                        <div class="card-action z-depth-0">
-                            <a href="#" class="brown-text">我的简历</a>
-                            <div sec:authorize="hasRole('ADMIN')" class="divider"></div>
-                            <a sec:authorize="hasRole('ADMIN')" class="brown-text" th:href="@{/modiadmin}">修改个人信息</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <div class="col m2 hide-on-med-and-down" th:replace="fragments::sideBar">
     </div>
 </div>
 
