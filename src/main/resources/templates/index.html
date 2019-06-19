@@ -13,7 +13,7 @@
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <link rel="stylesheet" th:href="@{/css/header.css}">
 </head>
-<body>
+<body class="blue grey lighten-4">
 <div th:replace="fragments::header"></div>
 
 <div class="container">
@@ -45,15 +45,16 @@
             </div>
             <div id="categoryHolder">
                 <div th:each="cate : ${allCate}" class="s12 col cardHolder">
-                    <div class="card hoverable cateCard">
+                    <div class="card hoverable cateCard ">
                         <div class="card-image" th:if="${cate.getFilePath() != null}">
                             <img class="responsive-img" th:src="@{${cate.getFilePath()}}"/>
                         </div>
-                        <div class="card-content flow-text">
+                        <div class="card-content">
                             <a th:text="${cate.getName()}" th:href="@{'/category/' + ${cate.getName()}}"
-                               class="deep-orange-text cate_title"></a>
-                            <p th:text="${cate.getDescription()}" class="cate_dscrp"></p>
+                               style="font-weight: bold" class="cate_title flow-text brown-text"></a>
                             <input type="hidden" th:value="${cate.getNum()}"/>
+                            <div class="divider"></div>
+                            <p th:text="${cate.getDescription()}" class="cate_dscrp blue-grey-text"></p>
                         </div>
                         <div class="card-action flow-text" sec:authorize="hasRole('ADMIN')">
                             <a class="setBtn flow-text delete btn-floating right waves-effect waves-blue"
