@@ -4,6 +4,7 @@ import com.mongodb.client.result.UpdateResult;
 import com.xhan.myblog.model.content.repo.Article;
 import com.xhan.myblog.repository.ArticleRepository;
 import com.xhan.myblog.repository.CategoryRepository;
+import com.xhan.myblog.utils.MapCache;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -28,6 +29,10 @@ public class BaseController {
     @Autowired
     protected CategoryRepository categoryRepository;
     protected Article emptyArticle = new Article();
+
+    protected MapCache cache = MapCache.single();
+
+    protected static final String pageSize = "10";
 
     public BaseController() {
         emptyArticle.setState(1);

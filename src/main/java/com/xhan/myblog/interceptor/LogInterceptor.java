@@ -46,6 +46,7 @@ public class LogInterceptor extends HandlerInterceptorAdapter {
         AtomicLong one = cache.get(log.getHost()), all = cache.get("TOTAL_VISIT");
         long oneValue = one == null ? 0 : one.incrementAndGet();
         long allValue = all == null ? 0 : all.incrementAndGet();
+        // todo 这里好像不行啊
         if (oneValue > PEOPLE_MAX_VISIT_PER_10_SECOND) {
             cache.hset("BANNED_IP", log.getHost(),
                     now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")), 300);

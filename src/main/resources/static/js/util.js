@@ -18,6 +18,11 @@ function truncateTextOfCertainClass(clazz, maxLen) {
     });
 }
 
+function commonInit() {
+    $('#modal1').modal();
+    $('select').material_select();
+}
+
 function mockFormKv(URL, method, kv) {
 
     var form = $("<form></form>").attr("action", URL).attr("method", method);

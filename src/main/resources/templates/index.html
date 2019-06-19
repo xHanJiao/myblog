@@ -11,37 +11,14 @@
 
     <meta name="_csrf" th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
-
+    <link rel="stylesheet" th:href="@{/css/header.css}">
 </head>
 <body>
-<nav th:fragment="header" class="brown darken-2">
-    <div class="nav-wrapper">
-        <a th:href="@{/index}" class="brand-logo show-on-small hide-on-med-and-up" th:text="#{nav.brand}"></a>
-        <a th:href="@{/index}" style="margin-left: 5%" class="brand-logo left hide-on-small-and-down"
-           th:text="#{nav.brand}"></a>
-        <ul class="right hide-on-small-and-down flow-text" style="margin-right: 5%">
-            <li><a class="nav-a right" id="switch" style="font-size: x-large">切换首页显示</a></li>
-            <li><a th:text="#{nav.articles}" style="font-size: x-large" th:href="@{/article}"></a></li>
-            <li><a sec:authorize="hasRole('ADMIN')" style="font-size: x-large;" class="dropdown-button"
-                   data-beloworigin="true" href="#" data-activates="dropdown1">管理</a></li>
-        </ul>
-        <ul sec:authorize="hasRole('ADMIN')" id="dropdown1" class="dropdown-content">
-            <li><a th:href="@{/edit/article}">发布文章</a></li>
-            <li><a th:href="@{/draft}">草稿箱</a></li>
-            <li><a th:href="@{/recycle}">回收站</a></li>
-            <li><a th:href="@{/hidden}">未公开</a></li>
-            <li><a href="#modal1" id="createCate">创建分类</a></li>
-            <li><a id="logout">登出</a></li>
-            <li><a th:href="@{/modiadmin}">修改密码</a></li>
-        </ul>
-    </div>
-</nav>
-
+<div th:replace="header::header"></div>
 
 <div class="container">
     <div class="row black-text">
         <div class="col m8" id="board">
-            <!--style="padding: 3%">-->
             <div id="articleListHolder">
                 <div class="section">
                     <h3><a class="black-text" th:href="'/article/' + ${showBoard.getId()}"
@@ -68,39 +45,51 @@
             </div>
             <div id="categoryHolder">
                 <div th:each="cate : ${allCate}" class="cardHolder">
-                    <div class="card hoverable s12 cateCard">
-                        <div class="card-image hide-on-small-only" th:if="${cate.getFilePath() != null}">
-                            <img class="responsive-img" th:src="@{${cate.getFilePath()}}"/>
-                        </div>
-                        <div class="card-content">
-                            <span th:text="${cate.getName()}" class="card-title cate_title"></span>
-                            <p th:text="${cate.getDescription()}" class="cate_dscrp"></p>
-                        </div>
-                        <div class="card-action">
-                            <a class="btn btn-flat orange-text"
-                               th:href="@{'/category/' + ${cate.getName()}}">所有文章</a>
-                            <span sec:authorize="hasRole('ADMIN')">
-                                <a class="setBtn btn right btn-flat">
-                                    <i class="material-icons">settings</i>
-                                </a>
-                                <a class="modi delete btn btn-flat orange-text">删除</a>
-                                <a class="modi hidee btn btn-flat orange-text">隐藏</a>
-                                <a class="modi pub btn btn-flat orange-text">公开</a>
-                                <a class="modi btn modiCate btn-flat orange-text" href="#modal1">修改分类</a>
+                    <div class="s12 col l4 m6">
+                        <div class="card hoverable cateCard">
+                            <div class="card-image" th:if="${cate.getFilePath() != null}">
+                                <img class="responsive-img" th:src="@{${cate.getFilePath()}}"/>
+                            </div>
+                            <div class="card-content">
+                                <a th:text="${cate.getName()}" th:href="@{'/category/' + ${cate.getName()}}"
+                                   class="deep-orange-text cate_title"></a>
+                                <p th:text="${cate.getDescription()}" class="cate_dscrp"></p>
+                                <input type="hidden" th:value="${cate.getNum()}"/>
+                            </div>
+                            <div class="card-action" sec:authorize="hasRole('ADMIN')">
+                                <a class="modi flow-text delete btn btn-flat orange-text"
+                                   sec:authorize="hasRole('ADMIN')">删除</a>
+                                <a class="modi flow-text hidee btn btn-flat orange-text"
+                                   sec:authorize="hasRole('ADMIN')">隐藏</a>
+                                <a class="modi flow-text pub btn btn-flat orange-text"
+                                   sec:authorize="hasRole('ADMIN')">公开</a>
+                                <a class="modi flow-text btn modiCate btn-flat orange-text" href="#modal1"
+                                   sec:authorize="hasRole('ADMIN')">修改</a>
                                 <input th:value="${cate.getName()}" type="hidden"/>
-                            </span>
-                            <input th:value="${cate.getName()}" type="hidden"/>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="row">
-                <div class="flow-text hide-on-med-and-up show-on-small right">
-                    <a class="flow-text btn-inline black-text waves-effect waves-light" th:href="@{/category}">
-                        分类浏览<i class="material-icons right">send</i></a>
-                    <a class="flow-text btn-inline black-text waves-effect waves-light" th:href="@{/article}">
-                        <i class="material-icons right">send</i>文章列表</a>
-                </div>
+            <div class="row flow-text hide-on-med-and-up show-on-small-and-down bottomBtnHolder">
+                <a class="left flow-text btn-inline black-text waves-effect waves-light boardOrCate">
+                    SwitchIt!</a>
+                <a class="right flow-text btn-inline black-text waves-effect waves-light" th:href="@{/article}">
+                    文章列表</a>
+            </div>
+            <div sec:authorize="hasRole('ADMIN')"
+                 class="row flow-text hide-on-med-and-up show-on-small-and-down bottomBtnHolder">
+                <a class="left flow-text btn-inline black-text waves-effect waves-light" th:href="@{/draft}">
+                    草稿箱</a>
+                <a class="right flow-text btn-inline black-text waves-effect waves-light" th:href="@{/recycle}">
+                    回收站</a>
+            </div>
+            <div sec:authorize="hasRole('ADMIN')"
+                 class="row flow-text hide-on-med-and-up show-on-small-and-down bottomBtnHolder">
+                <a class="left flow-text btn-inline black-text waves-effect waves-light" th:href="@{/hidden}">
+                    未公开</a>
+                <a class="right flow-text btn-inline black-text waves-effect waves-light logout">
+                    登出</a>
             </div>
         </div>
         <div class="col m2 offset-m1 hide-on-small-and-down">
@@ -111,11 +100,11 @@
                             <img th:src="@{/images/sample-2.jpg}">
                         </div>
                         <div class="card-content z-depth-0">
-                            <p class="brown-text">聂志钧</p>
+                            <p class="brown-text flow-text">人间正道是沧桑</p>
                         </div>
                         <div class="card-action z-depth-0">
                             <a href="#" class="brown-text">我的简历</a>
-                            <div class="divider"></div>
+                            <div sec:authorize="hasRole('ADMIN')" class="divider"></div>
                             <a sec:authorize="hasRole('ADMIN')" class="brown-text" th:href="@{/modiadmin}">修改个人信息</a>
                         </div>
                     </div>
@@ -155,70 +144,10 @@
     </form>
 </div>
 
-<script src="https://cdn.bootcss.com/jquery/2.2.1/jquery.js"></script>
+<script src="https://cdn.bootcss.com/jquery/2.2.1/jquery.min.js"></script>
+<script>window.jQuery || document.write(unescape("%3Cscript src='/js/jquery.min.js' type='text/javascript'%3E%3C/script%3E"))</script>
 <script th:src="@{/js/materialize.min.js}"></script>
 <script th:src="@{/js/util.js}"></script>
-
-<script>
-
-    var baseURL = '/category';
-
-    $(document).ready(function () {
-
-        $('.modi').on('click', function () {
-                var name = $(this).siblings('input[type=hidden]').val();
-                console.log('articleId : ' + name);
-                var modiOper = "";
-                if ($(this).hasClass('delete')) {
-                    modiOper = '/del/';
-                } else if ($(this).hasClass('pub')) {
-                    modiOper = '/recover/';
-                } else if ($(this).hasClass('hidee')) {
-                    modiOper = '/hidden/'
-                } else if ($(this).hasClass('modiCate')) {
-                    var contentHolder = $(this).parents('div[class=card-action]').prev();
-                    var title = contentHolder.children('span').text();
-                    var content = contentHolder.children('p').text();
-                    $('#cateName').val(title);
-                    $('#cateDescription').val(content);
-                    $('#cateForm').attr('action', '/modify/category');
-                    return true;
-                } else {
-                    console.log('cannot get modiOper');
-                    return false;
-                }
-                $.post(baseURL + modiOper + name, csrf_kv, function () {
-                    window.location.reload();
-                });
-            }
-        ).hide();
-
-        $('#categoryHolder').hide();
-
-        $('#switch').click(function () {
-            $('#categoryHolder').toggle();
-            $('#articleListHolder').toggle();
-        });
-
-        $('.setBtn').click(function () {
-            $(this).siblings().toggle();
-        });
-
-        $('#createCate').click(function () {
-            $('#cateForm').attr('action', '/add/category');
-            return true;
-        });
-
-        $('#logout').click(function () {
-            $.post('/logout', csrf_kv, function () {
-                window.location.reload();
-            });
-        });
-
-        $('#modal1').modal();
-        $('select').material_select();
-        truncateTextOfCertainClass('.aTitles', 8);
-    });
-</script>
+<script th:src="@{/js/index.js}"></script>
 </body>
 </html>

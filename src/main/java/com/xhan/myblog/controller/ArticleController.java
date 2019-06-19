@@ -3,7 +3,9 @@ package com.xhan.myblog.controller;
 import com.mongodb.client.result.UpdateResult;
 import com.xhan.myblog.exceptions.content.ArticleNotFoundException;
 import com.xhan.myblog.exceptions.content.BlogException;
+import com.xhan.myblog.model.content.dto.CategoryNumDTO;
 import com.xhan.myblog.model.content.repo.Article;
+import com.xhan.myblog.model.content.repo.ArticleState;
 import com.xhan.myblog.model.content.repo.Category;
 import com.xhan.myblog.model.content.repo.Comment;
 import com.xhan.myblog.model.content.dto.CommentCreateDTO;
@@ -28,9 +30,7 @@ import java.util.Collection;
 import java.util.List;
 
 import static com.xhan.myblog.controller.ControllerConstant.*;
-import static com.xhan.myblog.model.content.repo.ArticleState.HIDDEN;
 import static com.xhan.myblog.model.content.repo.ArticleState.PUBLISHED;
-import static java.util.Arrays.asList;
 import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.data.domain.PageRequest.of;
@@ -48,7 +48,7 @@ import static org.springframework.util.StringUtils.hasText;
 public class ArticleController extends BaseController {
 
     @GetMapping(value = {SLASH + INDEX, SLASH})
-    public ModelAndView index(@RequestParam(defaultValue = "5") Integer pageSize,
+    public ModelAndView index(@RequestParam(defaultValue = "7") Integer pageSize,
                               @RequestParam(defaultValue = "0") Integer page,
                               ModelAndView mav) {
         List<Article> articles = getArticleSDueIsAdmin(pageSize, page).getContent();
@@ -62,16 +62,33 @@ public class ArticleController extends BaseController {
     }
 
     @ModelAttribute(name = "allCate")
-    public List<Category> getAllCate() {
-        return categoryRepository.findAll(Sort.by(ASC, "createTime"));
+    public List<CategoryNumDTO> getAllCate() {
+        boolean isAdmin = isAdmin();
+        return categoryRepository.findAll(Sort.by(ASC, "createTime"))
+                .stream().map(c -> {
+                    Integer num = cache.hget(CATE_NUMS + isAdmin, c.getName());
+                    CategoryNumDTO dto = new CategoryNumDTO(c);
+                    if (num == null) {
+                        num = isAdmin
+                                ? articleRepository.countByCategory(c.getName())
+                                : articleRepository.countByCategoryAndState(c.getName(), PUBLISHED.getState());
+                        cache.hset(CATE_NUMS + isAdmin, c.getName(), num);
+                    }
+                    dto.setNum(num);
+                    return dto;
+                }).collect(toList());
     }
 
     private Page<Article> getArticleSDueIsAdmin(Integer pageSize, Integer page) {
+        return getPagedArticles(page, pageSize, isAdmin());
+    }
+
+    private boolean isAdmin() {
         boolean isAdmin = false;
         Collection<? extends GrantedAuthority> authorities = SecurityContextHolder.getContext().getAuthentication().getAuthorities();
         for (GrantedAuthority ga : authorities)
             isAdmin |= ga.getAuthority().equals(R_ADMIN);
-        return getPagedArticles(page, pageSize, isAdmin);
+        return isAdmin;
     }
 
     @GetMapping(value = SLASH + CATEGORIES, consumes = {APPLICATION_JSON_UTF8_VALUE, APPLICATION_JSON_VALUE})
@@ -85,18 +102,14 @@ public class ArticleController extends BaseController {
     @GetMapping(path = SLASH + CATEGORY + NAME_PATH_VAR)
     public ModelAndView getArticlesOfCategory(@PathVariable String name, ModelAndView mav,
                                               @RequestParam(defaultValue = "0") Integer page,
-                                              @RequestParam(defaultValue = "5") Integer pageSize) {
+                                              @RequestParam(defaultValue = "10") Integer pageSize) {
         if (!hasText(name)) {
             mav.setViewName(INDEX);
             mav.setStatus(HttpStatus.BAD_REQUEST);
             mav.addObject("error", "分类名不能为空");
             return mav;
         }
-        boolean isAdmin = false;
-        Collection<? extends GrantedAuthority> authorities = SecurityContextHolder.getContext().getAuthentication().getAuthorities();
-        for (GrantedAuthority ga : authorities)
-            isAdmin |= ga.getAuthority().equals(R_ADMIN);
-        Page<Article> articles = getPagedArticles(page, pageSize, name, isAdmin);
+        Page<Article> articles = getPagedArticles(page, pageSize, name, isAdmin());
         int nums = articleRepository.countByCategoryAndState(name, PUBLISHED.getState());
 
         preProcessToArticleList(mav, page, pageSize, articles, nums, M_CATE, M_CATE_URL);
@@ -106,14 +119,14 @@ public class ArticleController extends BaseController {
 
     @GetMapping(path = ARTICLE_URL, consumes = {APPLICATION_JSON_VALUE, APPLICATION_JSON_UTF8_VALUE})
     public ResponseEntity<?> getArticles(@RequestParam(defaultValue = "0") Integer page,
-                                         @RequestParam(defaultValue = "5") Integer pageSize) {
+                                         @RequestParam(defaultValue = "10") Integer pageSize) {
         Page<Article> articles = getArticleSDueIsAdmin(pageSize, page);
         return ok(articles.getContent());
     }
 
     @GetMapping(path = ARTICLE_URL)
     public ModelAndView getArticles(@RequestParam(defaultValue = "0") Integer page,
-                                    @RequestParam(defaultValue = "5") Integer pageSize,
+                                    @RequestParam(defaultValue = "10") Integer pageSize,
                                     ModelAndView mav) {
         Page<Article> articles = getArticleSDueIsAdmin(pageSize, page);
         int nums = articleRepository.countByState(PUBLISHED.getState());
@@ -171,11 +184,7 @@ public class ArticleController extends BaseController {
     }
 
     private Article getArticleDueIsAdmin(@PathVariable String id) {
-        boolean isAdmin = false;
-        Collection<? extends GrantedAuthority> authorities = SecurityContextHolder.getContext().getAuthentication().getAuthorities();
-        for (GrantedAuthority ga : authorities)
-            isAdmin |= ga.getAuthority().equals(R_ADMIN);
-        return (isAdmin
+        return (isAdmin()
                 ? articleRepository.findById(id)
                 : articleRepository.findByStateAndId(PUBLISHED.getState(), id))
                 .orElseThrow(ArticleNotFoundException::new);

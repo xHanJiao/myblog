@@ -2,6 +2,7 @@ package com.xhan.myblog.repository;
 
 import com.xhan.myblog.model.content.repo.Article;
 import com.xhan.myblog.model.content.dto.ContentTitleIdDTO;
+import com.xhan.myblog.model.content.repo.CategoryState;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.mongodb.repository.MongoRepository;
@@ -12,6 +13,8 @@ import java.util.Optional;
 
 @Repository
 public interface ArticleRepository extends MongoRepository<Article, String> {
+
+    Optional<CategoryState> getFirstById(String id);
 
     Optional<Article> findByStateAndId(int state, String id);
 

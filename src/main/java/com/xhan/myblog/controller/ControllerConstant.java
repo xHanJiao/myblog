@@ -2,7 +2,7 @@ package com.xhan.myblog.controller;
 
 public interface ControllerConstant {
 
-    String IP_SET = "STATISTIC_IP";
+    String CATE_NUMS = "cateNums";
     long PEOPLE_MAX_VISIT_PER_10_SECOND = 15;
     long ALL_MAX_VISIT_PER_5_SECOND = 50;
     // ARTICLES

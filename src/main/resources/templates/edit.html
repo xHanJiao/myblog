@@ -10,6 +10,7 @@
     <meta name="_csrf" th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <script src="https://cdn.ckeditor.com/4.11.4/standard/ckeditor.js"></script>
+    <link rel="stylesheet" th:href="@{/css/header.css}">
     <style>
         .btn {
             margin: 5%;
@@ -17,7 +18,7 @@
     </style>
 </head>
 <body>
-<div th:replace="index::header"></div>
+<div th:replace="header::header_slim"></div>
 <div class="container">
     <div class="row">
         <div class="col m10">
@@ -93,178 +94,12 @@
         </div>
     </div>
 </div>
+<div th:replace="index::modal"></div>
 
-<div id="modal1" class="modal" th:fragment="modal">
-    <form th:action="@{/add/category}" th:method="POST" id="cateForm" enctype="multipart/form-data">
-        <div class="modal-content">
-            <h4>创建分类</h4>
-            <div class="input-field">
-                <label for="cateName" th:text="#{index.cate.cateName}"></label>
-                <input th:placeholder="#{index.cate.placeholder}" type="text"
-                       id="cateName" th:name="name">
-            </div>
-            <div class="input-field">
-                <label for="cateDescription" th:text="#{index.cate.cateDescription}"></label>
-                <input th:placeholder="#{index.cate.placeholder}" type="text"
-                       id="cateDescription" th:name="description"/>
-            </div>
-            <div class="file-field input-field">
-                <div class="btn">
-                    <span>文件</span>
-                    <input name="pic" type="file">
-                </div>
-                <div class="file-path-wrapper">
-                    <input class="file-path" type="text"/>
-                </div>
-            </div>
-        </div>
-        <div class="modal-footer">
-            <button class="btn wave-effect wave-light right" type="submit" th:text="#{button.submit}"></button>
-        </div>
-    </form>
-</div>
-
-
-<script src="https://cdn.bootcss.com/jquery/2.2.1/jquery.js"></script>
+<script src="https://cdn.bootcss.com/jquery/2.2.1/jquery.min.js"></script>
+<script>window.jQuery || document.write(unescape("%3Cscript src='/js/jquery.min.js' type='text/javascript'%3E%3C/script%3E"))</script>
 <script th:src="@{/js/materialize.min.js}"></script>
 <script th:src="@{/js/util.js}"></script>
-<script>
-
-    var articleImageFolder = '/articleImages/';
-
-    function addCardOfImage(data) {
-        $('#picHolder')
-            .append($("<div class='onePic card yellow darken-1'></div>")
-                .css('margin', '3%')
-                .append($("<div class='card-content'></div>").css('word-break', 'break-all')
-                    .append($("<img class=\"responsive-img\">").attr('src', data))
-                    .append($("<p class='flow-text href-holder'>").text(data).css('font-size', 'xx-small')))
-                .append($("<div class='card-action'></div>")
-                    .append($("<a onclick=delImg(this)>删除图片</a>").attr('href', '#'))
-                    .append($("<input type='hidden'/>").val(data))));
-    }
-
-    function uploadFormData(file, url) {
-        var formData = new FormData();
-        formData.append('picture', file);
-        formData.append(token_name, token);
-        formData.append(header_name, header);
-        $.ajax({
-            url: url,
-            type: 'post',
-            data: formData,
-            contentType: false,
-            processData: false,
-            success: function (data) {
-                addCardOfImage(articleImageFolder + data);
-            }
-        });
-    }
-
-    $('#submitPic').click(function () {
-        var file = document.getElementById('pic').files[0];
-        var url = '/article/uploadPic';
-        if (!file) return false;
-        uploadFormData(file, url);
-    });
-
-    function delImg(obj) {
-        var name = $(obj).next().val();
-        name = name.replace(articleImageFolder, '');
-        $.post('/del/image/' + name, csrf_kv, function (data, status) {
-            if (status === "success") {
-                $(obj).parents('.onePic').remove();
-            }
-        });
-    }
-
-
-    var editor = CKEDITOR.replace('editor1', {
-        height: 800
-    });
-    var content = null;
-
-    function getImagePaths() {
-        var paths = [];
-        $('.href-holder').each(function () {
-            paths.push($(this).text());
-        });
-        return paths;
-    }
-
-    $(document).ready(function () {
-        var articleId = $('#modSig').val();
-
-        $('.slide-btn').css('margin', '3%');
-
-        $('#draftId').val(articleId);
-
-        $('#saveDraft').click(function () {
-            var cme = $('#commentEnable').prop('checked'),
-                category = $("#categories").val(),
-                paths = getImagePaths(), state = 0,
-                content = editor.getData();
-
-            var draftId = $('#draftId').val();
-            var data = {
-                title: $('#aTitle').val(), content: content,
-                commentEnable: cme, state: state, category: category,
-                imagePaths: paths, id: draftId
-            };
-
-            mockFormKv('/add/draft', 'POST', data);
-        });
-
-        if (articleId) {
-            $.get('/content/' + articleId, function (data, status) {
-                if (status === "success") {
-                    editor.setData(data['article']);
-                }
-            });
-
-            $.get('/article/image/' + articleId, function (data, status) {
-                if (status === "success") {
-                    for (var i = 0; i < data.length; i++) {
-                        console.log(data[i]);
-                        addCardOfImage(data[i])
-                    }
-                } else {
-                    console.log('cannot get the images');
-                }
-            });
-        }
-        $('#modal1').modal();
-        $('#categories').material_select();
-        $('#sbmt').on('click', function () {
-            content = editor.getData();
-            var modify = $('#modSig').val(),
-                cme = $('#commentEnable').prop('checked'),
-                pub = $('#isPublished').prop('checked'),
-                fns = $('#finished').prop('checked'),
-                checkValue = $("#categories").val(),
-                paths = getImagePaths();
-            var state;
-            if (fns) {
-                state = 0;
-            } else if (pub) {
-                state = 1;
-            } else {
-                state = 2;
-            }
-            var data = {
-                title: $('#aTitle').val(), content: content,
-                commentEnable: cme, state: state, category: checkValue,
-                imagePaths: paths
-            };
-            if (modify) {
-                mockFormKv('/modify/article/' + modify, 'POST', data);
-            } else {
-                mockFormKv('/add/article', 'POST', data);
-            }
-        });
-    });
-
-
-</script>
+<script th:src="@{/js/edit.js}"> </script>
 </body>
 </html>

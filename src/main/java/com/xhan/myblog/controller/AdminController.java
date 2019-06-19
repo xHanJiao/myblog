@@ -8,10 +8,7 @@ import com.xhan.myblog.exceptions.content.CommentNotFoundException;
 import com.xhan.myblog.model.content.dto.ArticleCreateDTO;
 import com.xhan.myblog.model.content.dto.ContentTitleIdDTO;
 import com.xhan.myblog.model.content.dto.DelCommDTO;
-import com.xhan.myblog.model.content.repo.Article;
-import com.xhan.myblog.model.content.repo.ArticleState;
-import com.xhan.myblog.model.content.repo.Category;
-import com.xhan.myblog.model.content.repo.Comment;
+import com.xhan.myblog.model.content.repo.*;
 import com.xhan.myblog.model.user.Admin;
 import com.xhan.myblog.model.user.Guest;
 import com.xhan.myblog.model.user.ModifyDTO;
@@ -103,7 +100,7 @@ public class AdminController extends BaseController {
     }
 
     @Secured(R_ADMIN)
-    @GetMapping(value = EDIT_URL + ARTICLE_URL, params = {})
+    @GetMapping(value = EDIT_URL + ARTICLE_URL)
     public String getEditPage(Model model) {
         model.addAttribute("dto", new ArticleCreateDTO());
         model.addAttribute("modify", "");
@@ -119,6 +116,7 @@ public class AdminController extends BaseController {
             return badRequest().body(result.getFieldError());
 
         Article article = saveArticleDTO(dto);
+        delCateNumCacheByName(article.getCategory());
         return ResponseEntity
                 .created(new URI("/article/" + article.getId()))
                 .lastModified(System.currentTimeMillis()).build();
@@ -155,26 +153,18 @@ public class AdminController extends BaseController {
             return ResponseEntity.badRequest().body("empty file");
 
         FileSystemResource resource = new FileSystemResource(propertiesBean.getArticleImages());
-        File temp;
         try {
-            temp = File.createTempFile("pic",
+            File temp = File.createTempFile("pic",
                     "." + getFilenameExtension(pic.getOriginalFilename()),
                     resource.getFile());
 
-        } catch (IOException e) {
-            System.err.println(e.getMessage());
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.valueOf(500)).body("不能创建临时文件");
-        }
-        try {
             pic.transferTo(temp);
+            return ResponseEntity.ok(temp.getName());
         } catch (IOException e) {
             System.err.println(e.getMessage());
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.valueOf(500)).body("不能存储");
+            return ResponseEntity.status(HttpStatus.valueOf(500)).body("");
         }
-
-        return ResponseEntity.ok(temp.getName());
     }
 
     @Secured(R_ADMIN)
@@ -202,7 +192,7 @@ public class AdminController extends BaseController {
     @Secured(R_ADMIN)
     @GetMapping(path = RECYCLE_URL)
     public ModelAndView getRecycleBin(@RequestParam(defaultValue = "0") Integer page,
-                                      @RequestParam(defaultValue = "5") Integer pageSize,
+                                      @RequestParam(defaultValue = "10") Integer pageSize,
                                       ModelAndView mav) {
         findByState(page, pageSize, mav, ArticleState.RECYCLED.getState(), M_RECYCLED, M_RECYCLED_URL);
         return mav;
@@ -211,7 +201,7 @@ public class AdminController extends BaseController {
     @Secured(R_ADMIN)
     @GetMapping(path = DRAFT_URL)
     public ModelAndView getDraft(@RequestParam(defaultValue = "0") Integer page,
-                                 @RequestParam(defaultValue = "5") Integer pageSize,
+                                 @RequestParam(defaultValue = "10") Integer pageSize,
                                  ModelAndView mav) {
         findByState(page, pageSize, mav, ArticleState.DRAFT.getState(), M_DRAFT, M_DRAFT_URL);
         return mav;
@@ -267,27 +257,25 @@ public class AdminController extends BaseController {
         ResponseEntity<?> responseEntity;
         Article article = articleRepository.findById(id)
                 .orElseThrow(ArticleNotFoundException::new);
-        try {
-            if (article.getState() != RECYCLED.getState()) {
-                UpdateResult result = mongoTemplate.update(Article.class)
-                        .matching(Query.query(Criteria.where("id").is(id)))
-                        .apply(new Update().set("state", RECYCLED.getState())).first();
-                responseEntity = result.getModifiedCount() == 1
-                        ? ResponseEntity.status(HttpStatus.FOUND).location(new URI("/recycle")).build()
-                        : badRequest().body("check id you input");
-            } else {
-                article.getImagePaths().forEach(p -> {
-                    String filename = p.replace(ARTICLE_IMAGES_URL, "");
-                    String path = propertiesBean.getArticleImages() + filename;
-                    File toDelete = new File(path);
-                    while (!toDelete.delete()) {
-                    }
-                });
-                articleRepository.delete(article);
-                responseEntity = ResponseEntity.ok().build();
-            }
-        } catch (URISyntaxException e) {
-            throw new BlogException();
+
+        delCateNumCacheByName(article.getCategory()); // clear cache of category nums
+        if (article.getState() != RECYCLED.getState()) {
+            UpdateResult result = mongoTemplate.update(Article.class)
+                    .matching(Query.query(Criteria.where("id").is(id)))
+                    .apply(new Update().set("state", RECYCLED.getState())).first();
+            responseEntity = result.getModifiedCount() == 1
+                    ? ResponseEntity.status(HttpStatus.FOUND).location(URI.create("/recycle")).build()
+                    : badRequest().body("check id you input");
+        } else {
+            article.getImagePaths().forEach(p -> {
+                String filename = p.replace(ARTICLE_IMAGES_URL, "");
+                String path = propertiesBean.getArticleImages() + filename;
+                File toDelete = new File(path);
+                if (!toDelete.delete())
+                    throw new BlogException("cannot delete the image");
+            });
+            articleRepository.delete(article);
+            responseEntity = ResponseEntity.ok().build();
         }
         return responseEntity;
     }
@@ -297,10 +285,9 @@ public class AdminController extends BaseController {
     public ResponseEntity<?> recoverArticle(@PathVariable String id) {
         if (!hasText(id))
             return badRequest().body("id cannot be null");
-
         UpdateResult result =
                 modifyDeleted(getIdQueryWithDeleteState(id, RECYCLED.getState()), PUBLISHED.getState());
-
+        delNumCacheById(id); // clear cache of category nums
         try {
             return result.getModifiedCount() == 1
                     ? ResponseEntity.status(HttpStatus.FOUND).location(new URI("/article/" + id)).build()
@@ -312,21 +299,29 @@ public class AdminController extends BaseController {
 
     @Secured(R_ADMIN)
     @PostMapping(value = VISIABLE_PUBLISH_URL + ID_PATH_VAR)
-    public ModelAndView visiablePublish(@PathVariable String id, ModelAndView mav) {
+    public ModelAndView visiblePublish(@PathVariable String id, ModelAndView mav) {
         UpdateResult updateResult = mongoTemplate.update(Article.class)
                 .matching(query(where("id").is(id).and("state")
                         .in(DRAFT.getState(), ArticleState.HIDDEN.getState(), RECYCLED.getState())))
                 .apply(new Update().set("state", PUBLISHED.getState()))
                 .first();
 
+        delNumCacheById(id); // clear cache of category nums
         String viewName = REDIRECT + ARTICLE_URL + SLASH + id;
         return oneModify(mav, viewName, "无法修改", updateResult);
+    }
+
+    private void delNumCacheById(@PathVariable String id) {
+        CategoryState categoryState = articleRepository
+                .getFirstById(id)
+                .orElseThrow(ArticleNotFoundException::new);
+        delCateNumCacheByName(categoryState.getCategory());
     }
 
     @Secured(R_ADMIN)
     @GetMapping(value = HIDDEN_URL)
     public ModelAndView getHiddenArticle(@RequestParam(defaultValue = "0") Integer page,
-                                         @RequestParam(defaultValue = "5") Integer pageSize,
+                                         @RequestParam(defaultValue = "10") Integer pageSize,
                                          ModelAndView mav) {
         findByState(page, pageSize, mav, ArticleState.HIDDEN.getState(), M_HIDDEN, M_HIDDEN_URL);
         return mav;
@@ -334,13 +329,12 @@ public class AdminController extends BaseController {
 
     @Secured(R_ADMIN)
     @PostMapping(value = UNVISIABLE_PUBLISH_URL + ID_PATH_VAR)
-    public ModelAndView unVisiablePublish(@PathVariable String id, ModelAndView mav) {
+    public ModelAndView unVisiblePublish(@PathVariable String id, ModelAndView mav) {
         UpdateResult updateResult = mongoTemplate.update(Article.class)
                 .matching(query(where("id").is(id).and("state")
                         .in(DRAFT.getState(), RECYCLED.getState(), PUBLISHED.getState())))
-                .apply(new Update().set("state", ArticleState.HIDDEN.getState()))
-                .first();
-
+                .apply(new Update().set("state", ArticleState.HIDDEN.getState())).first();
+        delNumCacheById(id); // clear cache of category nums
         String viewName = REDIRECT + ARTICLE_URL + SLASH + id;
         return oneModify(mav, viewName, "无法修改", updateResult);
     }
@@ -351,11 +345,12 @@ public class AdminController extends BaseController {
      * 恢复以及隐藏的选项，但是没有全部变成草稿的选项
      *
      * @param name 分类名
+     * @param operate  操作名
      * @return ResponseEntity.ok(修改条目数)
      */
     @Secured(R_ADMIN)
     @PostMapping(value = CATEGORY_URL + "/{operate}" + NAME_PATH_VAR)
-    public ResponseEntity<?> modifyStateByCategory(@PathVariable String name,
+    public ResponseEntity<?> modifyStateByCategory(@PathVariable String name, // name of category
                                                    @PathVariable String operate) {
         int state;
         switch (operate) {
@@ -379,6 +374,7 @@ public class AdminController extends BaseController {
                 .matching(query(Criteria.where("category").is(name)))
                 .apply(new Update().set("state", state))
                 .all();
+        delCateNumCacheByName(name);
         return ok(result.getModifiedCount());
     }
 
@@ -393,6 +389,8 @@ public class AdminController extends BaseController {
             article.setId(article.getId().equals("") ? null : article.getId());
             article = mongoTemplate.save(article, Article.COLLECTION_NAME);
             Assert.isTrue(hasText(article.getId()), "保存后id必定有值");
+
+            delCateNumCacheByName(article.getCategory());
             return ResponseEntity.status(HttpStatus.FOUND)
                     .location(URI.create(EDIT_URL + ARTICLE_URL + SLASH + article.getId()))
                     .build();
@@ -410,11 +408,12 @@ public class AdminController extends BaseController {
 
     @Secured(R_ADMIN)
     @PostMapping(value = HIDDEN_URL + CATEGORY + NAME_PATH_VAR)
-    public ResponseEntity<?> hideArticlesOfCategory(@PathVariable String name) {
+    public ResponseEntity<?> hideArticlesOfCategory(@PathVariable String cateName) {
         UpdateResult result = mongoTemplate.update(Article.class)
-                .matching(query(Criteria.where("category").is(name)))
+                .matching(query(Criteria.where("category").is(cateName)))
                 .apply(new Update().set("state", ArticleState.HIDDEN))
                 .all();
+        delCateNumCacheByName(cateName);
         return ok(result.getModifiedCount());
     }
 
@@ -428,6 +427,7 @@ public class AdminController extends BaseController {
             return mav;
         }
         Article article = saveArticleDTO(dto);
+        delCateNumCacheByName(article.getCategory());
         model.addFlashAttribute("justSaved", article.getTitle());
         mav.setViewName(REDIRECT + SLASH + INDEX);
         return mav;
@@ -442,18 +442,18 @@ public class AdminController extends BaseController {
     @Secured(R_ADMIN)
     @GetMapping(value = EDIT_URL + ARTICLE_URL + ID_PATH_VAR)
     public String getEditPage(Model model, @PathVariable String id) {
-        compareForRedrct(model, id);
+        compareForRedirect(model, id);
         return EDIT;
     }
 
     @Secured(R_ADMIN)
     @GetMapping(value = EDIT_URL + ARTICLE_URL, params = {"id"})
     public String getEditPage(@RequestParam String id, Model model) {
-        compareForRedrct(model, id);
+        compareForRedirect(model, id);
         return EDIT;
     }
 
-    private void compareForRedrct(Model model, @PathVariable String id) {
+    private void compareForRedirect(Model model, @PathVariable String id) {
         ContentTitleIdDTO dto = articleRepository.getById(id)
                 .orElseThrow(ArticleNotFoundException::new);
         model.addAttribute("dto", dto);
@@ -473,6 +473,9 @@ public class AdminController extends BaseController {
             mav.addObject("modify", id);
             mav.addObject("categories", categoryRepository.findAll());
         } else {
+            CategoryState categoryState = articleRepository
+                    .getFirstById(id)
+                    .orElseThrow(ArticleNotFoundException::new);
             UpdateResult updateResult = mongoTemplate.update(Article.class)
                     .matching(query(where("id").is(id)))
                     .apply(new Update()
@@ -483,6 +486,8 @@ public class AdminController extends BaseController {
                             .set("imagePaths", dto.getImagePaths())
                             .set("category", dto.getCategory())).first();
 
+            delCateNumCacheByName(dto.getCategory());
+            delCateNumCacheByName(categoryState.getCategory());
             if (updateResult.getModifiedCount() == 0) {
                 mav.addObject("dto", dto);
                 mav.addObject("modify", id);
@@ -496,6 +501,21 @@ public class AdminController extends BaseController {
         return mav;
     }
 
+    private void delCateNumCacheByName(String category) {
+        cache.hdel(CATE_NUMS + true, category);
+        cache.hdel(CATE_NUMS + false, category);
+    }
+
+    /**
+     * 这个函数用来修改Category的信息，在使用时，如果前端没有选择文件，则
+     * 在这里不会对现有的图片做出任何改动，如果前端选择了文件，这里会删除
+     * 现有的文件并将它替换成前端上传的文件
+     *
+     * @param category Category对象
+     * @param result   绑定结果
+     * @param file     图片文件
+     * @return 如果上传成功就重定向到/index，否则返回400
+     */
     @Secured(R_ADMIN)
     @PostMapping(value = MODIFY_URL + CATEGORY_URL)
     public ResponseEntity<?> modifyCategory(@Valid Category category, BindingResult result,
@@ -506,19 +526,16 @@ public class AdminController extends BaseController {
             Category oldCate = categoryRepository
                     .findByName(category.getName())
                     .orElseThrow(CategoryNotFoundException::new);
-
             oldCate.copyForModify(category);
-
             if (file != null && !file.isEmpty()) {
                 if (hasText(oldCate.getFilePath()))
                     deleteCategoryImage(oldCate.getFilePath());
                 saveCategoryImage(oldCate, file);
             }
-
             categoryRepository.save(oldCate);
+            delCateNumCacheByName(oldCate.getName());
             return ResponseEntity.status(HttpStatus.FOUND)
-                    .location(URI.create("/index"))
-                    .body("");
+                    .location(URI.create("/index")).body("");
         }
     }
 
@@ -532,19 +549,22 @@ public class AdminController extends BaseController {
 
     @Secured(R_ADMIN)
     @PostMapping(value = ADD_URL + CATEGORY_URL)
-    public ModelAndView addCategory(@Valid Category category, BindingResult result,
-                                    @RequestParam(value = "pic", required = false) MultipartFile file, ModelAndView mav) {
+    public ResponseEntity<?> addCategory(@Valid Category category, BindingResult result,
+                                         @RequestParam(value = "pic", required = false) MultipartFile file) {
         if (result.hasFieldErrors()) {
-            setErrorMav(result.getFieldError().getField(), mav, EDIT);
+            return ResponseEntity.status(HttpStatus.FOUND)
+                    .location(URI.create("/index"))
+                    .body(result.getFieldError().getField());
         } else {
-            mav.setViewName(REDIRECT + SLASH + CATEGORY);
             if (file != null && !file.isEmpty()) {
                 saveCategoryImage(category, file);
             }
         }
         category.postProcess();
         categoryRepository.save(category);
-        return mav;
+        return ResponseEntity.status(HttpStatus.FOUND)
+                .location(URI.create("/index"))
+                .body("");
     }
 
     private void saveCategoryImage(Category category, @NonNull MultipartFile file) {

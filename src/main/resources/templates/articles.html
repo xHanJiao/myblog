@@ -8,11 +8,12 @@
     <link rel="stylesheet" th:href="@{/css/materialize.min.css}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
+    <link rel="stylesheet" th:href="@{/css/header.css}">
     <meta name="_csrf" th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
 </head>
 <body>
-<div th:replace="index::header"></div>
+<div th:replace="header::header_slim"></div>
 
 <div class="container">
     <div class="row">
@@ -24,12 +25,7 @@
             <div class="section">
                 <div th:if="${articles.size() == 0}" class="section contentHolder flow-text black-text">
                     <p>啊哦，该分类暂时还没有文章</p>
-                    <div>
-                        <a th:href="@{/category}" class="deep-orange-text">返回分类列表</a>
-                    </div>
-                    <div>
                         <a th:href="@{/index}" class="deep-orange-text">返回主页</a>
-                    </div>
                 </div>
                 <div class="articlesHolder" th:each="article: ${articles}">
                     <div class="section contentHolder">
@@ -38,7 +34,7 @@
                            th:text="${article.getTitle()}"></a>
                         <a sec:authorize="hasRole('ADMIN')" class="modiState btn-flat right waves-effect waves-light">
                             <i class="material-icons">settings</i></a>
-                        <span class="right hide-on-med-and-down" th:text="${article.getCreateTime()}"></span>
+                        <span class="right hide-on-small-and-down" th:text="${article.getCreateTime()}"></span>
                         <input type="hidden" th:value="${article.getId()}">
                     </div>
                     <div class="divider"></div>
@@ -63,103 +59,10 @@
 
 <div th:replace="index::modal"></div>
 
-<script src="https://cdn.bootcss.com/jquery/2.2.1/jquery.js"></script>
+<script src="https://cdn.bootcss.com/jquery/2.2.1/jquery.min.js"></script>
+<script>window.jQuery || document.write(unescape("%3Cscript src='/js/jquery.min.js' type='text/javascript'%3E%3C/script%3E"))</script>
 <script th:src="@{/js/materialize.min.js}"></script>
 <script th:src="@{/js/util.js}"></script>
-<script>
-    function addBtn(type) {
-        $('.btnHolder').each(function () {
-            $(this).append($('<a></a>')
-                .addClass('btn modiBtn btn-flat waves-effect waves-light').addClass(type)
-                .append($('<i class="material-icons"></i>').text(type)));
-        });
-    }
-
-    function getArticleId() {
-        return $(this).parent().prev().find('input[type=hidden]').val();
-    }
-
-    $('.articlesHolder').on('click', '.visibility_off', function () {
-        var articleId = getArticleId.call(this);
-        $.post('/uvpub/' + articleId, csrf_kv, function () {
-            window.location.reload();
-        })
-    }).on('click', '.visibility', function () {
-        var articleId = getArticleId.call(this);
-        $.post('/vpub/' + articleId, csrf_kv, function () {
-            window.location.reload();
-        })
-    }).on('click', '.delete', function () {
-        var articleId = getArticleId.call(this);
-        $.post('/del/article/' + articleId, csrf_kv, function () {
-            window.location.reload();
-        })
-    }).on('click', '.delete_forever', function () {
-        var articleId = getArticleId.call(this);
-        $.post('/del/article/' + articleId, csrf_kv, function () {
-            window.location.reload();
-        })
-    }).on('click', '.mode_edit', function () {
-        var articleId = getArticleId.call(this);
-        mockFormKv('/edit/article', 'get', {id: articleId});
-
-    });
-
-    $(document).ready(function () {
-        $('#pages').material_select();
-        $('.fixed-action-btn').hide();
-        truncateTextOfCertainClass('.aTitles', 9);
-
-        $('.modiState').click(function () {
-            // 先清理所有已经存在的修改按钮
-            var btnHolder = $('.btnHolder');
-            if ($(this).parent().siblings('.btnHolder').length > 0) {
-                btnHolder.remove();
-                return;
-            }
-            btnHolder.remove();
-
-            var articleId = $(this).siblings('input[type=hidden]').val();
-            console.log('articleId : ' + articleId);
-            var holder = $('<div></div>').addClass('section btnHolder');
-            $(this).parent().after(holder);
-            $.get('/article/state/' + articleId, function (data, status) {
-                if (status === 'success') {
-                    switch (data) {
-                        case 0:
-                            addBtn('visibility');
-                            addBtn('visibility_off');
-                            addBtn('mode_edit');
-                            break;
-                        case 1:
-                            addBtn('delete');
-                            addBtn('visibility_off');
-                            addBtn('mode_edit');
-                            break;
-                        case 2:
-                            addBtn('delete');
-                            addBtn('visibility');
-                            addBtn('mode_edit');
-                            break;
-                        case 3:
-                            addBtn('visibility_off');
-                            addBtn('visibility');
-                            addBtn('delete_forever');
-                            addBtn('mode_edit');
-                            break;
-                        default:
-                            break;
-                    }
-                }
-            });
-        });
-    });
-
-    function toPage(sobj) {
-        var page = sobj.options[sobj.selectedIndex].value;
-        var metaUrl = $('#metaUrl').val() + $('.metainf').text();
-        mockFormKv(metaUrl, 'get', {page: page});
-    }
-</script>
+<script th:src="@{/js/articles.js}"> </script>
 </body>
 </html>

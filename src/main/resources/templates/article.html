@@ -10,6 +10,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <meta name="_csrf" th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <link rel="stylesheet" th:href="@{/css/header.css}">
     <style>
         p.createTime {
             font-size: medium;
@@ -26,7 +27,7 @@
     </style>
 </head>
 <body>
-<div th:replace="index::header"></div>
+<div th:replace="header::header_slim"></div>
 <div class="container">
     <div class="row">
         <div class="black-text col m10 s12 offset-m1">
@@ -166,104 +167,12 @@
     </div>
     <div th:replace="index::modal"></div>
 </div>
-<script src="https://cdn.bootcss.com/jquery/2.2.1/jquery.js"></script>
+
+<div th:replace="index::modal"></div>
+<script src="https://cdn.bootcss.com/jquery/2.2.1/jquery.min.js"></script>
+<script>window.jQuery || document.write(unescape("%3Cscript src='/js/jquery.min.js' type='text/javascript'%3E%3C/script%3E"))</script>
 <script th:src="@{/js/materialize.min.js}"></script>
 <script th:src="@{/js/util.js}"></script>
-<script>
-    $(document).ready(function () {
-
-        $('img').addClass('responsive-img');
-
-        var addCommDiv = $('#addCommDiv');
-        addCommDiv.hide();
-
-        $('#commBtn').on('click', function () {
-            addCommDiv.toggle();
-            $('#content').val("");
-            $("html,body").animate({scrollTop: addCommDiv.offset().top}, 1000);
-        });
-
-        $('.stateBtn').addClass('btn-floating');
-
-        $('.reply').on('click', function () {
-            var title = 'reply to: @' +
-                $(this).siblings('input[class=replyTo]').val() + '   ';
-            console.log(title);
-            addCommDiv.show();
-            $('#content').val(title);
-            $("html,body").animate({scrollTop: addCommDiv.offset().top}, 1000);
-        });
-
-        $('#uphead').on('click', function () {
-            $("html,body").animate({scrollTop: 0}, 1000);
-            return false;
-        });
-
-        $('.delcomm').on('click', function () {
-            var delContent = $(this).parents('div[class=row]')
-                .prev().find('p').text();
-            console.log('delcomm : ' + delContent);
-            mockFormKv('/del/comment', 'POST', {content: delContent, articleId: $('#articleId').val()});
-        });
-
-        $('#editBtn').on('click', function () {
-            var articleId = $('#articleId').val();
-            console.log('articleId : ' + articleId);
-            mockFormKv('/edit/article/' + articleId, 'get', {});
-        });
-
-        $('#vpub').on('click', function () {
-            var articleId = $('#articleId').val();
-            console.log('articleId : ' + articleId);
-            mockFormKv('/vpub/' + articleId, 'post', {});
-        });
-
-        $('#uvpub').on('click', function () {
-            var articleId = $('#articleId').val();
-            console.log('articleId : ' + articleId);
-            mockFormKv('/uvpub/' + articleId, 'post', {});
-        });
-
-        $('.deleteBtn').on('click', function () {
-            var articleId = $('#articleId').val();
-            console.log('articleId : ' + articleId);
-            // mockFormKv('/del/article/' + articleId, 'POST', {});
-            $.post('/del/article/' + articleId, csrf_kv, function () {
-                window.location.replace('/index');
-            });
-        });
-
-        $('.hideBtn').click(function () {
-            var articleId = $('#articleId').val();
-            console.log('articleId : ' + articleId);
-            mockFormKv('/uvpub/' + articleId, 'POST', {});
-        });
-
-        $('.showBtn').click(function () {
-            var articleId = $('#articleId').val();
-            console.log('articleId : ' + articleId);
-            mockFormKv('/vpub/' + articleId, 'POST', {});
-        });
-
-        $('#recoverBtn').on('click', function () {
-            var articleId = $('#articleId').val();
-            console.log('articleId : ' + articleId);
-            $.post('/recover/article/' + articleId, csrf_kv, function () {
-                window.location.reload();
-            });
-        });
-    });
-
-    $('#sbmt').click(function () {
-        var creator = $('#creator'), email = $('#email'),
-            content = $('#content'), URL = '/addcomm',
-            articleId = $('#articleId').val();
-        mockFormKv(URL, "POST", {
-            articleId: articleId, email: email.val(),
-            content: content.val(), creator: creator.val()
-        });
-        return true;
-    });
-</script>
+<script th:src="@{/js/article.js}"></script>
 </body>
 </html>
