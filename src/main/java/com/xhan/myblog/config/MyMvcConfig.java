@@ -38,9 +38,10 @@ public class MyMvcConfig implements WebMvcConfigurer {
                 .excludePathPatterns("/fonts/**")
                 .excludePathPatterns("/js/**")
                 .excludePathPatterns("/css/**")
+                .excludePathPatterns("/images/**")
                 .excludePathPatterns("/image/**")
-                .excludePathPatterns(ARTICLE_IMAGES_URL)
-                .excludePathPatterns(CATEGORY_IMAGES_URL);
+                .excludePathPatterns(ARTICLE_IMAGES_URL + SUFFIX)
+                .excludePathPatterns(CATEGORY_IMAGES_URL + SUFFIX);
 
     }
 }
