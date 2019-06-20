@@ -52,59 +52,42 @@
                     <li th:if="${article.getCommentEnable()}">
                         <a id="commBtn" class="btn-floating blue" title="发表评论"
                            th:if="${article.getState() == 1 || article.getState() == 2}">
-                            <i class="material-icons">mode_edit</i> </a>
-                    </li>
-                    <li>
-                        <a id="uphead" class="btn-floating yellow" title="返回顶部">
-                            <i class="material-icons">call_merge</i> </a>
-                    </li>
+                            <i class="material-icons">mode_edit</i> </a></li>
+                    <li><a class="up-btn btn-floating yellow" title="返回顶部">
+                        <i class="material-icons">arrow_upward</i> </a></li>
+                    <li><a class="down-btn btn-floating yellow" title="返回顶部">
+                        <i class="material-icons">arrow_downward</i> </a></li>
                     <li sec:authorize="hasRole('ADMIN')" th:fragment="editBtn">
                         <a class="stateBtn red" id="editBtn" title="修改文章">
-                            <i class="material-icons">mode_edit</i>
-                        </a>
-                    </li>
+                            <i class="material-icons">mode_edit</i> </a></li>
                     <li sec:authorize="hasRole('ADMIN')" th:fragment="softDelBtn"
                         th:if="${article.getState() == 2 || article.getState() == 1}">
                         <a class="stateBtn yellow deleteBtn" title="删除文章">
-                            <i class="material-icons">delete</i>
-                        </a>
-                    </li>
+                            <i class="material-icons">delete</i> </a></li>
                     <li sec:authorize="hasRole('ADMIN')" th:fragment="softDelBtn"
                         th:if="${article.getState() == 1}">
                         <a class="stateBtn blue-grey hideBtn" title="隐藏文章">
-                            <i class="material-icons">visibility_off</i>
-                        </a>
-                    </li>
+                            <i class="material-icons">visibility_off</i> </a></li>
                     <li sec:authorize="hasRole('ADMIN')" th:fragment="softDelBtn"
                         th:if="${article.getState() == 0}">
                         <a class="stateBtn blue-grey" id="uvpub" title="不可见发布文章">
-                            <i class="material-icons">visibility_off</i>
-                        </a>
-                    </li>
+                            <i class="material-icons">visibility_off</i> </a></li>
                     <li sec:authorize="hasRole('ADMIN')" th:fragment="softDelBtn"
                         th:if="${article.getState() == 0}">
                         <a class="stateBtn blue-grey" id="vpub" title="可见发布文章">
-                            <i class="material-icons">visibility</i>
-                        </a>
-                    </li>
+                            <i class="material-icons">visibility</i> </a></li>
                     <li sec:authorize="hasRole('ADMIN')"
                         th:if="${article.getState() == 2}">
                         <a class="stateBtn blue-grey showBtn" title="显示文章">
-                            <i class="material-icons">visibility</i>
-                        </a>
-                    </li>
+                            <i class="material-icons">visibility</i> </a></li>
                     <li sec:authorize="hasRole('ADMIN')" th:fragment="hardDelBtn"
                         th:if="${article.getState() == 3}">
                         <a class="stateBtn red deleteBtn" title="彻底删除">
-                            <i class="material-icons">delete_forever</i>
-                        </a>
-                    </li>
+                            <i class="material-icons">delete_forever</i> </a></li>
                     <li sec:authorize="hasRole('ADMIN')" th:fragment="recoverBtn"
                         th:if="${article.getState() == 3}">
                         <a class="stateBtn red" id="recoverBtn" title="恢复文章">
-                            <i class="material-icons">restore</i>
-                        </a>
-                    </li>
+                            <i class="material-icons">restore</i> </a></li>
                 </ul>
             </div>
             <div class="row" th:if="${article.getCommentEnable()}">
@@ -174,5 +157,6 @@
 <script th:src="@{/js/materialize.min.js}"></script>
 <script th:src="@{/js/util.js}"></script>
 <script th:src="@{/js/article.js}"></script>
+<script th:src="@{/js/updownbtn.js}"></script>
 </body>
 </html>

@@ -94,37 +94,40 @@
             </div>
         </div>
         <div class="col m2 hide-on-med-and-down" th:replace="fragments::sideBar">
+        </div>
     </div>
-</div>
 
-<div id="modal1" class="modal" th:fragment="modal">
-    <form th:action="@{/add/category}" th:method="POST" id="cateForm" enctype="multipart/form-data">
-        <div class="modal-content">
-            <h4>创建分类</h4>
-            <div class="input-field">
-                <label for="cateName" th:text="#{index.cate.cateName}"></label>
-                <input th:placeholder="#{index.cate.placeholder}" type="text"
-                       id="cateName" th:name="name">
-            </div>
-            <div class="input-field">
-                <label for="cateDescription" th:text="#{index.cate.cateDescription}"></label>
-                <input th:placeholder="#{index.cate.placeholder}" type="text"
-                       id="cateDescription" th:name="description"/>
-            </div>
-            <div class="file-field input-field">
-                <div class="btn">
-                    <span>文件</span>
-                    <input name="pic" type="file">
+    <div th:replace="fragments::updown_btn"></div>
+
+    <div id="modal1" class="modal" th:fragment="modal">
+        <form th:action="@{/add/category}" th:method="POST" id="cateForm" enctype="multipart/form-data">
+            <div class="modal-content">
+                <h4>创建分类</h4>
+                <div class="input-field">
+                    <label for="cateName" th:text="#{index.cate.cateName}"></label>
+                    <input th:placeholder="#{index.cate.placeholder}" type="text"
+                           id="cateName" th:name="name">
                 </div>
-                <div class="file-path-wrapper">
-                    <input class="file-path" type="text"/>
+                <div class="input-field">
+                    <label for="cateDescription" th:text="#{index.cate.cateDescription}"></label>
+                    <input th:placeholder="#{index.cate.placeholder}" type="text"
+                           id="cateDescription" th:name="description"/>
+                </div>
+                <div class="file-field input-field">
+                    <div class="btn">
+                        <span>文件</span>
+                        <input name="pic" type="file">
+                    </div>
+                    <div class="file-path-wrapper">
+                        <input class="file-path" type="text"/>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="modal-footer">
-            <button class="btn wave-effect wave-light right" type="submit" th:text="#{button.submit}"></button>
-        </div>
-    </form>
+            <div class="modal-footer">
+                <button class="btn wave-effect wave-light right" type="submit" th:text="#{button.submit}"></button>
+            </div>
+        </form>
+    </div>
 </div>
 
 <script src="https://cdn.bootcss.com/jquery/2.2.1/jquery.min.js"></script>
@@ -132,5 +135,6 @@
 <script th:src="@{/js/materialize.min.js}"></script>
 <script th:src="@{/js/util.js}"></script>
 <script th:src="@{/js/index.js}"></script>
+<script th:src="@{/js/updownbtn.js}"></script>
 </body>
 </html>
