@@ -5,8 +5,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * map缓存实现
- * <p>
- * Created by 13 on 2017/2/7.
  */
 public class MapCache {
 
@@ -14,8 +12,6 @@ public class MapCache {
      * 默认存储1024个缓存
      */
     private static final int DEFAULT_CACHES = 1024;
-
-//    private static volatile MapCache INS = new MapCache();
 
     private volatile static MapCache INS;
 
@@ -57,6 +53,8 @@ public class MapCache {
             if (cacheObject.getExpired() <= 0 || cacheObject.getExpired() > cur) {
                 Object result = cacheObject.getValue();
                 return (T) result;
+            } else {
+                cachePool.remove(key);
             }
         }
         return null;
@@ -106,7 +104,6 @@ public class MapCache {
         expired = expired > 0 ? System.currentTimeMillis() / 1000 + expired : expired;
         CacheObject cacheObject = new CacheObject(key, value, expired);
         cachePool.putIfAbsent(key, cacheObject);
-//        return cacheObject.value;
     }
 
     public void setnx(String key, Object value) {

@@ -298,7 +298,7 @@ public class AdminController extends BaseController {
     }
 
     @Secured(R_ADMIN)
-    @PostMapping(value = VISIABLE_PUBLISH_URL + ID_PATH_VAR)
+    @PostMapping(value = VISIBLE_PUBLISH_URL + ID_PATH_VAR)
     public ModelAndView visiblePublish(@PathVariable String id, ModelAndView mav) {
         UpdateResult updateResult = mongoTemplate.update(Article.class)
                 .matching(query(where("id").is(id).and("state")
@@ -328,7 +328,7 @@ public class AdminController extends BaseController {
     }
 
     @Secured(R_ADMIN)
-    @PostMapping(value = UNVISIABLE_PUBLISH_URL + ID_PATH_VAR)
+    @PostMapping(value = UNVISITABLE_PUBLISH_URL + ID_PATH_VAR)
     public ModelAndView unVisiblePublish(@PathVariable String id, ModelAndView mav) {
         UpdateResult updateResult = mongoTemplate.update(Article.class)
                 .matching(query(where("id").is(id).and("state")

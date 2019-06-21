@@ -7,6 +7,7 @@ import com.xhan.myblog.utils.MapCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
@@ -23,6 +24,7 @@ import static java.time.LocalDateTime.now;
 @Component(value = "logInterceptor")
 public class LogInterceptor extends HandlerInterceptorAdapter {
 
+    private static final String BANNED_IP = "BANNED_IP";
     private final LogRepository logRepository;
     private MapCache cache = MapCache.single();
 
@@ -35,25 +37,27 @@ public class LogInterceptor extends HandlerInterceptorAdapter {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        if (cache.hget("BANNED_IP", request.getRemoteAddr()) != null) {
-            return false;
-        }
         MongoLog log = new MongoLog(request);
         logRepository.save(log);
 
-        cache.setnx(log.getHost(), new AtomicLong(0), 10);
+        String host = request.getRemoteAddr();
+        cache.setnx(host, new AtomicLong(0), 10);
         cache.setnx("TOTAL_VISIT", new AtomicLong(0),100);
-        AtomicLong one = cache.get(log.getHost()), all = cache.get("TOTAL_VISIT");
+        AtomicLong one = cache.get(host), all = cache.get("TOTAL_VISIT");
         long oneValue = one == null ? 0 : one.incrementAndGet();
         long allValue = all == null ? 0 : all.incrementAndGet();
-        if (oneValue > PEOPLE_MAX_VISIT_PER_10_SECOND) {
-            cache.hset("BANNED_IP", log.getHost(),
-                    now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")), 300);
+        logger.info(String.format("[ip: %s]---[time: %s]---[URI: %s]---[one: %s]---[all: %s]", request.getRemoteAddr(),
+                BlogUtils.getCurrentDateTime(), request.getRequestURI(), oneValue, allValue));
+
+        if (cache.hget(BANNED_IP, request.getRemoteAddr()) != null) {
+            return false;
         }
-
-        logger.info(String.format("[ip: %s] ---- [time: %s] ---- [URI: %s]", request.getRemoteAddr(),
-                BlogUtils.getCurrentDateTime(), request.getRequestURI()));
-
-        return oneValue <= PEOPLE_MAX_VISIT_PER_10_SECOND && allValue <= ALL_MAX_VISIT_PER_5_SECOND;
+        if (oneValue > PEOPLE_MAX_VISIT_PER_10_SECOND) {
+            cache.hset(BANNED_IP, host,
+                    now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")), 300);
+            logger.info(String.format("BANNED [ip: %s] for [%s] times visit", host, oneValue));
+            return false;
+        }
+        return allValue <= ALL_MAX_VISIT_PER_5_SECOND;
     }
 }

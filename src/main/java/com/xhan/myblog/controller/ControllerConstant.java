@@ -20,9 +20,9 @@ public interface ControllerConstant {
     String MODIFY_URL = SLASH + MODIFY;
     String ARTICLE_LIST = "articles";
     String CONTENT_URL = SLASH + "content";
+    String API_URL = SLASH + "api";
     // COMMENTS
     String ADD_COMMENTS = SLASH + "addcomm";
-    String DEL_COMMENTS = SLASH + "delcomm";
     String ADD_URL = SLASH + "add";
     String INDEX = "index";
     String REDIRECT = "redirect:";
@@ -32,13 +32,12 @@ public interface ControllerConstant {
     String EDIT_URL = SLASH + EDIT;
     String ID_PATH_VAR = SLASH + "{id}";
     String NAME_PATH_VAR = SLASH + "{name}";
-    String DEL_IMAGE_URL = SLASH + "delImage" + SLASH;
     String CATEGORIES = "categories";
     String DELETE = "del";
     String DELETE_URL = SLASH + DELETE;
     String IMAGE_URL = SLASH + "image";
-    String VISIABLE_PUBLISH_URL = "/vpub";
-    String UNVISIABLE_PUBLISH_URL = "/uvpub";
+    String VISIBLE_PUBLISH_URL = "/vpub";
+    String UNVISITABLE_PUBLISH_URL = "/uvpub";
     String HIDDEN = "hidden";
     String HIDDEN_URL = SLASH + HIDDEN;
     String COMMENT_URL = "/comment";
@@ -57,16 +56,14 @@ public interface ControllerConstant {
     String M_RECYCLED_URL = SLASH + RECYCLE + SLASH;
     String M_RECYCLED = "articles.meta.recycle";
     String M_DRAFT = "articles.meta.draft";
-    String M_PUBLISHED = "articles.meta.published";
     String M_HIDDEN = "articles.meta.notPublished";
     String M_HIDDEN_URL = "/hidden";
     String M_CATE = "articles.meta.category";
     // META URL IN ARTICLE LIST
     String M_ALL_ARTICLE_URL = ARTICLE_URL + SLASH;
-//    String M_PUBLISHED_URL =
-//    String M_HIDDEN =
     String M_CATE_URL = SLASH + CATEGORY + SLASH;
 
+    // 这个这么放可是不太好啊
     String ARTICLE_IMAGES_URL = SLASH + "articleImages";
     String CATEGORY_IMAGES_URL = SLASH + "categoryImages";
 

@@ -1,20 +1,37 @@
 package com.xhan.myblog;
 
 import com.xhan.myblog.utils.BlogUtils;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.stream.IntStream;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
 
-@RunWith(SpringRunner.class)
 @SpringBootTest
+@RunWith(SpringRunner.class)
 public class MyblogApplicationTests {
 
     @Autowired
-    private MongoTemplate mongoTemplate;
+    private WebApplicationContext wac;
+
+    private MockMvc mvc;
+
+    @Before
+    public void setUp() {
+        mvc = MockMvcBuilders.webAppContextSetup(wac).build();
+    }
 
     @Test
     public void contextLoads() {
@@ -24,32 +41,24 @@ public class MyblogApplicationTests {
         System.out.println(BlogUtils.delHtmlTag(s));
     }
 
-//    @Test
-//    public void testRoot() {
-//        FileSystemResource resource = new FileSystemResource("images/");
-//        System.out.println("path : " + resource.getFile().getAbsolutePath());
-//        System.out.println("name : " + resource.getFile().getAbsoluteFile().getName());
-//    }
-
-//    @Test
-//    public void testAggregation() {
-//        String currentDate = BlogUtils.getCurrentDateString();
-//        System.out.println("currentDate : " + currentDate);
-//        TypedAggregation<MongoLog> aggregation = Aggregation.newAggregation(
-//                MongoLog.class,
-//                Aggregation.match(Criteria.where("date").is(currentDate)),
-//                Aggregation.group("requestURI").count().as("count"),
-//                Aggregation.sort(Sort.Direction.DESC, "count")
-//        );
-//        AggregationResults<Document> results = mongoTemplate.aggregate(aggregation,
-//                MongoLog.COLLECTION_NAME, Document.class);
-//        results.getMappedResults().forEach(System.out::println);
-//    }
-//
-//    @Data
-//    private class URICount {
-//        String requestURI;
-//        int count;
-//    }
+    @Test
+    public void testCounter() {
+        ExecutorService es = Executors.newCachedThreadPool();
+        IntStream.range(0, 20)
+                .forEach(i -> es.submit(() -> {
+                    try {
+                        mvc.perform(get("/"));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }));
+        es.submit(() -> {
+                    try {
+                        mvc.perform(get("/"));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                });
+    }
 
 }
