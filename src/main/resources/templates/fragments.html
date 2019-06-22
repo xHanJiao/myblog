@@ -61,19 +61,17 @@
 </nav>
 <div class="col m3 hide-on-small-and-down" style="padding: 5%" th:fragment="sideBar">
     <div class="row">
-        <div class="m5 offset-m4 s5 offset-s4 hoverable">
-            <div class="card z-depth-0 grey">
-                <div class="card-image z-depth-0">
-                    <img th:src="@{/images/sample-3.jpg}">
-                </div>
-                <div class="card-content z-depth-0">
-                    <!--<p class="brown-text flow-text">人间正道是沧桑</p>-->
-                </div>
-                <div class="card-action z-depth-0">
-                    <a href="#" class="brown-text">我的简历</a>
-                    <div sec:authorize="hasRole('ADMIN')" class="divider"></div>
-                    <a sec:authorize="hasRole('ADMIN')" class="brown-text" th:href="@{/modiadmin}">修改个人信息</a>
-                </div>
+        <div class="card z-depth-0 grey hoverable">
+            <div class="card-image z-depth-0">
+                <img th:src="@{/images/sample-6.jpg}">
+            </div>
+            <div class="card-content z-depth-0">
+                <!--<p class="brown-text flow-text">人间正道是沧桑</p>-->
+            </div>
+            <div class="card-action z-depth-0">
+                <a href="#" class="brown-text">我的简历</a>
+                <div sec:authorize="hasRole('ADMIN')" class="divider"></div>
+                <a sec:authorize="hasRole('ADMIN')" class="brown-text" th:href="@{/modiadmin}">修改个人信息</a>
             </div>
         </div>
     </div>

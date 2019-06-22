@@ -3,7 +3,7 @@ var articleImageFolder = '/articleImages/';
 
 function addCardOfImage(data) {
     $('#picHolder')
-        .append($("<div class='onePic card yellow darken-1'></div>")
+        .append($("<div class='onePic col card m3 s12 yellow darken-1'></div>")
             .css('margin', '3%')
             .append($("<div class='card-content'></div>").css('word-break', 'break-all')
                 .append($("<img class=\"responsive-img\">").attr('src', data))
@@ -49,7 +49,7 @@ function delImg(obj) {
 
 
 var editor = CKEDITOR.replace('editor1', {
-    height: 800
+    height: 400
 });
 var content = null;
 

@@ -36,7 +36,7 @@ public class MyblogApplication {
     @Bean
     public MongoTemplate mongoTemplate(MongoClient client) {
         MongoTemplate template = new MongoTemplate(client, "xhanblog");
-        template.setWriteConcern(WriteConcern.MAJORITY);
+        template.setWriteConcern(WriteConcern.JOURNALED);
         template.setWriteResultChecking(WriteResultChecking.EXCEPTION);
         return template;
     }

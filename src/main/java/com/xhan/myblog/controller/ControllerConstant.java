@@ -5,6 +5,7 @@ public interface ControllerConstant {
     String CATE_NUMS = "cateNums";
     long PEOPLE_MAX_VISIT_PER_10_SECOND = 15;
     long ALL_MAX_VISIT_PER_5_SECOND = 50;
+    int DEFAULT_PAGE_SIZE = 7;
     // ARTICLES
     String SLASH = "/";
     String SUFFIX = "/**";

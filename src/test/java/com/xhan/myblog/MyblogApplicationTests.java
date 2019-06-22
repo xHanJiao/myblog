@@ -41,24 +41,4 @@ public class MyblogApplicationTests {
         System.out.println(BlogUtils.delHtmlTag(s));
     }
 
-    @Test
-    public void testCounter() {
-        ExecutorService es = Executors.newCachedThreadPool();
-        IntStream.range(0, 20)
-                .forEach(i -> es.submit(() -> {
-                    try {
-                        mvc.perform(get("/"));
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }));
-        es.submit(() -> {
-                    try {
-                        mvc.perform(get("/"));
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                });
-    }
-
 }

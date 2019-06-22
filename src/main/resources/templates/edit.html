@@ -21,7 +21,7 @@
 <div th:replace="fragments::header_slim"></div>
 <div class="container">
     <div class="row">
-        <div class="col m10">
+        <div class="col m10 s12">
             <div class="row">
                 <div class="input-field">
                     <input placeholder="标题" type="text" id="aTitle"
@@ -34,13 +34,17 @@
                     <textarea name="editor1"></textarea>
                 </div>
             </div>
-            <div class="row">
+            <div class="divider"></div>
+            <div class="row" id="picHolder">
+                <!--<div></div>-->
+            </div>
+            <div class="row" th:if="${error}">
                 <div class="col s4 push-s4">
                     <p id="error" th:text="${error}"></p>
                 </div>
             </div>
         </div>
-        <div class="col m2">
+        <div class="col m2 s12">
             <p>
                 <input type="checkbox" id="commentEnable" checked="checked"/>
                 <label for="commentEnable"> 允许评论 </label>
@@ -85,11 +89,6 @@
                         </div>
                     </div>
                 </form>
-            </div>
-            <div class="row">
-                <div id="picHolder">
-
-                </div>
             </div>
         </div>
     </div>

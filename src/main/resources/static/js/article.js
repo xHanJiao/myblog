@@ -2,6 +2,9 @@ $(document).ready(function () {
 
     commonInit();
 
+    $('li').css('list-style-type', '.disc');
+    // $('li').css('list-style-type', '.decimal');
+
     $('img').addClass('responsive-img');
 
     var addCommDiv = $('#addCommDiv');
