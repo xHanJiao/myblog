@@ -48,24 +48,26 @@ $(document).ready(function () {
             topPadding = $(window).height() / 4;
         $anchorHolder.css('padding-top', topPadding);
 
-        $articleHolder.find('a').each(function (index) {
+        $articleHolder.find('a').each(function () {
             var parentTag = $(this).parent().get(0).tagName;
+            if (!parentTag.startsWith('H')) return;
+
             var fullText = $(this).text();
             var truncateText = fullText.length > anchorMaxLen
                 ? fullText.substring(0, anchorMaxLen - 1) + '...'
                 : fullText;
 
-            var padding = '';
+            var leftPadding = '';
             if (parentTag === 'H4') {
                 truncateText = ' > ' + truncateText;
-                padding = '1em';
+                leftPadding = '1em';
             }
             else if (parentTag === 'H5') {
                 truncateText = ' >> ' + truncateText;
-                padding = '2em';
+                leftPadding = '2em';
             }
             else {
-                padding = '0em';
+                leftPadding = '0em';
             }
 
             $(this).addClass(anchorColorInText);
@@ -74,7 +76,7 @@ $(document).ready(function () {
                     $('<a></a>').addClass(anchorColorInLi)
                         .text(truncateText)
                         .attr('title', fullText)
-                        .css('padding-left', padding)
+                        .css('padding-left', leftPadding)
                         .attr('href', '#' + $(this).attr('id')))
             );
         });

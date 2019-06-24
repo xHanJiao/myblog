@@ -4,6 +4,8 @@ import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
 
+import static org.springframework.util.StringUtils.hasText;
+
 @Data
 public class ModifyDTO {
     @NotBlank
