@@ -49,6 +49,37 @@
         </ul>
     </div>
 </nav>
+<nav th:fragment="breadcrumb" class="teal darken-4">
+    <div class="nav-wrapper">
+        <div class="show-on-small flow-text hide-on-med-and-up">
+            <a th:href="@{/index}" th:text="#{nav.brand}"></a>
+            >
+            <a th:href="@{${metaURL}}" th:text="${metaName}"></a>
+            >
+            <a th:text="${article.getTitle()}" th:href="${'/article/' + article.getId()}"></a>
+        </div>
+        <div class="hide-on-small-and-down flow-text left">
+            <a th:href="@{/index}" th:text="#{nav.brand}"></a>
+            >
+            <a th:href="@{${metaURL}}" th:text="${metaName}"></a>
+            >
+            <a th:text="${article.getTitle()}" th:href="${'/article/' + article.getId()}"></a>
+        </div>
+        <ul class="right hide-on-small-and-down flow-text" style="margin-right: 5%">
+            <li><a th:text="#{nav.articles}" class="nav-a" th:href="@{/article}"></a></li>
+            <li><a sec:authorize="hasRole('ADMIN')" class="dropdown-button nav-a"
+                   data-beloworigin="true" href="#" data-activates="dropdown3">管理</a></li>
+        </ul>
+        <ul sec:authorize="hasRole('ADMIN')" id="dropdown3" class="dropdown-content">
+            <li><a th:href="@{/edit/article}">发布文章</a></li>
+            <li><a th:href="@{/draft}">草稿箱</a></li>
+            <li><a th:href="@{/recycle}">回收站</a></li>
+            <li><a th:href="@{/hidden}">未公开</a></li>
+            <li><a th:href="@{/modiadmin}">修改密码</a></li>
+        </ul>
+    </div>
+</nav>
+
 <nav th:fragment="header_much_slim" class="teal darken-4">
     <div class="nav-wrapper">
         <a th:href="@{/index}" class="brand-logo show-on-small hide-on-med-and-up" th:text="#{nav.brand}"></a>
@@ -66,10 +97,9 @@
                 <img th:src="@{/images/sample-6.jpg}">
             </div>
             <div class="card-content z-depth-0">
-                <!--<p class="brown-text flow-text">人间正道是沧桑</p>-->
             </div>
             <div class="card-action z-depth-0">
-                <a href="#" class="brown-text">我的简历</a>
+                <a href="/pdf/myCv.pdf" class="brown-text flow-text">简历</a>
                 <div sec:authorize="hasRole('ADMIN')" class="divider"></div>
                 <a sec:authorize="hasRole('ADMIN')" class="brown-text" th:href="@{/modiadmin}">修改个人信息</a>
             </div>

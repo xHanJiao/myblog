@@ -1,5 +1,9 @@
 package com.xhan.myblog.controller;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 public interface ControllerConstant {
 
     String CATE_NUMS = "cateNums";
@@ -52,17 +56,25 @@ public interface ControllerConstant {
     String LOGIN = "login";
     String LOGIN_URL = SLASH + LOGIN;
     // META INF IN ARTICLE LIST
-    String ALL_ARTICLE = "articles.meta.all";
     String M_DRAFT_URL = DRAFT_URL + SLASH;
-    String M_RECYCLED_URL = SLASH + RECYCLE + SLASH;
-    String M_RECYCLED = "articles.meta.recycle";
+    String M_RECYCLED_URL = RECYCLE_URL + SLASH;
+    String M_HIDDEN_URL = SLASH + HIDDEN;
+    String M_ALL_ARTICLES_URL = ARTICLE_URL + SLASH;
+    String M_CATE_URL = CATEGORY_URL + SLASH;
+
     String M_DRAFT = "articles.meta.draft";
+    String M_RECYCLED = "articles.meta.recycle";
     String M_HIDDEN = "articles.meta.notPublished";
-    String M_HIDDEN_URL = "/hidden";
+    String M_ALL_ARTICLES = "articles.meta.all";
     String M_CATE = "articles.meta.category";
     // META URL IN ARTICLE LIST
-    String M_ALL_ARTICLE_URL = ARTICLE_URL + SLASH;
-    String M_CATE_URL = SLASH + CATEGORY + SLASH;
+    Map<String, String> metaMap = Collections.unmodifiableMap(new HashMap<String, String>(){{
+        put(M_CATE, M_CATE_URL);
+        put(M_RECYCLED, M_RECYCLED_URL);
+        put(M_DRAFT, M_DRAFT_URL);
+        put(M_HIDDEN, M_HIDDEN_URL);
+        put(M_ALL_ARTICLES, M_ALL_ARTICLES_URL);
+    }});
 
     // 这个这么放可是不太好啊
     String ARTICLE_IMAGES_URL = SLASH + "articleImages";

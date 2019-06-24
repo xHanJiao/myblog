@@ -30,7 +30,7 @@
                 <div class="articlesHolder" th:each="article: ${articles}">
                     <div class="section contentHolder">
                         <span th:replace="index :: stateIcons"></span>
-                        <a th:href="@{'/article/' + ${article.getId()}}" class="black-text aTitles"
+                        <a th:href="@{'/article/' + ${article.getId()} + '?meta=' + ${meta}}" class="black-text aTitles"
                            th:text="${article.getTitle()}"></a>
                         <a sec:authorize="hasRole('ADMIN')" class="modiState btn-flat right waves-effect waves-light">
                             <i class="material-icons">settings</i></a>

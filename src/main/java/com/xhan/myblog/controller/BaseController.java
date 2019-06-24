@@ -10,13 +10,12 @@ import com.xhan.myblog.model.content.repo.Comment;
 import com.xhan.myblog.repository.ArticleRepository;
 import com.xhan.myblog.repository.CategoryRepository;
 import com.xhan.myblog.utils.MapCache;
-import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -52,6 +51,8 @@ public class BaseController {
     protected ArticleRepository articleRepository;
     @Autowired
     protected CategoryRepository categoryRepository;
+    @Autowired
+    protected MessageSource messageSource;
     protected Article emptyArticle = new Article();
 
     protected MapCache cache = MapCache.single();
