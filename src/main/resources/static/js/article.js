@@ -1,3 +1,9 @@
+function addMyAnchorClass($articleHolder, hn) {
+    if ($articleHolder.find(hn).length > 0) {
+        $articleHolder.find(hn).addClass('myAnchor');
+    }
+}
+
 $(document).ready(function () {
 
     $('table').addClass('bordered');
@@ -5,7 +11,6 @@ $(document).ready(function () {
     commonInit();
 
     $('li').css('list-style-type', '.disc');
-    // $('li').css('list-style-type', '.decimal');
 
     $('img').addClass('responsive-img');
 
@@ -17,6 +22,82 @@ $(document).ready(function () {
         $('#content').val("");
         $("html,body").animate({scrollTop: addCommDiv.offset().top}, 1000);
     });
+
+    var $articleHolder = $('.articleHolder');
+    var anchorColorInText = 'black-text';
+    var anchorColorInLi = 'grey-text';
+    var anchorMaxLen = 10;
+
+    addMyAnchorClass($articleHolder, 'h3');
+    addMyAnchorClass($articleHolder, 'h4');
+    addMyAnchorClass($articleHolder, 'h5');
+
+    $articleHolder.find('.myAnchor').each(
+        function (index) {
+            var fullText = $(this).text();
+            $(this).text('').append($('<a></a>')
+                .attr('id', 'myAnchor' + index)
+                .attr('name', 'myAnchor' + index)
+                .text(fullText));
+        }
+    );
+    if ($articleHolder.find('a').length > 0) {
+        var $anchorHolder = $("#anchorHolder");
+        var $window = $(window),
+            offset = $anchorHolder.offset(),
+            topPadding = $(window).height() / 4;
+        $anchorHolder.css('padding-top', topPadding);
+
+        $articleHolder.find('a').each(function (index) {
+            var parentTag = $(this).parent().get(0).tagName;
+            var fullText = $(this).text();
+            var truncateText = fullText.length > anchorMaxLen
+                ? fullText.substring(0, anchorMaxLen - 1) + '...'
+                : fullText;
+
+            var padding = '';
+            if (parentTag === 'H4') {
+                truncateText = ' > ' + truncateText;
+                padding = '1em';
+            }
+            else if (parentTag === 'H5') {
+                truncateText = ' >> ' + truncateText;
+                padding = '2em';
+            }
+            else {
+                padding = '0em';
+            }
+
+            $(this).addClass(anchorColorInText);
+            $('#anchorHolder').append(
+                $('<li></li>').append(
+                    $('<a></a>').addClass(anchorColorInLi)
+                        .text(truncateText)
+                        .attr('title', fullText)
+                        .css('padding-left', padding)
+                        .attr('href', '#' + $(this).attr('id')))
+            );
+        });
+
+        $(window).resize(function () {
+            var newPadding = $(window).height() / 4;
+            $anchorHolder.css('padding-top', newPadding);
+        });
+
+        $(function () {
+            $window.scroll(function () {
+                if ($window.scrollTop() > offset.top) {
+                    $anchorHolder.stop().animate({
+                        marginTop: $window.scrollTop() - offset.top
+                    });
+                } else {
+                    $anchorHolder.stop().animate({
+                        marginTop: 0
+                    });
+                }
+            });
+        });
+    }
 
     $('.stateBtn').addClass('btn-floating');
 
