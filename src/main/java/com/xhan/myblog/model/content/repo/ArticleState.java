@@ -8,7 +8,7 @@ public enum ArticleState {
         return state;
     }
 
-    private int state;
+    private final int state;
 
     ArticleState(int i) {
         state = i;

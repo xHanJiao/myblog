@@ -86,7 +86,7 @@ $(document).ready(function () {
     });
 
     if (articleId) {
-        $.get('/content/' + articleId, function (data, status) {
+        $.get('/api/content/' + articleId, function (data, status) {
             if (status === "success") {
                 editor.setData(data['article']);
             }

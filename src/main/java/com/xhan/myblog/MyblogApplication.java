@@ -2,21 +2,12 @@ package com.xhan.myblog;
 
 import com.mongodb.MongoClient;
 import com.mongodb.WriteConcern;
-import com.xhan.myblog.listener.ApplicationStartupListener;
-import com.xhan.myblog.model.user.Admin;
-import com.xhan.myblog.model.user.Guest;
-import com.xhan.myblog.utils.BlogUtils;
-import org.omg.PortableInterceptor.ClientRequestInfo;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Primary;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.WriteResultChecking;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.DelegatingPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -43,7 +34,7 @@ public class MyblogApplication {
 
     @Bean(name = "myPasswordEncoder")
     public PasswordEncoder passwordEncoder() {
-        String idForEncode = "BCRYPT" ;
+        String idForEncode = "BCRYPT";
         Map<String, PasswordEncoder> encoders = new HashMap<String, PasswordEncoder>() {{
             put(idForEncode, new BCryptPasswordEncoder());
             put(MyNoOpPasswordEncoder.idForNoOp, new MyNoOpPasswordEncoder());

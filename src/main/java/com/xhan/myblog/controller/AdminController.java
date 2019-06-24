@@ -446,6 +446,7 @@ public class AdminController extends BaseController {
         return EDIT;
     }
 
+    /* 这里其实是一个修改点啊，因为一个事情由thymeleaf和js两个东西做*/
     @Secured(R_ADMIN)
     @GetMapping(value = EDIT_URL + ARTICLE_URL, params = {"id"})
     public String getEditPage(@RequestParam String id, Model model) {

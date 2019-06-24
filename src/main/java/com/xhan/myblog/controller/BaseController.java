@@ -55,7 +55,7 @@ public class BaseController {
     protected MessageSource messageSource;
     protected Article emptyArticle = new Article();
 
-    protected MapCache cache = MapCache.single();
+    protected final MapCache cache = MapCache.single();
 
     protected static final String pageSize = "10";
 

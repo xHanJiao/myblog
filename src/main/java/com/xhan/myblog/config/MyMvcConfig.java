@@ -1,7 +1,6 @@
 package com.xhan.myblog.config;
 
 import com.xhan.myblog.controller.ControllerPropertiesBean;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;

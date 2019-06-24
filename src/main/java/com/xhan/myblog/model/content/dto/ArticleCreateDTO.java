@@ -1,7 +1,6 @@
 package com.xhan.myblog.model.content.dto;
 
 import com.xhan.myblog.model.content.repo.Article;
-import com.xhan.myblog.model.content.repo.ArticleState;
 import com.xhan.myblog.model.content.repo.Category;
 import com.xhan.myblog.model.content.repo.SimpleContent;
 import lombok.Data;
@@ -13,7 +12,6 @@ import javax.validation.constraints.NotNull;
 import java.util.Collections;
 import java.util.List;
 
-import static com.xhan.myblog.model.content.repo.ArticleState.PUBLISHED;
 import static org.springframework.util.StringUtils.hasText;
 
 @Data

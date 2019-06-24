@@ -18,7 +18,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static java.time.LocalDate.now;
 import static org.springframework.util.StringUtils.hasText;
 
 /**
@@ -256,7 +255,7 @@ public class BlogUtils {
         for (int i = 0; i < size; ++i) {
             double a = Math.random() * 9.0D;
             a = Math.ceil(a);
-            int randomNum = (new Double(a)).intValue();
+            int randomNum = Double.valueOf(a).intValue();
             num = num + randomNum;
         }
 
