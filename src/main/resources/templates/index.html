@@ -16,10 +16,6 @@
         .flow-text {
             word-break: break-all;
         }
-
-        .contentHolder {
-            padding: 3%;
-        }
     </style>
 </head>
 <body class="blue grey lighten-4">
@@ -29,17 +25,10 @@
     <div class="row black-text">
         <div class="col m9 s12" id="board">
             <div id="articleListHolder">
-                <!--<div class="section">-->
-                <!--<h3><a class="black-text" th:href="'/article/' + ${showBoard.getId()}"-->
-                <!--th:text="${showBoard.getTitle()}"></a></h3>-->
-                <!--<p class="flow-text" th:text="${showBoard.getContent()}"></p>-->
-                <!--</div>-->
-                <!--<div class="divider"></div>-->
-                <!--<div><h5 class="flow-text">最新文章</h5></div>-->
                 <div class="section">
                     <ul class="collapsible popout" data-collapsible="accordion">
-                        <li th:each="article: ${articles}">
-                            <div class="collapsible-header">
+                        <li class="articleLi" th:each="article: ${articles}">
+                            <div class="collapsible-header" style="padding: 2%;">
                                     <span sec:authorize="hasRole('ADMIN')" th:fragment="stateIcons">
                                         <i th:if="${article.getState()==0}" class="material-icons">drafts</i>
                                         <i th:if="${article.getState()==1}" class="material-icons">visibility</i>
@@ -54,7 +43,7 @@
                                     <i class="material-icons">send</i>
                                 </a>
                             </div>
-                            <div class="collapsible-body span">
+                            <div class="collapsible-body">
                                 <p class="flow-text" th:text="${article.getContent()}"></p>
                             </div>
                         </li>

@@ -1,34 +1,37 @@
-
-$(document).ready(function () {
-
-    var $actDiv = $('div[class=collapsible-header]');
+function triggerLi($actDiv, idx) {
     $actDiv.each(function (index) {
-        if (index === Math.floor($actDiv.length / 2)) {
-            // $(this).addClass('active');
+        if (index === idx) {
             $(this).trigger('click');
         }
     });
+}
 
-    console.log('$actDiv.length : ' + Math.floor($actDiv.length / 2));
+$(document).ready(function () {
 
-    $('.collapsible').on('mousewheel', function(event) {
-        //输出滚轮事件响应结果
-        // console.log(event.deltaX, event.deltaY, event.deltaFactor);
-        //上下滚动时让鼠标垂直移动
-        var actLi = $('li[class=active]');
-        if (actLi.length > 0) {
-            // console.log(actLi.find('a').text());
-            actLi.find('div[class=collapsible-header]').trigger('click');
-            if (event.deltaY < 0) {
-                actLi.next().find('div[class=collapsible-header]').trigger('click');
-            } else if (event.deltaY > 0) {
-                actLi.prev().find('div[class=collapsible-header]').trigger('click');
-            } else {
-                // console.log('no scroll');
-            }
+    $(document).ready(function () {
+        $('.collapsible').collapsible();
+    });
+
+    var $actDiv = $('div[class=collapsible-header]'),
+        totalLiNum = $actDiv.length,
+        initLiIdx = Math.floor(totalLiNum / 2);
+    triggerLi($actDiv, initLiIdx);
+
+    $('.collapsible').on('mousewheel', function (event) {
+        var $articleLi = $('li[class=articleLi]');
+        var endOne = $articleLi.last(),
+            startOne = $articleLi.first();
+        if (event.deltaY < 0) {
+            startOne.before(endOne);
+            initLiIdx = initLiIdx === 0 ? totalLiNum - 1 : initLiIdx - 1;
+        } else if (event.deltaY > 0) {
+            endOne.after(startOne);
+            initLiIdx += 1;
+            initLiIdx %= totalLiNum;
         } else {
-            $("ul li:first-child").find('div[class=collapsible-header]').trigger('click');
+
         }
+        triggerLi($actDiv, initLiIdx)
     });
 
     commonInit();
