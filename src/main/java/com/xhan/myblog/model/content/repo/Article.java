@@ -25,11 +25,11 @@ public class Article extends ArticleCreateDTO {
     private List<Comment> comments = new ArrayList<>();
     private Long visitTimes;
 
-    public void preProcessBeforeSave() {
-    }
-
     public Article() {
         setComments(new ArrayList<>());
+    }
+
+    public void preProcessBeforeSave() {
     }
 
     @JsonIgnore
@@ -48,15 +48,23 @@ public class Article extends ArticleCreateDTO {
     }
 
     @JsonIgnore
-    public void convertToShortcut() {
+    public void convertToShortcutNoTag(final int maxLen) {
         if (getContent() == null) return;
-        String content = getContent();
-        content = BlogUtils.deEscape(content);
+        String content = BlogUtils.deEscape(getContent());
         content = BlogUtils.delHtmlTag(content);
-        content = content.length() > 80
-                ? content.substring(0, 80) + "..."
+        content = content.length() > maxLen
+                ? content.substring(0, maxLen) + "..."
                 : content;
         setContent(content);
+    }
+
+    @JsonIgnore
+    public void convertToShortCutWithTag(final int maxLen) {
+        if (getContent() == null) return;
+        String content = BlogUtils.deEscape(getContent());
+        setContent(content.length() > maxLen
+                ? content.substring(0, maxLen) + "..."
+                : content);
     }
 
 }

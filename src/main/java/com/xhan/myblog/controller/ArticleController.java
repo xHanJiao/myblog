@@ -37,7 +37,7 @@ public class ArticleController extends BaseController {
         int defaultPageSize = 7;
         List<Article> articles = getArticlesDueIsAdmin(defaultPageSize, 0).getContent();
         Article showBoard = articles.isEmpty() ? emptyArticle : articles.get(0);
-        showBoard.convertToShortcut();
+        showBoard.convertToShortcutNoTag(80);
 
         mav.setViewName(INDEX);
         mav.addObject("category", new Category());

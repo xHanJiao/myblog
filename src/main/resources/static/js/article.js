@@ -38,7 +38,7 @@ $(document).ready(function () {
             $(this).text('').append($('<a></a>')
                 .attr('id', 'myAnchor' + index)
                 .attr('name', 'myAnchor' + index)
-                .text(fullText));
+                .text(fullText).addClass('scrollspy'));
         }
     );
     if ($articleHolder.find('a').length > 0) {
@@ -100,6 +100,8 @@ $(document).ready(function () {
             });
         });
     }
+
+    $('.scrollspy').scrollSpy();
 
     $('.stateBtn').addClass('btn-floating');
 
