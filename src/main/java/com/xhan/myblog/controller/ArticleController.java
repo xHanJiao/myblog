@@ -36,12 +36,13 @@ public class ArticleController extends BaseController {
     public ModelAndView index(ModelAndView mav) {
         int defaultPageSize = 7;
         List<Article> articles = getArticlesDueIsAdmin(defaultPageSize, 0).getContent();
-        Article showBoard = articles.isEmpty() ? emptyArticle : articles.get(0);
-        showBoard.convertToShortcutNoTag(80);
+//        Article showBoard = articles.isEmpty() ? emptyArticle : articles.get(0);
+
+        articles.forEach(a -> a.convertToShortcutNoTag(120));
 
         mav.setViewName(INDEX);
         mav.addObject("category", new Category());
-        mav.addObject("showBoard", showBoard);
+//        mav.addObject("showBoard", showBoard);
         mav.addObject("articles", articles);
         return mav;
     }

@@ -13,8 +13,12 @@
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <link rel="stylesheet" th:href="@{/css/header.css}">
     <style>
-        p.flow-text {
+        .flow-text {
             word-break: break-all;
+        }
+
+        .contentHolder {
+            padding: 3%;
         }
     </style>
 </head>
@@ -25,28 +29,38 @@
     <div class="row black-text">
         <div class="col m9 s12" id="board">
             <div id="articleListHolder">
+                <!--<div class="section">-->
+                <!--<h3><a class="black-text" th:href="'/article/' + ${showBoard.getId()}"-->
+                <!--th:text="${showBoard.getTitle()}"></a></h3>-->
+                <!--<p class="flow-text" th:text="${showBoard.getContent()}"></p>-->
+                <!--</div>-->
+                <!--<div class="divider"></div>-->
+                <!--<div><h5 class="flow-text">最新文章</h5></div>-->
                 <div class="section">
-                    <h3><a class="black-text" th:href="'/article/' + ${showBoard.getId()}"
-                           th:text="${showBoard.getTitle()}"></a></h3>
-                    <p class="flow-text" th:text="${showBoard.getContent()}"></p>
+                    <ul class="collapsible popout" data-collapsible="accordion">
+                        <li th:each="article: ${articles}">
+                            <div class="collapsible-header">
+                                    <span sec:authorize="hasRole('ADMIN')" th:fragment="stateIcons">
+                                        <i th:if="${article.getState()==0}" class="material-icons">drafts</i>
+                                        <i th:if="${article.getState()==1}" class="material-icons">visibility</i>
+                                        <i th:if="${article.getState()==2}" class="material-icons">visibility_off</i>
+                                        <i th:if="${article.getState()==3}" class="material-icons">delete</i>
+                                    </span>
+                                <a class="flow-text black-text aTitles"
+                                   th:text="${article.getTitle()}" th:name="${article.getId()}"></a>
+
+                                <a th:href="'/article/' + ${article.getId()}"
+                                   class="btn btn-flat waves-effect waves-light right">
+                                    <i class="material-icons">send</i>
+                                </a>
+                            </div>
+                            <div class="collapsible-body span">
+                                <p class="flow-text" th:text="${article.getContent()}"></p>
+                            </div>
+                        </li>
+                    </ul>
                 </div>
-                <div class="divider"></div>
-                <div><h5 class="flow-text">最新文章</h5></div>
-                <div th:each="article: ${articles}">
-                    <div class="section">
-                        <span sec:authorize="hasRole('ADMIN')" th:fragment="stateIcons">
-                            <i th:if="${article.getState()==0}" class="material-icons">drafts</i>
-                            <i th:if="${article.getState()==1}" class="material-icons">visibility</i>
-                            <i th:if="${article.getState()==2}" class="material-icons">visibility_off</i>
-                            <i th:if="${article.getState()==3}" class="material-icons">delete</i>
-                        </span>
-                        <a class="flow-text black-text aTitles" th:href="'/article/' + ${article.getId()}"
-                           th:text="${article.getTitle()}" th:name="${article.getId()}"></a>
-                        <span class="flow-text right hide-on-small-and-down"
-                              th:text="${article.getCreateTime()}"></span>
-                    </div>
-                    <div class="divider col s12"></div>
-                </div>
+                <div class="divider col s12"></div>
             </div>
             <div id="categoryHolder">
                 <div th:each="cate : ${allCate}" class="s12 col cardHolder">
@@ -137,6 +151,7 @@
 
 <script src="https://cdn.bootcss.com/jquery/2.2.1/jquery.min.js"></script>
 <script>window.jQuery || document.write(unescape("%3Cscript src='/js/jquery.min.js' type='text/javascript'%3E%3C/script%3E"))</script>
+<script th:src="@{/js/mousewheel.min.js}"></script>
 <script th:src="@{/js/materialize.min.js}"></script>
 <script th:src="@{/js/util.js}"></script>
 <script th:src="@{/js/index.js}"></script>
