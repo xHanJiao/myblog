@@ -16,9 +16,15 @@
         .flow-text {
             word-break: break-all;
         }
+
+        .articleHolder {
+            line-height: 2em;
+            word-break: break-all;
+            font-size: 18px;
+        }
     </style>
 </head>
-<body class="blue grey lighten-4">
+<body>
 <div th:replace="fragments::header"></div>
 
 <div class="container">
@@ -27,7 +33,7 @@
             <div id="articleListHolder">
                 <div class="section">
                     <ul class="collapsible popout" data-collapsible="accordion">
-                        <li class="articleLi" th:each="article: ${articles}">
+                        <li class="articleLi z-depth-0" th:each="article: ${articles}">
                             <div class="collapsible-header" style="padding: 2%;">
                                     <span sec:authorize="hasRole('ADMIN')" th:fragment="stateIcons">
                                         <i th:if="${article.getState()==0}" class="material-icons">drafts</i>
@@ -44,7 +50,7 @@
                                 </a>
                             </div>
                             <div class="collapsible-body">
-                                <p class="flow-text" th:text="${article.getContent()}"></p>
+                                <p class="flow-text articleHolder" th:text="${article.getContent()}"></p>
                             </div>
                         </li>
                     </ul>

@@ -18,6 +18,7 @@ function truncateTextOfCertainClass(clazz, maxLen) {
 }
 
 function commonInit() {
+
     $('#modal1').modal();
     $('select').material_select();
     if ($('#sidebar').length > 0) {
@@ -40,15 +41,14 @@ function commonInit() {
             });
         });
     }
-    if ($('.up-btn').length > 0) {
-        $('.up-btn').click(function () {
+    var $up_btn = $('.up-btn');
+    if ($up_btn.length > 0) {
+        $up_btn.click(function () {
             $("html,body").animate({scrollTop: 0}, 100);
             return false;
         });
 
         $('.down-btn').click(function () {
-            // var h = $(document).height()-$(window).height();
-            // $(document).scrollTop(h);
             $('html, body').animate({scrollTop: $(document).height()}, 500);
             return false;
         });

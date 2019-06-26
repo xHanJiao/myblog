@@ -12,15 +12,19 @@ $(document).ready(function () {
         $('.collapsible').collapsible();
     });
 
-    var $actDiv = $('div[class=collapsible-header]'),
+
+    var $actDiv = $('.collapsible-header'),
         totalLiNum = $actDiv.length,
         initLiIdx = Math.floor(totalLiNum / 2);
     triggerLi($actDiv, initLiIdx);
 
-    $('.collapsible').on('mousewheel', function (event) {
-        var $articleLi = $('li[class=articleLi]');
-        var endOne = $articleLi.last(),
-            startOne = $articleLi.first();
+    var backColor = 'blue grey lighten-4';
+    $('body').addClass(backColor);
+    $actDiv.addClass(backColor);
+
+    $(window).on('mousewheel', function (event) {
+        var endOne = $('.articleLi:last'),
+            startOne = $('.articleLi:first');
         if (event.deltaY < 0) {
             startOne.before(endOne);
             initLiIdx = initLiIdx === 0 ? totalLiNum - 1 : initLiIdx - 1;
@@ -31,7 +35,7 @@ $(document).ready(function () {
         } else {
 
         }
-        triggerLi($actDiv, initLiIdx)
+        triggerLi($actDiv, initLiIdx);
     });
 
     commonInit();

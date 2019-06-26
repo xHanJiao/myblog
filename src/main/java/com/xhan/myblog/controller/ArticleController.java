@@ -34,15 +34,12 @@ public class ArticleController extends BaseController {
      */
     @GetMapping(value = {SLASH + INDEX, SLASH})
     public ModelAndView index(ModelAndView mav) {
-        int defaultPageSize = 7;
+        int defaultPageSize = 5, shortcutMaxLen = 80;
         List<Article> articles = getArticlesDueIsAdmin(defaultPageSize, 0).getContent();
-//        Article showBoard = articles.isEmpty() ? emptyArticle : articles.get(0);
-
-        articles.forEach(a -> a.convertToShortcutNoTag(120));
+        articles.forEach(a -> a.convertToShortcutNoTag(shortcutMaxLen));
 
         mav.setViewName(INDEX);
         mav.addObject("category", new Category());
-//        mav.addObject("showBoard", showBoard);
         mav.addObject("articles", articles);
         return mav;
     }
