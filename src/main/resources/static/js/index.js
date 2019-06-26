@@ -1,5 +1,5 @@
-function triggerLi($actDiv, idx) {
-    $actDiv.each(function (index) {
+function triggerLi(idx) {
+    $('.collapsible-header').each(function (index) {
         if (index === idx) {
             $(this).trigger('click');
         }
@@ -9,36 +9,51 @@ function triggerLi($actDiv, idx) {
 $(document).ready(function () {
 
     $(document).ready(function () {
-        $('.collapsible').collapsible();
+        $('.collapsible').collapsible({
+            onOpen: function (el) {
+                var sub = initIdx - $(el).index();
+                while (sub !== 0) {
+                    var endOne = $('.articleLi:last'),
+                        startOne = $('.articleLi:first');
+                    if (sub > 0) {
+                        startOne.before(endOne);
+                        sub -= 1;
+                    } else {
+                        endOne.after(startOne);
+                        sub += 1;
+                    }
+                }
+            },
+            onClose: function (el) {
+                var currentIdx = $(el).index(), sub = initIdx - currentIdx;
+                if (sub === 0) {
+                    triggerLi(currentIdx - 1);
+                }
+            }
+        });
     });
 
 
     var $actDiv = $('.collapsible-header'),
         totalLiNum = $actDiv.length,
-        initLiIdx = Math.floor(totalLiNum / 2);
-    triggerLi($actDiv, initLiIdx);
+        initIdx = Math.floor(totalLiNum / 2);
+    triggerLi(initIdx);
 
-    var backColor = 'blue grey lighten-4';
-    $('body').addClass(backColor);
-    $actDiv.addClass(backColor);
+    $actDiv.addClass(bodyColor);
 
     $(window).on('mousewheel', function (event) {
         var endOne = $('.articleLi:last'),
             startOne = $('.articleLi:first');
         if (event.deltaY < 0) {
             startOne.before(endOne);
-            initLiIdx = initLiIdx === 0 ? totalLiNum - 1 : initLiIdx - 1;
         } else if (event.deltaY > 0) {
             endOne.after(startOne);
-            initLiIdx += 1;
-            initLiIdx %= totalLiNum;
         } else {
 
         }
-        triggerLi($actDiv, initLiIdx);
+        triggerLi(initIdx);
     });
 
-    commonInit();
     truncateTextOfCertainClass('.aTitles', 8);
 
     $('.cate_title').each(function () {

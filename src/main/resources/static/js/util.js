@@ -3,6 +3,7 @@ var header = $("meta[name='_csrf_header']").attr("content");
 var token_name = "_csrf";
 var header_name = "_csrf_header";
 var csrf_kv = {};
+var bodyColor = 'blue grey lighten-4';
 csrf_kv[token_name] = token;
 csrf_kv[header_name] = header;
 
@@ -20,6 +21,7 @@ function truncateTextOfCertainClass(clazz, maxLen) {
 function commonInit() {
 
     $('#modal1').modal();
+    $('body').addClass(bodyColor);
     $('select').material_select();
     if ($('#sidebar').length > 0) {
         $(function () {
@@ -55,6 +57,10 @@ function commonInit() {
     }
 
 }
+
+$(document).ready(function () {
+    commonInit();
+});
 
 function mockFormKv(URL, method, kv) {
 

@@ -63,7 +63,6 @@ function getImagePaths() {
 
 $(document).ready(function () {
     var articleId = $('#modSig').val();
-    commonInit();
 
     $('.slide-btn').css('margin', '3%');
 

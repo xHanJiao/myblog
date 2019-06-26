@@ -38,7 +38,6 @@ $('.articlesHolder').on('click', '.visibility_off', function () {
 
 $(document).ready(function () {
 
-    commonInit();
     // $('#pages').material_select();
     $('.fixed-action-btn').hide();
     truncateTextOfCertainClass('.aTitles', 9);

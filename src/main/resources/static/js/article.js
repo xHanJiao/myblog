@@ -8,8 +8,6 @@ $(document).ready(function () {
 
     $('table').addClass('bordered');
 
-    commonInit();
-
     $('li').css('list-style-type', '.disc');
 
     $('img').addClass('responsive-img');
