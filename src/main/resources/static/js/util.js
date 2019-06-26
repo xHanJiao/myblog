@@ -3,7 +3,7 @@ var header = $("meta[name='_csrf_header']").attr("content");
 var token_name = "_csrf";
 var header_name = "_csrf_header";
 var csrf_kv = {};
-var bodyColor = 'blue grey lighten-4';
+var bodyColor = 'grey lighten-3';
 csrf_kv[token_name] = token;
 csrf_kv[header_name] = header;
 
@@ -22,13 +22,18 @@ function commonInit() {
 
     $('#modal1').modal();
     $('body').addClass(bodyColor);
+    $('nav a').css('color', '#EEEEEE');
     $('select').material_select();
-    if ($('#sidebar').length > 0) {
+    var $sidebar = $(".sidebar");
+    if ($sidebar.length > 0) {
         $(function () {
-            var $sidebar = $("#sidebar"),
-                $window = $(window),
+            var $window = $(window),
                 offset = $sidebar.offset(),
                 topPadding = 40;
+
+            $sidebar.find('div').addClass(bodyColor);
+            $('.greeting-text').css('font-size', '13px').addClass('grey-text');
+            $('.statistic').css('line-height', '0.5em');
 
             $window.scroll(function () {
                 if ($window.scrollTop() > offset.top) {

@@ -8,58 +8,14 @@ function triggerLi(idx) {
 
 $(document).ready(function () {
 
-    $(document).ready(function () {
-        $('.collapsible').collapsible({
-            onOpen: function (el) {
-                var sub = initIdx - $(el).index();
-                while (sub !== 0) {
-                    var endOne = $('.articleLi:last'),
-                        startOne = $('.articleLi:first');
-                    if (sub > 0) {
-                        startOne.before(endOne);
-                        sub -= 1;
-                    } else {
-                        endOne.after(startOne);
-                        sub += 1;
-                    }
-                }
-            },
-            onClose: function (el) {
-                var currentIdx = $(el).index(), sub = initIdx - currentIdx;
-                if (sub === 0) {
-                    triggerLi(currentIdx - 1);
-                }
-            }
-        });
+    $('#nextPage').click(function () {
+        var currentPage = $('#currentPage').val();
+        mockFormKv('/index', 'get', {page: currentPage + 1});
     });
 
-
-    var $actDiv = $('.collapsible-header'),
-        totalLiNum = $actDiv.length,
-        initIdx = Math.floor(totalLiNum / 2);
-    triggerLi(initIdx);
-
-    $actDiv.addClass(bodyColor);
-
-    $(window).on('mousewheel', function (event) {
-        var endOne = $('.articleLi:last'),
-            startOne = $('.articleLi:first');
-        if (event.deltaY < 0) {
-            startOne.before(endOne);
-        } else if (event.deltaY > 0) {
-            endOne.after(startOne);
-        } else {
-
-        }
-        triggerLi(initIdx);
-    });
-
-    truncateTextOfCertainClass('.aTitles', 8);
-
-    $('.cate_title').each(function () {
-        var title = $(this).text();
-        var num = $(this).siblings('input[type=hidden]').val();
-        $(this).text(title + '(' + num + ')');
+    $('#prevPage').click(function () {
+        var currentPage = $('#currentPage').val();
+        mockFormKv('/index', 'get', {page: currentPage - 1});
     });
 
     $('.bottomBtnHolder')
@@ -69,7 +25,6 @@ $(document).ready(function () {
 
     $('.modi').on('click', function () {
             var name = $(this).siblings('input[type=hidden]').val();
-            // console.log('articleId : ' + name);
             var modiOper = "";
             if ($(this).hasClass('delete')) {
                 modiOper = '/del/';
@@ -81,14 +36,12 @@ $(document).ready(function () {
                 var contentHolder = $(this).parent().prev();
                 var title = contentHolder.children('a').text();
                 var content = contentHolder.children('p[class=cate_dscrp]').text();
-                // console.log('title : ' + title);
                 console.log('content : ' + content);
                 $('#cateName').val(title);
                 $('#cateDescription').val(content);
                 $('#cateForm').attr('action', '/modify/category');
                 return true;
             } else {
-                // console.log('cannot get modiOper');
                 return false;
             }
             var baseURL = '/category';
@@ -97,6 +50,14 @@ $(document).ready(function () {
             });
         }
     ).hide();
+
+    truncateTextOfCertainClass('.aTitles', 8);
+
+    $('.cate_title').each(function () {
+        var title = $(this).text();
+        var num = $(this).siblings('input[type=hidden]').val();
+        $(this).text(title + '(' + num + ')');
+    });
 
     $('#categoryHolder').hide();
 
@@ -119,4 +80,44 @@ $(document).ready(function () {
             window.location.reload();
         });
     });
+
+    $(document).ready(function () {
+        $('.collapsible').collapsible({
+            onOpen: function (el) {
+                var sub = initIdx - $(el).index();
+                while (sub !== 0) {
+                    var endOne = $('.articleLi:last'),
+                        startOne = $('.articleLi:first');
+                    if (sub > 0) {
+                        startOne.before(endOne);
+                        sub -= 1;
+                    } else {
+                        endOne.after(startOne);
+                        sub += 1;
+                    }
+                }
+            }
+        });
+    });
+
+    var $actDiv = $('.collapsible-header'),
+        totalLiNum = $actDiv.length,
+        initIdx = Math.floor(totalLiNum / 2);
+    triggerLi(initIdx);
+
+    $actDiv.addClass(bodyColor);
+
+    $('.collapsible').on('mousewheel', function (event) {
+        var endOne = $('.articleLi:last'),
+            startOne = $('.articleLi:first');
+        if (event.deltaY < 0) {
+            startOne.before(endOne);
+        } else if (event.deltaY > 0) {
+            endOne.after(startOne);
+        } else {
+
+        }
+        triggerLi(initIdx);
+    });
+
 });

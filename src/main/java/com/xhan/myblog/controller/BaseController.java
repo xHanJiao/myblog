@@ -11,7 +11,6 @@ import com.xhan.myblog.repository.ArticleRepository;
 import com.xhan.myblog.repository.CategoryRepository;
 import com.xhan.myblog.utils.MapCache;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -52,12 +51,10 @@ public class BaseController {
     @Autowired
     protected CategoryRepository categoryRepository;
     @Autowired
-    protected MessageSource messageSource;
+    protected ControllerPropertiesBean propertiesBean;
     protected Article emptyArticle = new Article();
 
     protected final MapCache cache = MapCache.single();
-
-    protected static final String pageSize = "10";
 
     public BaseController() {
         emptyArticle.setState(1);
@@ -74,6 +71,11 @@ public class BaseController {
 
     protected Page<Article> getArticlesDueIsAdmin(Integer pageSize, Integer page) {
         return getPagedArticles(page, pageSize, isAdmin());
+    }
+
+    protected void resetPostNums() {
+        cache.del(POST_NUM + true);
+        cache.del(POST_NUM + false);
     }
 
     protected boolean isAdmin() {
@@ -186,13 +188,13 @@ public class BaseController {
         boolean isAdmin = isAdmin();
         return categoryRepository.findAll(Sort.by(ASC, "createTime"))
                 .stream().map(c -> {
-                    Integer num = cache.hget(CATE_NUMS + isAdmin, c.getName());
+                    Integer num = cache.hget(ARTICLE_NUMS_OF_CATE + isAdmin, c.getName());
                     CategoryNumDTO dto = new CategoryNumDTO(c);
                     if (num == null) {
                         num = isAdmin
                                 ? articleRepository.countByCategory(c.getName())
                                 : articleRepository.countByCategoryAndState(c.getName(), PUBLISHED.getState());
-                        cache.hset(CATE_NUMS + isAdmin, c.getName(), num);
+                        cache.hset(ARTICLE_NUMS_OF_CATE + isAdmin, c.getName(), num);
                     }
                     dto.setNum(num);
                     return dto;
@@ -203,7 +205,7 @@ public class BaseController {
         private Integer page;
         private Integer pageSize;
 
-        public MyPageRequest(Integer page, Integer pageSize) {
+        MyPageRequest(Integer page, Integer pageSize) {
             this.page = page >= 0 ? page : 0;
             this.pageSize = pageSize > 0 ? pageSize : DEFAULT_PAGE_SIZE;
         }
@@ -212,11 +214,11 @@ public class BaseController {
             return page;
         }
 
-        public Integer getPageSize() {
+        Integer getPageSize() {
             return pageSize;
         }
 
-        public MyPageRequest invoke() {
+        MyPageRequest invoke() {
             page = isIntValid(page) ? page : 0;
             pageSize = isIntValid(pageSize) ? pageSize : 5;
             return this;

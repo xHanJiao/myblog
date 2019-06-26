@@ -68,6 +68,11 @@ public class AdminController extends BaseController {
         return REDIRECT + INDEX;
     }
 
+    @ModelAttribute(name = "greeting")
+    public String greeting() {
+        return hasText(propertiesBean.getGreeting()) ? propertiesBean.getGreeting() : "吃了吗";
+    }
+
     @GetMapping(value = MODI_ADMIN_URL)
     public String modiAdmin() {
         return MODI_ADMIN;
@@ -117,6 +122,8 @@ public class AdminController extends BaseController {
 
         Article article = saveArticleDTO(dto);
         delCateNumCacheByName(article.getCategory());
+
+        resetPostNums();
         return ResponseEntity
                 .created(new URI("/article/" + article.getId()))
                 .lastModified(System.currentTimeMillis()).build();
@@ -277,6 +284,8 @@ public class AdminController extends BaseController {
             articleRepository.delete(article);
             responseEntity = ResponseEntity.ok().build();
         }
+
+        resetPostNums();
         return responseEntity;
     }
 
@@ -289,6 +298,8 @@ public class AdminController extends BaseController {
                 modifyDeleted(getIdQueryWithDeleteState(id, RECYCLED.getState()), PUBLISHED.getState());
         delNumCacheById(id); // clear cache of category nums
         try {
+
+            resetPostNums();
             return result.getModifiedCount() == 1
                     ? ResponseEntity.status(HttpStatus.FOUND).location(new URI("/article/" + id)).build()
                     : badRequest().body("check id you input");
@@ -308,6 +319,8 @@ public class AdminController extends BaseController {
 
         delNumCacheById(id); // clear cache of category nums
         String viewName = REDIRECT + ARTICLE_URL + SLASH + id;
+
+        resetPostNums();
         return oneModify(mav, viewName, "无法修改", updateResult);
     }
 
@@ -336,6 +349,8 @@ public class AdminController extends BaseController {
                 .apply(new Update().set("state", ArticleState.HIDDEN.getState())).first();
         delNumCacheById(id); // clear cache of category nums
         String viewName = REDIRECT + ARTICLE_URL + SLASH + id;
+
+        resetPostNums();
         return oneModify(mav, viewName, "无法修改", updateResult);
     }
 
@@ -374,6 +389,8 @@ public class AdminController extends BaseController {
                 .matching(query(Criteria.where("category").is(name)))
                 .apply(new Update().set("state", state))
                 .all();
+
+        resetPostNums();
         delCateNumCacheByName(name);
         return ok(result.getModifiedCount());
     }
@@ -390,7 +407,9 @@ public class AdminController extends BaseController {
             article = mongoTemplate.save(article, Article.COLLECTION_NAME);
             Assert.isTrue(hasText(article.getId()), "保存后id必定有值");
 
+
             delCateNumCacheByName(article.getCategory());
+            resetPostNums();
             return ResponseEntity.status(HttpStatus.FOUND)
                     .location(URI.create(EDIT_URL + ARTICLE_URL + SLASH + article.getId()))
                     .build();
@@ -414,6 +433,7 @@ public class AdminController extends BaseController {
                 .apply(new Update().set("state", ArticleState.HIDDEN))
                 .all();
         delCateNumCacheByName(cateName);
+        resetPostNums();
         return ok(result.getModifiedCount());
     }
 
@@ -430,6 +450,7 @@ public class AdminController extends BaseController {
         delCateNumCacheByName(article.getCategory());
         model.addFlashAttribute("justSaved", article.getTitle());
         mav.setViewName(REDIRECT + SLASH + INDEX);
+        resetPostNums();
         return mav;
     }
 
@@ -489,6 +510,7 @@ public class AdminController extends BaseController {
 
             delCateNumCacheByName(dto.getCategory());
             delCateNumCacheByName(categoryState.getCategory());
+            resetPostNums();
             if (updateResult.getModifiedCount() == 0) {
                 mav.addObject("dto", dto);
                 mav.addObject("modify", id);
@@ -503,8 +525,8 @@ public class AdminController extends BaseController {
     }
 
     private void delCateNumCacheByName(String category) {
-        cache.hdel(CATE_NUMS + true, category);
-        cache.hdel(CATE_NUMS + false, category);
+        cache.hdel(ARTICLE_NUMS_OF_CATE + true, category);
+        cache.hdel(ARTICLE_NUMS_OF_CATE + false, category);
     }
 
     /**

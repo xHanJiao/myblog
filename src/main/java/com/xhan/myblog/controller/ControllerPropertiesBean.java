@@ -14,4 +14,12 @@ public class ControllerPropertiesBean {
     private String articleImages;
 
     private String categoryImages;
+
+    private String greeting;
+
+    private String pdfPaths;
+
+    private Integer shortcutLen;
+
+    private Integer defaultPageSize;
 }

@@ -6,7 +6,7 @@ import java.util.Map;
 
 public interface ControllerConstant {
 
-    String CATE_NUMS = "cateNums";
+    String ARTICLE_NUMS_OF_CATE = "cateNums";
     long PEOPLE_MAX_VISIT_PER_10_SECOND = 15;
     long ALL_MAX_VISIT_PER_5_SECOND = 50;
     int DEFAULT_PAGE_SIZE = 7;
@@ -49,6 +49,10 @@ public interface ControllerConstant {
     String RECOVER = "recover";
     String RECOVER_URL = SLASH + "recover";
     String DRAFT_URL = SLASH + "draft";
+    String POST_NUM = "postedArticleNum";
+    String POST_NUM_URL = SLASH + POST_NUM;
+    String CATE_NUM = "createdCategoryNum";
+    String CATE_NUM_URL = SLASH + CATE_NUM;
     // LOGIN
     String LOGIN_DISPATCH_URL = "/loginsucc";
     String IS_ADMIN = "isAdmin";

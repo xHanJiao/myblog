@@ -6,14 +6,14 @@
     <title>Title</title>
 </head>
 <body>
-<nav th:fragment="header" class="blue grey darken-3">
+<nav class="blue darken-3" th:fragment="header">
     <div class="nav-wrapper">
         <a th:href="@{/index}" class="brand-logo show-on-small hide-on-med-and-up" th:text="#{nav.brand}"></a>
         <a th:href="@{/index}" style="margin-left: 5%" class="brand-logo left hide-on-small-and-down"
            th:text="#{nav.brand}"></a>
         <ul class="right hide-on-small-and-down flow-text" style="margin-right: 5%">
-            <li><a class="nav-a right boardOrCate">SwitchIt!</a></li>
-            <li><a th:text="#{nav.articles}" class="nav-a" th:href="@{/article}"></a></li>
+            <!--<li><a class="nav-a right boardOrCate">SwitchIt!</a></li>-->
+            <!--<li><a th:text="#{nav.articles}" class="nav-a" th:href="@{/article}"></a></li>-->
             <li><a sec:authorize="hasRole('ADMIN')" class="dropdown-button nav-a"
                    data-beloworigin="true" href="#" data-activates="dropdown1">管理</a></li>
         </ul>
@@ -30,13 +30,13 @@
 </nav>
 
 
-<nav th:fragment="header_slim" class="blue grey darken-3">
+<nav class="blue darken-3" th:fragment="header_slim">
     <div class="nav-wrapper">
         <a th:href="@{/index}" class="brand-logo show-on-small hide-on-med-and-up" th:text="#{nav.brand}"></a>
         <a th:href="@{/index}" style="margin-left: 5%" class="brand-logo left hide-on-small-and-down"
            th:text="#{nav.brand}"></a>
         <ul class="right hide-on-small-and-down flow-text" style="margin-right: 5%">
-            <li><a th:text="#{nav.articles}" class="nav-a" th:href="@{/article}"></a></li>
+            <!--<li><a th:text="#{nav.articles}" class="nav-a" th:href="@{/article}"></a></li>-->
             <li><a sec:authorize="hasRole('ADMIN')" class="dropdown-button nav-a"
                    data-beloworigin="true" href="#" data-activates="dropdown2">管理</a></li>
         </ul>
@@ -49,7 +49,7 @@
         </ul>
     </div>
 </nav>
-<nav th:fragment="breadcrumb" class="blue grey darken-3">
+<nav class="blue darken-3" th:fragment="breadcrumb">
     <div class="nav-wrapper">
         <div class="show-on-small flow-text hide-on-med-and-up">
             <a th:href="@{/index}" th:text="#{nav.brand}"></a>
@@ -66,7 +66,7 @@
             <a th:text="${article.getTitle()}" th:href="${'/article/' + article.getId()}"></a>
         </div>
         <ul class="right hide-on-small-and-down flow-text" style="margin-right: 5%">
-            <li><a th:text="#{nav.articles}" class="nav-a" th:href="@{/article}"></a></li>
+            <!--<li><a th:text="#{nav.articles}" class="nav-a" th:href="@{/article}"></a></li>-->
             <li><a sec:authorize="hasRole('ADMIN')" class="dropdown-button nav-a"
                    data-beloworigin="true" href="#" data-activates="dropdown3">管理</a></li>
         </ul>
@@ -80,33 +80,46 @@
     </div>
 </nav>
 
-<nav th:fragment="header_much_slim" class="blue grey darken-3">
+<nav class="blue darken-3" th:fragment="header_much_slim">
     <div class="nav-wrapper">
         <a th:href="@{/index}" class="brand-logo show-on-small hide-on-med-and-up" th:text="#{nav.brand}"></a>
         <a th:href="@{/index}" style="margin-left: 5%" class="brand-logo left hide-on-small-and-down"
            th:text="#{nav.brand}"></a>
         <ul class="right hide-on-small-and-down flow-text" style="margin-right: 5%">
-            <li><a th:text="#{nav.articles}" class="nav-a" th:href="@{/article}"></a></li>
+            <!--<li><a th:text="#{nav.articles}" class="nav-a" th:href="@{/article}"></a></li>-->
         </ul>
     </div>
 </nav>
+
 <div class="col m3 hide-on-small-and-down" style="padding: 5%" th:fragment="sideBar">
-    <div class="row" id="sidebar">
-        <div class="card z-depth-0 grey hoverable">
+    <div class="row sidebar">
+        <div class="card z-depth-0 hoverable">
             <div class="card-image z-depth-0">
-                <img th:src="@{/images/sample-6.jpg}">
+                <img th:src="@{/images/sample-8.jpg}"/>
+                <p class="center-align greeting-text" th:text="${greeting}">
+                </p>
             </div>
-            <div class="card-content z-depth-0">
+            <div class="row center-align">
+                <div class="col s5 offset-s1 statistic">
+                    <p id="posts" th:text="${postedArticleNum}">12</p>
+                    <a class="grey-text" th:href="@{/article}">posts</a>
+                </div>
+                <div class="col s5 statistic">
+                    <p id="cate" th:text="${createdCategoryNum}">14</p>
+                    <a class="grey-text boardOrCate" href="#">cate</a>
+                </div>
             </div>
-            <div class="card-action z-depth-0">
-                <a href="/pdf/myCv.pdf" class="brown-text flow-text">简历</a>
-                <div sec:authorize="hasRole('ADMIN')" class="divider"></div>
-                <a sec:authorize="hasRole('ADMIN')" class="brown-text" th:href="@{/modiadmin}">修改个人信息</a>
+            <div class="row">
+                <div class="col s12">
+                    <a class="left grey-text" href="https://github.com/xHanJiao">view my Github profile</a>
+                </div>
+                <div class="col s12">
+                    <a class="left grey-text" href="mailto:3195573606@qq.com">Email me</a>
+                </div>
             </div>
         </div>
     </div>
 </div>
-
 
 <div class="fixed-action-btn" th:fragment="updown_btn">
     <a class="btn-floating red">

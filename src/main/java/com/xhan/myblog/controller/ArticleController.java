@@ -33,15 +33,46 @@ public class ArticleController extends BaseController {
      * @return 返回ModelAndView，其中viewName 是INDEX常量
      */
     @GetMapping(value = {SLASH + INDEX, SLASH})
-    public ModelAndView index(ModelAndView mav) {
-        int defaultPageSize = 5, shortcutMaxLen = 80;
-        List<Article> articles = getArticlesDueIsAdmin(defaultPageSize, 0).getContent();
-        articles.forEach(a -> a.convertToShortcutNoTag(shortcutMaxLen));
+    public ModelAndView index(@RequestParam(required = false, defaultValue = "0") int page,
+                              ModelAndView mav) {
+
+        final int defaultPageSize = propertiesBean.getDefaultPageSize(),
+                maxLen = propertiesBean.getShortcutLen();
+        if (page < 0) page = 0;
+        Page<Article> articles = getArticlesDueIsAdmin(defaultPageSize, page);
+        int totalPage = articles.getTotalPages();
+        if (page > totalPage - 1){
+            page = totalPage - 1;
+            articles = getArticlesDueIsAdmin(defaultPageSize, page);
+        }
+        articles.forEach(a -> a.convertToShortcutNoTag(maxLen));
 
         mav.setViewName(INDEX);
         mav.addObject("category", new Category());
-        mav.addObject("articles", articles);
+        mav.addObject("currentPage", page);
+        mav.addObject("articles", articles.getContent());
         return mav;
+    }
+
+    @ModelAttribute(CATE_NUM)
+    public long getCreatedCategoryNums() {
+        return categoryRepository.count();
+    }
+
+    @ModelAttribute(POST_NUM)
+    public long getPostedArticle() {
+        boolean isAdmin = isAdmin();
+        String key = POST_NUM + isAdmin;
+        Long postNum = cache.get(key);
+        if (postNum == null) {
+            if (isAdmin) {
+                postNum = articleRepository.count();
+            } else {
+                postNum = (long) articleRepository.countByState(PUBLISHED.getState());
+            }
+            cache.set(key, postNum);
+        }
+        return postNum;
     }
 
     @GetMapping(value = "myCv")
@@ -61,6 +92,11 @@ public class ArticleController extends BaseController {
     @ModelAttribute(name = "allCate")
     public List<CategoryNumDTO> getAllCateAndArticleNum() {
         return getCategoryNumDTOS();
+    }
+
+    @ModelAttribute(name = "greeting")
+    public String greeting() {
+        return hasText(propertiesBean.getGreeting()) ? propertiesBean.getGreeting() : "吃了吗";
     }
 
     /**
