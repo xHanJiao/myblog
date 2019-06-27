@@ -8,7 +8,6 @@ function triggerLi(idx) {
 
 $(document).ready(function () {
 
-    $('#categoryHolder').hide();
     $('.createTimeHolder').hide();
 
     $('#nextPage').click(function () {
@@ -26,49 +25,12 @@ $(document).ready(function () {
         .css('padding-right', '5%')
         .css('margin-top', '3%');
 
-    $('.modi').on('click', function () {
-            var name = $(this).siblings('input[type=hidden]').val();
-            var modiOper = "";
-            if ($(this).hasClass('delete')) {
-                modiOper = '/del/';
-            } else if ($(this).hasClass('pub')) {
-                modiOper = '/recover/';
-            } else if ($(this).hasClass('hidee')) {
-                modiOper = '/hidden/'
-            } else if ($(this).hasClass('modiCate')) {
-                var contentHolder = $(this).parent().prev();
-                var title = contentHolder.children('a').text();
-                var content = contentHolder.children('p[class=cate_dscrp]').text();
-                console.log('content : ' + content);
-                $('#cateName').val(title);
-                $('#cateDescription').val(content);
-                $('#cateForm').attr('action', '/modify/category');
-                return true;
-            } else {
-                return false;
-            }
-            var baseURL = '/category';
-            $.post(baseURL + modiOper + name, csrf_kv, function () {
-                window.location.reload();
-            });
-        }
-    ).hide();
-
     truncateTextOfCertainClass('.aTitles', 8);
 
     $('.cate_title').each(function () {
         var title = $(this).text();
         var num = $(this).siblings('input[type=hidden]').val();
         $(this).text(title + '(' + num + ')');
-    });
-
-    $('.boardOrCate').click(function () {
-        $('#categoryHolder').toggle();
-        $('#articleListHolder').toggle();
-    });
-
-    $('.setBtn').click(function () {
-        $(this).siblings().toggle();
     });
 
     $('#createCate').click(function () {
@@ -82,14 +44,16 @@ $(document).ready(function () {
         });
     });
 
-    $('.collapsible').collapsible({
+    var $collapsible = $('.collapsible');
+
+    $collapsible.collapsible({
         onOpen: function (el) {
             $('.createTimeHolder').hide();
             $(el).find('span[class *= createTimeHolder]').show();
             var sub = initIdx - $(el).index();
             while (sub !== 0) {
-                var endOne = $('.articleLi:last'),
-                    startOne = $('.articleLi:first');
+                var endOne = $('.titleLi:last'),
+                    startOne = $('.titleLi:first');
                 if (sub > 0) {
                     startOne.before(endOne);
                     sub -= 1;
@@ -108,10 +72,10 @@ $(document).ready(function () {
 
     $actDiv.addClass(bodyColor);
 
-    $('.collapsible').on('mousewheel', function (event) {
+    $collapsible.on('mousewheel', function (event) {
         $('.createTimeHolder').hide();
-        var endOne = $('.articleLi:last'),
-            startOne = $('.articleLi:first');
+        var endOne = $('.titleLi:last'),
+            startOne = $('.titleLi:first');
         if (event.deltaY < 0) {
             startOne.before(endOne);
         } else if (event.deltaY > 0) {

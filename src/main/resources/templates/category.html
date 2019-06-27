@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh_CN"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5">
+<head>
+    <meta charset="UTF-8">
+    <title>分类页面</title>
+    <link href="http://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/materialize.min.css}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <link rel="stylesheet" th:href="@{/css/header.css}">
+</head>
+<body>
+<div th:replace="fragments::header"></div>
+
+<div class="container">
+    <div class="row">
+        <div class="col m9 s12" id="board">
+            <div id="titleHolder">
+                <ul class="collapsible popout" data-collapsible="accordion">
+                    <li class="titleLi z-depth-0" th:each="category: ${allCate}">
+                        <div class="collapsible-header" style="padding: 2%;">
+                            <span th:text="${category.getCreateTime()}" class="createTimeHolder grey-text"
+                                  style="font-size: 1em">
+                                </span>
+                            &nbsp;&nbsp;&nbsp;
+                            <a class="flow-text black-text cate_title" th:href="'/category/' + ${category.getName()}"
+                               th:text="${category.getName()}" th:name="${category.getName()}"></a>
+                            <input type="hidden" th:value="${category.getNum()}"/>
+                        </div>
+                        <div class="collapsible-body">
+                            <p class="flow-text grey-text" th:text="${category.getDescription()}"></p>
+                            <div sec:authorize="hasRole('ADMIN')">
+                                <!--<a class="setBtn delete btn-flat waves-effect waves-light"-->
+                                   <!--sec:authorize="hasRole('ADMIN')"><i class="material-icons">settings</i></a>-->
+                                <a class="modi delete btn btn-flat"
+                                   sec:authorize="hasRole('ADMIN')">删除</a>
+                                <a class="modi hidee btn btn-flat"
+                                   sec:authorize="hasRole('ADMIN')">隐藏</a>
+                                <a class="modi pub btn btn-flat"
+                                   sec:authorize="hasRole('ADMIN')">公开</a>
+                                <a class="modi btn modiCate btn-flat" href="#modal1"
+                                   sec:authorize="hasRole('ADMIN')">修改</a>
+                                <input th:value="${category.getName()}" type="hidden"/>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="col m2 hide-on-med-and-down" th:replace="fragments::sideBar">
+        </div>
+    </div>
+    <div th:replace="fragments::updown_btn"></div>
+</div>
+
+<script src="https://cdn.bootcss.com/jquery/2.2.1/jquery.min.js"></script>
+<script>window.jQuery || document.write(unescape("%3Cscript src='/js/jquery.min.js' type='text/javascript'%3E%3C/script%3E"))</script>
+<script th:src="@{/js/mousewheel.min.js}"></script>
+<script th:src="@{/js/materialize.min.js}"></script>
+<script th:src="@{/js/util.js}"></script>
+<script>
+    $(document).ready(function () {
+
+        $('.modi').on('click', function () {
+                var name = $(this).siblings('input[type=hidden]').val();
+                var modiOper = "";
+                if ($(this).hasClass('delete')) {
+                    modiOper = '/del/';
+                } else if ($(this).hasClass('pub')) {
+                    modiOper = '/recover/';
+                } else if ($(this).hasClass('hidee')) {
+                    modiOper = '/hidden/'
+                } else if ($(this).hasClass('modiCate')) {
+                    var contentHolder = $(this).parent().prev();
+                    var title = contentHolder.children('a').text();
+                    var content = contentHolder.children('p[class=cate_dscrp]').text();
+                    console.log('content : ' + content);
+                    $('#cateName').val(title);
+                    $('#cateDescription').val(content);
+                    $('#cateForm').attr('action', '/modify/category');
+                    return true;
+                } else {
+                    return false;
+                }
+                var baseURL = '/category';
+                $.post(baseURL + modiOper + name, csrf_kv, function () {
+                    window.location.reload();
+                });
+            }
+        ).css('color', '#37474F');
+
+        function triggerLi(idx) {
+            $('.collapsible-header').each(function (index) {
+                if (index === idx) {
+                    $(this).trigger('click');
+                }
+            });
+        }
+
+        var $collapsible = $('.collapsible');
+
+        var $actDiv = $('.collapsible-header'),
+            totalLiNum = $actDiv.length,
+            initIdx = Math.floor(totalLiNum / 2);
+        $actDiv.addClass(bodyColor);
+        triggerLi(initIdx);
+
+        $collapsible.collapsible({
+            onOpen: function (el) {
+                $('.createTimeHolder').hide();
+                $(el).find('span[class *= createTimeHolder]').show();
+                var sub = initIdx - $(el).index();
+                while (sub !== 0) {
+                    var endOne = $('.titleLi:last'),
+                        startOne = $('.titleLi:first');
+                    if (sub > 0) {
+                        startOne.before(endOne);
+                        sub -= 1;
+                    } else {
+                        endOne.after(startOne);
+                        sub += 1;
+                    }
+                }
+            }
+        });
+        $collapsible.on('mousewheel', function (event) {
+            $('.createTimeHolder').hide();
+            var endOne = $('.titleLi:last'),
+                startOne = $('.titleLi:first');
+            if (event.deltaY < 0) {
+                startOne.before(endOne);
+            } else if (event.deltaY > 0) {
+                endOne.after(startOne);
+            } else {
+            }
+            triggerLi(initIdx);
+        });
+
+        $('.cate_title').each(function () {
+            var title = $(this).text();
+            var num = $(this).siblings('input[type=hidden]').val();
+            $(this).text(title + '(' + num + ')');
+        });
+    });
+</script>
+</body>
+</html>

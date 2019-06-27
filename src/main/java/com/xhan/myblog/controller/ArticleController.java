@@ -9,6 +9,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
@@ -97,6 +98,12 @@ public class ArticleController extends BaseController {
     @ModelAttribute(name = "greeting")
     public String greeting() {
         return hasText(propertiesBean.getGreeting()) ? propertiesBean.getGreeting() : "吃了吗";
+    }
+
+    @GetMapping(path = CATEGORY_URL)
+    public String getCategory(Model model) {
+        model.addAttribute("allCate", getCategoryNumDTOS());
+        return CATEGORY;
     }
 
     /**

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="cn"
+<html lang="zh_CN"
       xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5">
 <head>
@@ -8,7 +8,6 @@
     <link href="http://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/materialize.min.css}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-
     <meta name="_csrf" th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <link rel="stylesheet" th:href="@{/css/header.css}">
@@ -30,30 +29,28 @@
 <div class="container">
     <div class="row black-text">
         <div class="col m9 s12" id="board">
-            <div id="articleListHolder">
-                <div class="section">
-                    <ul class="collapsible popout" data-collapsible="accordion">
-                        <li class="articleLi z-depth-0" th:each="article: ${articles}">
-                            <div class="collapsible-header" style="padding: 2%;">
-                                    <span sec:authorize="hasRole('ADMIN')" th:fragment="stateIcons">
+            <div id="titleListHolder">
+                <ul class="collapsible popout" data-collapsible="accordion">
+                    <li class="titleLi z-depth-0" th:each="article: ${articles}">
+                        <div class="collapsible-header" style="padding: 2%;">
+                            <span th:text="${article.getCreateTime()}" class="createTimeHolder grey-text"
+                                  style="font-size: 1em">
+                                </span>
+                            &nbsp;&nbsp;&nbsp;
+                            <span sec:authorize="hasRole('ADMIN')" th:fragment="stateIcons" class="grey-text">
                                         <i th:if="${article.getState()==0}" class="material-icons">drafts</i>
                                         <i th:if="${article.getState()==1}" class="material-icons">visibility</i>
                                         <i th:if="${article.getState()==2}" class="material-icons">visibility_off</i>
                                         <i th:if="${article.getState()==3}" class="material-icons">delete</i>
                                     </span>
-                                <span th:text="${article.getCreateTime()}" class="createTimeHolder grey-text"
-                                      style="font-size: 1em">
-                                </span>
-                                &nbsp;&nbsp;&nbsp;
-                                <a class="flow-text black-text aTitles" th:href="'/article/' + ${article.getId()}"
-                                   th:text="${article.getTitle()}" th:name="${article.getId()}"></a>
-                            </div>
-                            <div class="collapsible-body">
-                                <p class="flow-text grey-text articleHolder" th:text="${article.getContent()}"></p>
-                            </div>
-                        </li>
-                    </ul>
-                </div>
+                            <a class="flow-text black-text aTitles" th:href="'/article/' + ${article.getId()}"
+                               th:text="${article.getTitle()}" th:name="${article.getId()}"></a>
+                        </div>
+                        <div class="collapsible-body">
+                            <p class="flow-text grey-text articleHolder" th:text="${article.getContent()}"></p>
+                        </div>
+                    </li>
+                </ul>
                 <div class="row">
                     <input id="currentPage" type="hidden" th:value="${currentPage}">
                     <div class="col s2 offset-s2">
@@ -66,40 +63,8 @@
                     </div>
                 </div>
             </div>
-            <div id="categoryHolder">
-                <div th:each="cate : ${allCate}" class="s12 col cardHolder">
-                    <div class="card hoverable cateCard ">
-                        <!--<div class="card-image" th:if="${cate.getFilePath() != null}">-->
-                        <!--<img class="responsive-img" th:src="@{${cate.getFilePath()}}"/>-->
-                        <!--</div>-->
-                        <div class="card-content">
-                            <a th:text="${cate.getName()}" th:href="@{'/category/' + ${cate.getName()}}"
-                               style="font-weight: bold" class="cate_title flow-text brown-text"></a>
-                            <input type="hidden" th:value="${cate.getNum()}"/>
-                            <div class="divider"></div>
-                            <p th:text="${cate.getDescription()}" class="cate_dscrp blue-grey-text"></p>
-                        </div>
-                        <div class="card-action flow-text" sec:authorize="hasRole('ADMIN')">
-                            <a class="setBtn flow-text delete btn-floating right waves-effect waves-blue"
-                               sec:authorize="hasRole('ADMIN')"><i class="material-icons">settings</i></a>
-                            <a class="modi delete btn btn-flat orange-text"
-                               sec:authorize="hasRole('ADMIN')">删除</a>
-                            <a class="modi hidee btn btn-flat orange-text"
-                               sec:authorize="hasRole('ADMIN')">隐藏</a>
-                            <a class="modi pub btn btn-flat orange-text"
-                               sec:authorize="hasRole('ADMIN')">公开</a>
-                            <a class="modi btn modiCate btn-flat orange-text" href="#modal1"
-                               sec:authorize="hasRole('ADMIN')">修改</a>
-                            <input th:value="${cate.getName()}" type="hidden"/>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="row flow-text hide-on-med-and-up show-on-small-and-down bottomBtnHolder">
-                <a class="left flow-text btn-inline black-text waves-effect waves-light boardOrCate">
-                    SwitchIt!</a>
-                <a class="right flow-text btn-inline black-text waves-effect waves-light" th:href="@{/article}">
-                    文章列表</a>
+            <div class="row flow-text hide-on-med-and-up show-on-small-and-down center-align bottomBtnHolder">
+                <a class="flow-text btn-inline black-text waves-effect waves-light boardOrCate">SwitchIt!</a>
             </div>
             <div sec:authorize="hasRole('ADMIN')"
                  class="row flow-text hide-on-med-and-up show-on-small-and-down bottomBtnHolder">
