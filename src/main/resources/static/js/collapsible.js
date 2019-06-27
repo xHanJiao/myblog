@@ -32,7 +32,8 @@ $(document).ready(function () {
 
     var $actDiv = $('.collapsible-header'),
         totalLiNum = $actDiv.length,
-        initIdx = Math.floor(totalLiNum / 2);
+        initIdx = Math.floor(totalLiNum / 2) - 1 > 0 ? Math.floor(totalLiNum / 2) - 1 : 0;
+    // initIdx = 0;
     triggerLi(initIdx);
 
     $actDiv.addClass(bodyColor);
