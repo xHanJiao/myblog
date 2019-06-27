@@ -36,7 +36,6 @@
         <a th:href="@{/index}" style="margin-left: 5%" class="brand-logo left hide-on-small-and-down"
            th:text="#{nav.brand}"></a>
         <ul class="right hide-on-small-and-down flow-text" style="margin-right: 5%">
-            <!--<li><a th:text="#{nav.articles}" class="nav-a" th:href="@{/article}"></a></li>-->
             <li><a sec:authorize="hasRole('ADMIN')" class="dropdown-button nav-a"
                    data-beloworigin="true" href="#" data-activates="dropdown2">管理</a></li>
         </ul>
@@ -52,11 +51,11 @@
 <nav class="blue darken-3" th:fragment="breadcrumb">
     <div class="nav-wrapper">
         <div class="show-on-small flow-text hide-on-med-and-up">
-            <a th:href="@{/index}" th:text="#{nav.brand}"></a>
+            <a th:href="@{/index}" th:text="#{nav.brand}" class="crumb"></a>
             >
-            <a th:href="@{${metaURL}}" th:text="${metaName}"></a>
+            <a th:href="@{${metaURL}}" th:text="${metaName}" class="crumb"></a>
             >
-            <a th:text="${article.getTitle()}" th:href="${'/article/' + article.getId()}"></a>
+            <a th:text="${article.getTitle()}" th:href="${'/article/' + article.getId()}" class="crumb"></a>
         </div>
         <div class="hide-on-small-and-down flow-text left">
             <a th:href="@{/index}" th:text="#{nav.brand}"></a>
@@ -66,7 +65,6 @@
             <a th:text="${article.getTitle()}" th:href="${'/article/' + article.getId()}"></a>
         </div>
         <ul class="right hide-on-small-and-down flow-text" style="margin-right: 5%">
-            <!--<li><a th:text="#{nav.articles}" class="nav-a" th:href="@{/article}"></a></li>-->
             <li><a sec:authorize="hasRole('ADMIN')" class="dropdown-button nav-a"
                    data-beloworigin="true" href="#" data-activates="dropdown3">管理</a></li>
         </ul>
@@ -86,7 +84,6 @@
         <a th:href="@{/index}" style="margin-left: 5%" class="brand-logo left hide-on-small-and-down"
            th:text="#{nav.brand}"></a>
         <ul class="right hide-on-small-and-down flow-text" style="margin-right: 5%">
-            <!--<li><a th:text="#{nav.articles}" class="nav-a" th:href="@{/article}"></a></li>-->
         </ul>
     </div>
 </nav>
@@ -111,7 +108,7 @@
             </div>
             <div class="row">
                 <div class="col s12">
-                    <a class="left grey-text" href="https://github.com/xHanJiao">view my Github profile</a>
+                    <a class="left grey-text" href="https://github.com/xHanJiao">view my Github</a>
                 </div>
                 <div class="col s12">
                     <a class="left grey-text" href="mailto:3195573606@qq.com">Email me</a>

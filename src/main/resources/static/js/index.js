@@ -8,14 +8,17 @@ function triggerLi(idx) {
 
 $(document).ready(function () {
 
+    $('#categoryHolder').hide();
+    $('.createTimeHolder').hide();
+
     $('#nextPage').click(function () {
         var currentPage = $('#currentPage').val();
-        mockFormKv('/index', 'get', {page: currentPage + 1});
+        mockFormKv('/index', 'get', {page: parseInt(currentPage) + 1});
     });
 
     $('#prevPage').click(function () {
         var currentPage = $('#currentPage').val();
-        mockFormKv('/index', 'get', {page: currentPage - 1});
+        mockFormKv('/index', 'get', {page: parseInt(currentPage) - 1});
     });
 
     $('.bottomBtnHolder')
@@ -59,8 +62,6 @@ $(document).ready(function () {
         $(this).text(title + '(' + num + ')');
     });
 
-    $('#categoryHolder').hide();
-
     $('.boardOrCate').click(function () {
         $('#categoryHolder').toggle();
         $('#articleListHolder').toggle();
@@ -81,23 +82,23 @@ $(document).ready(function () {
         });
     });
 
-    $(document).ready(function () {
-        $('.collapsible').collapsible({
-            onOpen: function (el) {
-                var sub = initIdx - $(el).index();
-                while (sub !== 0) {
-                    var endOne = $('.articleLi:last'),
-                        startOne = $('.articleLi:first');
-                    if (sub > 0) {
-                        startOne.before(endOne);
-                        sub -= 1;
-                    } else {
-                        endOne.after(startOne);
-                        sub += 1;
-                    }
+    $('.collapsible').collapsible({
+        onOpen: function (el) {
+            $('.createTimeHolder').hide();
+            $(el).find('span[class *= createTimeHolder]').show();
+            var sub = initIdx - $(el).index();
+            while (sub !== 0) {
+                var endOne = $('.articleLi:last'),
+                    startOne = $('.articleLi:first');
+                if (sub > 0) {
+                    startOne.before(endOne);
+                    sub -= 1;
+                } else {
+                    endOne.after(startOne);
+                    sub += 1;
                 }
             }
-        });
+        }
     });
 
     var $actDiv = $('.collapsible-header'),
@@ -108,6 +109,7 @@ $(document).ready(function () {
     $actDiv.addClass(bodyColor);
 
     $('.collapsible').on('mousewheel', function (event) {
+        $('.createTimeHolder').hide();
         var endOne = $('.articleLi:last'),
             startOne = $('.articleLi:first');
         if (event.deltaY < 0) {

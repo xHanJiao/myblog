@@ -22,7 +22,6 @@ function commonInit() {
 
     $('#modal1').modal();
     $('body').addClass(bodyColor);
-    $('nav a').css('color', '#EEEEEE');
     $('select').material_select();
     var $sidebar = $(".sidebar");
     if ($sidebar.length > 0) {
