@@ -22,7 +22,7 @@
                 <ul class="collapsible popout" data-collapsible="accordion">
                     <li class="titleLi z-depth-0" th:each="category: ${allCate}">
                         <div class="collapsible-header" style="padding: 2%;">
-                            <span th:text="${category.getCreateTime()}" class="createTimeHolder grey-text"
+                            <span th:text="${category.getCreateTime()}" class="createTimeHolder hide-on-small-and-down grey-text"
                                   style="font-size: 1em">
                                 </span>
                             &nbsp;&nbsp;&nbsp;
@@ -33,8 +33,6 @@
                         <div class="collapsible-body">
                             <p class="flow-text grey-text" th:text="${category.getDescription()}"></p>
                             <div sec:authorize="hasRole('ADMIN')">
-                                <!--<a class="setBtn delete btn-flat waves-effect waves-light"-->
-                                   <!--sec:authorize="hasRole('ADMIN')"><i class="material-icons">settings</i></a>-->
                                 <a class="modi delete btn btn-flat"
                                    sec:authorize="hasRole('ADMIN')">删除</a>
                                 <a class="modi hidee btn btn-flat"
@@ -61,90 +59,7 @@
 <script th:src="@{/js/mousewheel.min.js}"></script>
 <script th:src="@{/js/materialize.min.js}"></script>
 <script th:src="@{/js/util.js}"></script>
-<script>
-    $(document).ready(function () {
-
-        $('.modi').on('click', function () {
-                var name = $(this).siblings('input[type=hidden]').val();
-                var modiOper = "";
-                if ($(this).hasClass('delete')) {
-                    modiOper = '/del/';
-                } else if ($(this).hasClass('pub')) {
-                    modiOper = '/recover/';
-                } else if ($(this).hasClass('hidee')) {
-                    modiOper = '/hidden/'
-                } else if ($(this).hasClass('modiCate')) {
-                    var contentHolder = $(this).parent().prev();
-                    var title = contentHolder.children('a').text();
-                    var content = contentHolder.children('p[class=cate_dscrp]').text();
-                    console.log('content : ' + content);
-                    $('#cateName').val(title);
-                    $('#cateDescription').val(content);
-                    $('#cateForm').attr('action', '/modify/category');
-                    return true;
-                } else {
-                    return false;
-                }
-                var baseURL = '/category';
-                $.post(baseURL + modiOper + name, csrf_kv, function () {
-                    window.location.reload();
-                });
-            }
-        ).css('color', '#37474F');
-
-        function triggerLi(idx) {
-            $('.collapsible-header').each(function (index) {
-                if (index === idx) {
-                    $(this).trigger('click');
-                }
-            });
-        }
-
-        var $collapsible = $('.collapsible');
-
-        var $actDiv = $('.collapsible-header'),
-            totalLiNum = $actDiv.length,
-            initIdx = Math.floor(totalLiNum / 2);
-        $actDiv.addClass(bodyColor);
-        triggerLi(initIdx);
-
-        $collapsible.collapsible({
-            onOpen: function (el) {
-                $('.createTimeHolder').hide();
-                $(el).find('span[class *= createTimeHolder]').show();
-                var sub = initIdx - $(el).index();
-                while (sub !== 0) {
-                    var endOne = $('.titleLi:last'),
-                        startOne = $('.titleLi:first');
-                    if (sub > 0) {
-                        startOne.before(endOne);
-                        sub -= 1;
-                    } else {
-                        endOne.after(startOne);
-                        sub += 1;
-                    }
-                }
-            }
-        });
-        $collapsible.on('mousewheel', function (event) {
-            $('.createTimeHolder').hide();
-            var endOne = $('.titleLi:last'),
-                startOne = $('.titleLi:first');
-            if (event.deltaY < 0) {
-                startOne.before(endOne);
-            } else if (event.deltaY > 0) {
-                endOne.after(startOne);
-            } else {
-            }
-            triggerLi(initIdx);
-        });
-
-        $('.cate_title').each(function () {
-            var title = $(this).text();
-            var num = $(this).siblings('input[type=hidden]').val();
-            $(this).text(title + '(' + num + ')');
-        });
-    });
-</script>
+<script th:src="@{/js/collapsible.js}"></script>
+<script th:src="@{/js/category.js}"></script>
 </body>
 </html>
