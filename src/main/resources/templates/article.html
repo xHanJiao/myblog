@@ -59,12 +59,12 @@
                 <p th:utext="${article.getContent()}"></p>
             </div>
             <div class="fixed-action-btn verticle">
-                <a class="btn-floating green" title="menu">
+                <a class="btn-floating blue" title="menu">
                     <i class="material-icons large">menu</i>
                 </a>
                 <ul>
                     <li th:if="${article.getCommentEnable()}">
-                        <a id="commBtn" class="btn-floating blue" title="发表评论"
+                        <a id="commBtn" class="btn-floating green" title="发表评论"
                            th:if="${article.getState() == 1 || article.getState() == 2}">
                             <i class="material-icons">mode_edit</i> </a></li>
                     <li><a class="up-btn btn-floating yellow" title="返回顶部">
@@ -143,7 +143,7 @@
                                         <i class="material-icons">delete</i>
                                     </a>
                                     <input th:value="${comment.creator}" class="replyTo" type="hidden"/>
-                                    <a class="btn-floating btn red reply">
+                                    <a class="btn-floating btn blue reply">
                                         <i class="material-icons">chat_bubble</i>
                                     </a>
                                 </div>

@@ -56,13 +56,17 @@
                 </ul>
                 <div class="row">
                     <input id="currentPage" type="hidden" th:value="${currentPage}">
-                    <div class="col s2 offset-s2">
-                        <a id="prevPage" href="#" class="left btn btn-flat waves-effect waves-light green-text"> <i
-                                class="material-icons">chevron_left</i></a>
+                    <div class="col s4">
+                        <a id="firstPage" href="/index?page=0" class="btn btn-flat waves-effect waves-light green-text">
+                            <i class="material-icons">first_page</i></a>
+                        <a id="prevPage" href="#" class="btn btn-flat waves-effect waves-light green-text">
+                            <i class="material-icons">chevron_left</i></a>
                     </div>
-                    <div class="col s2 offset-s4">
-                        <a id="nextPage" href="#" class="right btn btn-flat waves-effect waves-light green-text"><i
-                                class="material-icons">chevron_right</i></a>
+                    <div class="col s4 offset-s4">
+                        <a id="nextPage" href="#" class="btn btn-flat waves-effect waves-light green-text">
+                            <i class="material-icons">chevron_right</i></a>
+                        <a id="last" href="/index?page=999" class="btn btn-flat waves-effect waves-light green-text">
+                            <i class="material-icons">last_page</i></a>
                     </div>
                 </div>
             </div>
