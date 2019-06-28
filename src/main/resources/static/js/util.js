@@ -60,6 +60,11 @@ function commonInit() {
         });
     }
 
+    $('.logout').click(function () {
+        $.post('/logout', csrf_kv, function () {
+            window.location.reload();
+        });
+    });
 }
 
 $(document).ready(function () {

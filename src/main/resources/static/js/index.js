@@ -31,11 +31,6 @@ $(document).ready(function () {
         return true;
     });
 
-    $('.logout').click(function () {
-        $.post('/logout', csrf_kv, function () {
-            window.location.reload();
-        });
-    });
 
 
 });

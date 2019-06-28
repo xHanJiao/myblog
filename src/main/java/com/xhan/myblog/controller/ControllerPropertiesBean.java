@@ -11,6 +11,8 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "controller")
 public class ControllerPropertiesBean {
 
+    private String brand;
+
     private String articleImages;
 
     private String categoryImages;

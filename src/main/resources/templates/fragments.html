@@ -6,11 +6,19 @@
     <title>Title</title>
 </head>
 <body>
+
+<form th:fragment="searchBar" class="right s12 m4" th:action="@{/search}" method="post">
+    <div class="input-field">
+        <input id="search" type="search" name="title" placeholder="搜索标题" required>
+        <label class="label-icon" for="search"><i class="material-icons">search</i></label>
+        <i class="material-icons">close</i>
+    </div>
+</form>
+
 <nav class="blue darken-3" th:fragment="header">
     <div class="nav-wrapper">
-        <a th:href="@{/index}" class="brand-logo show-on-small hide-on-med-and-up" th:text="#{nav.brand}"></a>
         <a th:href="@{/index}" style="margin-left: 5%" class="brand-logo left hide-on-small-and-down"
-           th:text="#{nav.brand}"></a>
+           th:text="${brand}"></a>
         <ul class="right hide-on-small-and-down flow-text" style="margin-right: 5%">
             <li><a sec:authorize="hasRole('ADMIN')" class="dropdown-button nav-a"
                    data-beloworigin="true" href="#" data-activates="dropdown1">管理</a></li>
@@ -24,9 +32,39 @@
             <li><a class="logout">登出</a></li>
             <li><a th:href="@{/modiadmin}">修改密码</a></li>
         </ul>
+        <div th:replace="fragments::searchBar"></div>
     </div>
 </nav>
 
+<div id="modal1" class="modal" th:fragment="modal">
+    <form th:action="@{/add/category}" th:method="POST" id="cateForm" enctype="multipart/form-data">
+        <div class="modal-content">
+            <h4>创建分类</h4>
+            <div class="input-field">
+                <label for="cateName" th:text="#{index.cate.cateName}"></label>
+                <input th:placeholder="#{index.cate.placeholder}" type="text"
+                       id="cateName" th:name="name">
+            </div>
+            <div class="input-field">
+                <label for="cateDescription" th:text="#{index.cate.cateDescription}"></label>
+                <input th:placeholder="#{index.cate.placeholder}" type="text"
+                       id="cateDescription" th:name="description"/>
+            </div>
+            <div class="file-field input-field">
+                <div class="btn">
+                    <span>文件</span>
+                    <input name="pic" type="file">
+                </div>
+                <div class="file-path-wrapper">
+                    <input class="file-path" type="text"/>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn wave-effect wave-light right" type="submit" th:text="#{button.submit}"></button>
+        </div>
+    </form>
+</div>
 
 <nav class="blue darken-3" th:fragment="header_slim">
     <div class="nav-wrapper">
@@ -44,6 +82,7 @@
             <li><a th:href="@{/hidden}">未公开</a></li>
             <li><a th:href="@{/modiadmin}">修改密码</a></li>
         </ul>
+        <div th:replace="fragments::searchBar"></div>
     </div>
 </nav>
 <nav class="blue darken-3" th:fragment="breadcrumb">

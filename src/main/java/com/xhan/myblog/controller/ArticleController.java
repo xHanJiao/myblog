@@ -4,8 +4,11 @@ import com.mongodb.client.result.UpdateResult;
 import com.xhan.myblog.model.content.dto.CategoryNumDTO;
 import com.xhan.myblog.model.content.dto.CommentCreateDTO;
 import com.xhan.myblog.model.content.repo.Article;
+import com.xhan.myblog.model.content.repo.ArticleState;
 import com.xhan.myblog.model.content.repo.Category;
 import org.springframework.data.domain.Page;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -15,10 +18,12 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.validation.Valid;
+import java.util.Collections;
 import java.util.List;
 
 import static com.xhan.myblog.controller.ControllerConstant.*;
 import static com.xhan.myblog.model.content.repo.ArticleState.PUBLISHED;
+import static org.springframework.data.mongodb.core.query.Query.query;
 import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.ResponseEntity.ok;
@@ -76,11 +81,6 @@ public class ArticleController extends BaseController {
         return postNum;
     }
 
-    @GetMapping(value = "myCv")
-    public String getMyCv() {
-        return "xhancv";
-    }
-
     /**
      * 使用了ModelAttribute注解！
      * 在这个控制器所有请求中的Model中加入所有的分类信息，还有当前分类中
@@ -95,6 +95,11 @@ public class ArticleController extends BaseController {
         return getCategoryNumDTOS();
     }
 
+    @ModelAttribute(name = "brand")
+    public String getBrand() {
+        return propertiesBean.getBrand();
+    }
+
     @ModelAttribute(name = "greeting")
     public String greeting() {
         return hasText(propertiesBean.getGreeting()) ? propertiesBean.getGreeting() : "吃了吗";
@@ -104,6 +109,21 @@ public class ArticleController extends BaseController {
     public String getCategory(Model model) {
         model.addAttribute("allCate", getCategoryNumDTOS());
         return CATEGORY;
+    }
+
+    @PostMapping(value = SLASH + "search")
+    public String searchByTitle(@RequestParam String title, Model model) {
+        boolean isAdmin = isAdmin();
+        Criteria published = Criteria.where("state").is(PUBLISHED.getState());
+        Query regexTitle = query(Criteria.where("title").regex(title));
+        List<Article> articles = isAdmin
+                ? mongoTemplate.find(regexTitle, Article.class)
+                : mongoTemplate.find(regexTitle.addCriteria(published), Article.class);
+        model.addAttribute("articles", articles);
+        model.addAttribute("meta", M_SEARCH);
+        model.addAttribute("allPages", Collections.singletonList(0));
+        model.addAttribute("currentPage", 0);
+        return "articles";
     }
 
     /**

@@ -1,6 +1,7 @@
 package com.xhan.myblog.controller;
 
 import com.mongodb.client.result.UpdateResult;
+import com.xhan.myblog.annotation.CacheInvalid;
 import com.xhan.myblog.exceptions.content.ArticleNotFoundException;
 import com.xhan.myblog.exceptions.content.BlogException;
 import com.xhan.myblog.exceptions.content.CategoryNotFoundException;
@@ -61,6 +62,11 @@ public class AdminController extends BaseController {
     @Autowired
     private ControllerPropertiesBean propertiesBean;
 
+    @ModelAttribute(name = "brand")
+    public String getBrand() {
+        return propertiesBean.getBrand();
+    }
+
     @RequestMapping(value = {LOGIN_DISPATCH_URL})
     public String Login(HttpSession session, RedirectAttributes model) {
         model.addFlashAttribute(IS_ADMIN, true);
@@ -114,6 +120,7 @@ public class AdminController extends BaseController {
     }
 
     @Secured(R_ADMIN)
+    @CacheInvalid(keys = {POST_NUM + true, POST_NUM + false})
     @PostMapping(value = ADD_URL + ARTICLE_URL, consumes = {APPLICATION_JSON_UTF8_VALUE, APPLICATION_JSON_VALUE})
     public ResponseEntity<?> addArticle(@RequestBody @Valid ArticleCreateDTO dto,
                                         BindingResult result) throws URISyntaxException {
@@ -123,7 +130,6 @@ public class AdminController extends BaseController {
         Article article = saveArticleDTO(dto);
         delCateNumCacheByName(article.getCategory());
 
-        resetPostNums();
         return ResponseEntity
                 .created(new URI("/article/" + article.getId()))
                 .lastModified(System.currentTimeMillis()).build();
@@ -256,6 +262,7 @@ public class AdminController extends BaseController {
     }
 
     @Secured(R_ADMIN)
+    @CacheInvalid(keys = {POST_NUM + true, POST_NUM + false})
     @PostMapping(path = DELETE_URL + ARTICLE_URL + ID_PATH_VAR)
     public ResponseEntity<?> deleteArticle(@PathVariable String id) {
         if (!hasText(id))
@@ -285,11 +292,11 @@ public class AdminController extends BaseController {
             responseEntity = ResponseEntity.ok().build();
         }
 
-        resetPostNums();
         return responseEntity;
     }
 
     @Secured(R_ADMIN)
+    @CacheInvalid(keys = {POST_NUM + true, POST_NUM + false})
     @PostMapping(path = RECOVER_URL + ARTICLE_URL + ID_PATH_VAR)
     public ResponseEntity<?> recoverArticle(@PathVariable String id) {
         if (!hasText(id))
@@ -299,7 +306,6 @@ public class AdminController extends BaseController {
         delNumCacheById(id); // clear cache of category nums
         try {
 
-            resetPostNums();
             return result.getModifiedCount() == 1
                     ? ResponseEntity.status(HttpStatus.FOUND).location(new URI("/article/" + id)).build()
                     : badRequest().body("check id you input");
@@ -309,6 +315,7 @@ public class AdminController extends BaseController {
     }
 
     @Secured(R_ADMIN)
+    @CacheInvalid(keys = {POST_NUM + true, POST_NUM + false})
     @PostMapping(value = VISIBLE_PUBLISH_URL + ID_PATH_VAR)
     public ModelAndView visiblePublish(@PathVariable String id, ModelAndView mav) {
         UpdateResult updateResult = mongoTemplate.update(Article.class)
@@ -320,7 +327,6 @@ public class AdminController extends BaseController {
         delNumCacheById(id); // clear cache of category nums
         String viewName = REDIRECT + ARTICLE_URL + SLASH + id;
 
-        resetPostNums();
         return oneModify(mav, viewName, "无法修改", updateResult);
     }
 
@@ -341,6 +347,7 @@ public class AdminController extends BaseController {
     }
 
     @Secured(R_ADMIN)
+    @CacheInvalid(keys = {POST_NUM + true, POST_NUM + false})
     @PostMapping(value = UNVISITABLE_PUBLISH_URL + ID_PATH_VAR)
     public ModelAndView unVisiblePublish(@PathVariable String id, ModelAndView mav) {
         UpdateResult updateResult = mongoTemplate.update(Article.class)
@@ -350,7 +357,6 @@ public class AdminController extends BaseController {
         delNumCacheById(id); // clear cache of category nums
         String viewName = REDIRECT + ARTICLE_URL + SLASH + id;
 
-        resetPostNums();
         return oneModify(mav, viewName, "无法修改", updateResult);
     }
 
@@ -364,6 +370,7 @@ public class AdminController extends BaseController {
      * @return ResponseEntity.ok(修改条目数)
      */
     @Secured(R_ADMIN)
+    @CacheInvalid(keys = {POST_NUM + true, POST_NUM + false})
     @PostMapping(value = CATEGORY_URL + "/{operate}" + NAME_PATH_VAR)
     public ResponseEntity<?> modifyStateByCategory(@PathVariable String name, // name of category
                                                    @PathVariable String operate) {
@@ -390,12 +397,12 @@ public class AdminController extends BaseController {
                 .apply(new Update().set("state", state))
                 .all();
 
-        resetPostNums();
         delCateNumCacheByName(name);
         return ok(result.getModifiedCount());
     }
 
     @Secured(R_ADMIN)
+    @CacheInvalid(keys = {POST_NUM + true, POST_NUM + false})
     @PostMapping(value = ADD_URL + DRAFT_URL)
     public ResponseEntity<?> saveDraft(@Valid Article article, BindingResult result) {
         if (result.hasFieldErrors()) {
@@ -409,7 +416,6 @@ public class AdminController extends BaseController {
 
 
             delCateNumCacheByName(article.getCategory());
-            resetPostNums();
             return ResponseEntity.status(HttpStatus.FOUND)
                     .location(URI.create(EDIT_URL + ARTICLE_URL + SLASH + article.getId()))
                     .build();
@@ -426,6 +432,7 @@ public class AdminController extends BaseController {
     }
 
     @Secured(R_ADMIN)
+    @CacheInvalid(keys = {POST_NUM + true, POST_NUM + false})
     @PostMapping(value = HIDDEN_URL + CATEGORY + NAME_PATH_VAR)
     public ResponseEntity<?> hideArticlesOfCategory(@PathVariable String cateName) {
         UpdateResult result = mongoTemplate.update(Article.class)
@@ -433,7 +440,6 @@ public class AdminController extends BaseController {
                 .apply(new Update().set("state", ArticleState.HIDDEN))
                 .all();
         delCateNumCacheByName(cateName);
-        resetPostNums();
         return ok(result.getModifiedCount());
     }
 
@@ -450,7 +456,6 @@ public class AdminController extends BaseController {
         delCateNumCacheByName(article.getCategory());
         model.addFlashAttribute("justSaved", article.getTitle());
         mav.setViewName(REDIRECT + SLASH + INDEX);
-        resetPostNums();
         return mav;
     }
 
@@ -485,6 +490,7 @@ public class AdminController extends BaseController {
 
 
     @Secured(R_ADMIN)
+    @CacheInvalid(keys = {POST_NUM + true, POST_NUM + false})
     @PostMapping(value = MODIFY_URL + ARTICLE_URL + ID_PATH_VAR)
     public ModelAndView modifyArticle(@PathVariable String id, @Valid ArticleCreateDTO dto,
                                       BindingResult result, ModelAndView mav) {
@@ -510,7 +516,6 @@ public class AdminController extends BaseController {
 
             delCateNumCacheByName(dto.getCategory());
             delCateNumCacheByName(categoryState.getCategory());
-            resetPostNums();
             if (updateResult.getModifiedCount() == 0) {
                 mav.addObject("dto", dto);
                 mav.addObject("modify", id);

@@ -71,6 +71,7 @@ public interface ControllerConstant {
     String M_HIDDEN = "articles.meta.notPublished";
     String M_ALL_ARTICLES = "articles.meta.all";
     String M_CATE = "articles.meta.category";
+    String M_SEARCH = "articles.meta.search";
     // META URL IN ARTICLE LIST
     Map<String, String> metaMap = Collections.unmodifiableMap(new HashMap<String, String>(){{
         put(M_CATE, M_CATE_URL);
