@@ -40,7 +40,7 @@ $(document).ready(function () {
 
     // $('#pages').material_select();
     $('.fixed-action-btn').hide();
-    truncateTextOfCertainClass('.aTitles', 9);
+    truncateTextOfCertainClass('.aTitles', 10);
 
     $('.modiState').click(function () {
         // 先清理所有已经存在的修改按钮

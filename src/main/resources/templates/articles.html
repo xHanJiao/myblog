@@ -34,7 +34,7 @@
                            th:text="${article.getTitle()}"></a>
                         <a sec:authorize="hasRole('ADMIN')" class="modiState btn-flat right waves-effect waves-light">
                             <i class="material-icons">settings</i></a>
-                        <span class="right hide-on-small-and-down" th:text="${article.getCreateTime()}"></span>
+                        <p class="right hide-on-small-and-down articleCreateTime" style="font-size: 0.5em" th:text="${article.getCreateTime()}"></p>
                         <input type="hidden" th:value="${article.getId()}">
                     </div>
                     <div class="divider"></div>

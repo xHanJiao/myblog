@@ -81,20 +81,6 @@ public class ArticleController extends BaseController {
         return postNum;
     }
 
-    /**
-     * 使用了ModelAttribute注解！
-     * 在这个控制器所有请求中的Model中加入所有的分类信息，还有当前分类中
-     * 的文章数目。
-     * 这个分类文章数目维护在MapCache单例缓存中，并且管理员（我）和游客
-     * 可以看到的内容是不同的
-     *
-     * @return
-     */
-    @ModelAttribute(name = "allCate")
-    public List<CategoryNumDTO> getAllCateAndArticleNum() {
-        return getCategoryNumDTOS();
-    }
-
     @ModelAttribute(name = "brand")
     public String getBrand() {
         return propertiesBean.getBrand();
@@ -102,7 +88,7 @@ public class ArticleController extends BaseController {
 
     @ModelAttribute(name = "greeting")
     public String greeting() {
-        return hasText(propertiesBean.getGreeting()) ? propertiesBean.getGreeting() : "吃了吗";
+        return hasText(propertiesBean.getGreeting()) ? propertiesBean.getGreeting() : "小韩博客";
     }
 
     @GetMapping(path = CATEGORY_URL)
@@ -139,6 +125,7 @@ public class ArticleController extends BaseController {
                                               @RequestParam(defaultValue = "0") Integer page,
                                               @RequestParam(defaultValue = "10") Integer pageSize) {
         if (!hasText(name)) {
+            // todo 这个处理过程可以抽取函数
             mav.setViewName(INDEX);
             mav.setStatus(HttpStatus.BAD_REQUEST);
             mav.addObject("error", "分类名不能为空");
@@ -173,8 +160,8 @@ public class ArticleController extends BaseController {
     @GetMapping(path = ARTICLE_URL + ID_PATH_VAR)
     public ModelAndView getCertainArticle(@PathVariable final String id, ModelAndView mav) {
         if (!hasText(id)) {
-            mav.setStatus(HttpStatus.BAD_REQUEST);
             mav.setViewName(INDEX);
+            mav.setStatus(HttpStatus.BAD_REQUEST);
             mav.addObject("error", "no such article");
             return mav;
         }
