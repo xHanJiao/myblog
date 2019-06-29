@@ -14,7 +14,7 @@ import java.util.List;
 import static org.springframework.util.StringUtils.hasText;
 
 @Data
-@Document
+@Document(value = Article.COLLECTION_NAME)
 @EqualsAndHashCode(callSuper = true)
 public class Article extends ArticleCreateDTO {
 
@@ -24,9 +24,13 @@ public class Article extends ArticleCreateDTO {
     private String id;
     private List<Comment> comments = new ArrayList<>();
     private Long visitTimes;
+    private List<ArticleHistoryRecord> historyRecords;
 
     public Article() {
+        setHistoryRecords(new ArrayList<>());
         setComments(new ArrayList<>());
+        setImagePaths(new ArrayList<>());
+        setVisitTimes(0L);
     }
 
     public void preProcessBeforeSave() {

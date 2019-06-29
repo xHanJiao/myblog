@@ -66,19 +66,16 @@ $(document).ready(function () {
 
     $('.slide-btn').css('margin', '3%');
 
-    $('#draftId').val(articleId);
-
     $('#saveDraft').click(function () {
         var cme = $('#commentEnable').prop('checked'),
             category = $("#categories").val(),
             paths = getImagePaths(), state = 0,
             content = editor.getData();
 
-        var draftId = $('#draftId').val();
         var data = {
             title: $('#aTitle').val(), content: content,
             commentEnable: cme, state: state, category: category,
-            imagePaths: paths, id: draftId
+            imagePaths: paths, id: articleId
         };
 
         mockFormKv('/add/draft', 'POST', data);
@@ -88,17 +85,6 @@ $(document).ready(function () {
         $.get('/api/content/' + articleId, function (data, status) {
             if (status === "success") {
                 editor.setData(data['article']);
-            }
-        });
-
-        $.get('/article/image/' + articleId, function (data, status) {
-            if (status === "success") {
-                for (var i = 0; i < data.length; i++) {
-                    console.log(data[i]);
-                    addCardOfImage(data[i])
-                }
-            } else {
-                console.log('cannot get the images');
             }
         });
     }

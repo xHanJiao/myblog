@@ -9,10 +9,12 @@ import com.xhan.myblog.exceptions.content.CommentNotFoundException;
 import com.xhan.myblog.model.content.dto.ArticleCreateDTO;
 import com.xhan.myblog.model.content.dto.ContentTitleIdDTO;
 import com.xhan.myblog.model.content.dto.DelCommDTO;
+import com.xhan.myblog.model.content.dto.HistoryDTO;
 import com.xhan.myblog.model.content.repo.*;
 import com.xhan.myblog.model.user.Admin;
 import com.xhan.myblog.model.user.Guest;
 import com.xhan.myblog.model.user.ModifyDTO;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.data.domain.Page;
@@ -220,6 +222,34 @@ public class AdminController extends BaseController {
         return mav;
     }
 
+    @Secured(R_ADMIN)
+    @PostMapping(path = ADD_URL + HISTORY_RECORD_URL)
+    public ResponseEntity<?> saveHistory(@RequestBody @Valid HistoryDTO dto, BindingResult result) {
+        if (result.hasFieldErrors()) {
+            return ResponseEntity.badRequest().body(result.getFieldError());
+        } else {
+            dto.setRecordId(ObjectId.get().toString());
+            String articleId;
+            if (hasText(dto.getArticleId())) {
+                mongoTemplate.update(Article.class)
+                        .matching(query(Criteria.where("id").is(dto.getArticleId())))
+                        .apply(new Update().pull("historyRecords", dto)).first();
+                articleId = dto.getArticleId();
+            } else {
+                Article article = dto.toArticle();
+                article = articleRepository.save(article);
+                delCateNumCacheByName(article.getCategory());
+                articleId = article.getId();
+            }
+            return ResponseEntity.status(HttpStatus.FOUND)
+                    .location(URI.create(EDIT_URL + ARTICLE_URL + SLASH + articleId))
+                    .build();
+        }
+    }
+
+    private void saveArticleByHistory(HistoryDTO dto) {
+    }
+
     private void findByState(Integer page, Integer pageSize, ModelAndView mav, int state, String meta, String metaUrl) {
         MyPageRequest mpr = new MyPageRequest(page, pageSize).invoke();
         PageRequest pageRequest = PageRequest.of(mpr.getPage(), mpr.getPageSize(), DESC, "createTime");
@@ -413,8 +443,6 @@ public class AdminController extends BaseController {
             article.setId(article.getId().equals("") ? null : article.getId());
             article = mongoTemplate.save(article, Article.COLLECTION_NAME);
             Assert.isTrue(hasText(article.getId()), "保存后id必定有值");
-
-
             delCateNumCacheByName(article.getCategory());
             return ResponseEntity.status(HttpStatus.FOUND)
                     .location(URI.create(EDIT_URL + ARTICLE_URL + SLASH + article.getId()))
@@ -481,7 +509,7 @@ public class AdminController extends BaseController {
     }
 
     private void compareForRedirect(Model model, @PathVariable String id) {
-        ContentTitleIdDTO dto = articleRepository.getById(id)
+        Article dto = articleRepository.findById(id)
                 .orElseThrow(ArticleNotFoundException::new);
         model.addAttribute("dto", dto);
         model.addAttribute("modify", id);

@@ -59,6 +59,8 @@ public interface ControllerConstant {
     String R_ADMIN = "ROLE_ADMIN";
     String LOGIN = "login";
     String LOGIN_URL = SLASH + LOGIN;
+    String HISTORY_RECORD = "history";
+    String HISTORY_RECORD_URL = SLASH + HISTORY_RECORD;
     // META INF IN ARTICLE LIST
     String M_DRAFT_URL = DRAFT_URL + SLASH;
     String M_RECYCLED_URL = RECYCLE_URL + SLASH;
