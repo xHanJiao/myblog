@@ -20,7 +20,7 @@ function truncateTextOfCertainClass(clazz, maxLen) {
 
 function commonInit() {
 
-    $('#modal1').modal();
+    $('.modal').modal();
     $('body').addClass(bodyColor);
     $('select').material_select();
     var $sidebar = $(".sidebar");

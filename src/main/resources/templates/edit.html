@@ -17,6 +17,16 @@
             margin: 3%;
             padding-left: 7%;
         }
+
+        .onePic {
+            margin: 3%;
+            word-break: break-all;
+            font-size: xx-small;
+        }
+
+        .href-holder {
+            font-size: 8px;
+        }
     </style>
 </head>
 <body>
@@ -38,11 +48,10 @@
             </div>
             <div class="divider"></div>
             <div class="row" id="picHolder">
-                <div th:each="picPath: ${dto.getImagePaths()}" class="onePic col card m3 s12 yellow darken-1" style="margin: 3%;">
-                    <div class="card-content" style="word-break: break-all;">
+                <div th:each="picPath: ${dto.getImagePaths()}" class="onePic col card m3 s12 yellow darken-1">
+                    <div class="card-content">
                         <img class="responsive-img" th:src="${picPath}">
-                        <p class="flow-text href-holder" th:text="${picPath}"
-                           style="font-size: xx-small;"></p></div>
+                        <p class="flow-text href-holder" th:text="${picPath}"></p></div>
                     <div class="card-action"><a onclick="delImg(this)" href="#">删除图片</a>
                         <input type="hidden" th:value="${picPath}">
                     </div>
@@ -55,36 +64,43 @@
             </div>
         </div>
         <div class="col m2 s12">
-            <p>
-                <input type="checkbox" id="commentEnable" checked="checked"/>
-                <label for="commentEnable"> 允许评论 </label>
-            </p>
-            <p>
-                <input type="checkbox" id="isPublished" checked="checked"/>
-                <label for="isPublished"> 公开发布 </label>
-            </p>
-            <p>
-                <input type="checkbox" id="finished"/>
-                <label for="finished"> 草稿 </label>
-            </p>
+            <p><input type="checkbox" id="commentEnable" checked="checked"/>
+                <label for="commentEnable"> 允许评论 </label></p>
+            <p><input type="checkbox" id="isPublished" checked="checked"/>
+                <label for="isPublished"> 公开发布 </label></p>
+            <p><input type="checkbox" id="finished"/>
+                <label for="finished"> 草稿 </label></p>
             <label for="categories">请选择分类</label>
             <select id="categories">
                 <option th:each="category : ${categories}"
                         th:text="${category.getName()}"
                         th:value="${category.getName()}"></option>
             </select>
-
             <div class="row">
                 <div class="section center-align">
                     <a class="smallBtn btn btn-flat waves-effect brown-text slide-btn waves-light"
-                       type="submit" id="sbmt"><i class="material-icons">publish</i></a>
+                       id="sbmt"><i class="material-icons">publish</i></a>
                     <a class="smallBtn btn btn-flat waves-effect brown-text slide-btn waves-light"
                        id="saveDraft"><i class="material-icons">drafts</i></a>
                     <input type="hidden" id="modSig" th:value="${modify}">
                     <input type="hidden" id="draftId">
                 </div>
             </div>
-
+            <div class="divider"></div>
+            <div class="row">
+                <div class="section left">
+                    <a class="smallBtn btn btn-flat waves-effect brown-text slide-btn waves-light"
+                       id="sbmtHistory" th:title="提交快照"><i class="material-icons">publish</i></a>
+                    <a class="smallBtn btn btn-flat waves-effect brown-text slide-btn waves-light"
+                       id="delHistory" th:title="删除快照"><i class="material-icons">delete</i></a>
+                    <a class="smallBtn btn btn-flat waves-effect brown-text slide-btn waves-light"
+                       id="backToHistory" th:title="返回快照">
+                        <i class="material-icons">settings_backup_restore</i></a>
+                    <a class="smallBtn btn btn-flat waves-effect brown-text slide-btn waves-light"
+                       id="viewHistory" th:title="预览快照">
+                        <i class="material-icons">pageview</i></a>
+                </div>
+            </div>
             <div class="row">
                 <form enctype="multipart/form-data">
                     <div class="file-field input-field">
@@ -101,11 +117,26 @@
                     </div>
                 </form>
             </div>
+            <div class="historyHolder">
+                <p class="history" th:if="${dto.getHistoryRecords()}"
+                   th:each="history : ${dto.getHistoryRecords()}">
+                    <input th:name="recordId" type="radio"
+                           th:value="${history.getRecordId()}"
+                           th:id="${history.getRecordId()}"/>
+                    <label th:for="${history.getRecordId()}"
+                           th:text="${history.getTitle() + ' - ' + history.getCreateTime()}"></label>
+                </p>
+            </div>
         </div>
     </div>
 </div>
 <div th:replace="fragments::modal"></div>
 <div th:replace="fragments::updown_btn"></div>
+<div class="modal" id="viewModal">
+    <div class="modal-content">
+        <div></div>
+    </div>
+</div>
 
 <script src="https://cdn.bootcss.com/jquery/2.2.1/jquery.min.js"></script>
 <script>window.jQuery || document.write(unescape("%3Cscript src='/js/jquery.min.js' type='text/javascript'%3E%3C/script%3E"))</script>

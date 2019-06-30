@@ -37,6 +37,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                         DELETE_URL + SUFFIX,
                         RECYCLE_URL, DRAFT_URL,
                         ADD_URL + SUFFIX,
+                        "/view" + SUFFIX,
                         SLASH + MODIFY + SUFFIX).authenticated()
                 .anyRequest().permitAll()
                 .and()

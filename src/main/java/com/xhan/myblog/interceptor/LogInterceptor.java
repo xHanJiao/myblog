@@ -1,5 +1,6 @@
 package com.xhan.myblog.interceptor;
 
+import com.xhan.myblog.controller.ControllerPropertiesBean;
 import com.xhan.myblog.model.content.repo.MongoLog;
 import com.xhan.myblog.repository.LogRepository;
 import com.xhan.myblog.utils.BlogUtils;
@@ -8,7 +9,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 import javax.servlet.http.HttpServletRequest;
@@ -16,21 +16,21 @@ import javax.servlet.http.HttpServletResponse;
 import java.time.format.DateTimeFormatter;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static com.xhan.myblog.controller.ControllerConstant.ALL_MAX_VISIT_PER_5_SECOND;
-import static com.xhan.myblog.controller.ControllerConstant.PEOPLE_MAX_VISIT_PER_10_SECOND;
 import static java.time.LocalDateTime.now;
 
 @Component(value = "logInterceptor")
 public class LogInterceptor extends HandlerInterceptorAdapter {
 
     private static final String BANNED_IP = "BANNED_IP";
+    private final ControllerPropertiesBean propertiesBean;
     private final LogRepository logRepository;
     private MapCache cache = MapCache.single();
 
     private static final Logger logger = LoggerFactory.getLogger(LogInterceptor.class);
 
     @Autowired
-    public LogInterceptor(LogRepository logRepository) {
+    public LogInterceptor(ControllerPropertiesBean propertiesBean, LogRepository logRepository) {
+        this.propertiesBean = propertiesBean;
         this.logRepository = logRepository;
     }
 
@@ -51,12 +51,12 @@ public class LogInterceptor extends HandlerInterceptorAdapter {
         if (cache.hget(BANNED_IP, request.getRemoteAddr()) != null) {
             return false;
         }
-        if (oneValue > PEOPLE_MAX_VISIT_PER_10_SECOND) {
+        if (oneValue > propertiesBean.getPeople10SecVisit()) {
             cache.hset(BANNED_IP, host,
                     now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")), 300);
             logger.info(String.format("BANNED [ip: %s] for [%s] times visit", host, oneValue));
             return false;
         }
-        return allValue <= ALL_MAX_VISIT_PER_5_SECOND;
+        return allValue <= propertiesBean.getAll5SecVisit();
     }
 }

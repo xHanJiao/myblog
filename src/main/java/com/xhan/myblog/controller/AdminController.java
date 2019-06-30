@@ -7,10 +7,10 @@ import com.xhan.myblog.exceptions.content.BlogException;
 import com.xhan.myblog.exceptions.content.CategoryNotFoundException;
 import com.xhan.myblog.exceptions.content.CommentNotFoundException;
 import com.xhan.myblog.model.content.dto.ArticleCreateDTO;
-import com.xhan.myblog.model.content.dto.ContentTitleIdDTO;
 import com.xhan.myblog.model.content.dto.DelCommDTO;
 import com.xhan.myblog.model.content.dto.HistoryDTO;
 import com.xhan.myblog.model.content.repo.*;
+import com.xhan.myblog.model.prj.HistoryRecordsPrj;
 import com.xhan.myblog.model.user.Admin;
 import com.xhan.myblog.model.user.Guest;
 import com.xhan.myblog.model.user.ModifyDTO;
@@ -45,6 +45,7 @@ import java.net.URISyntaxException;
 import static com.xhan.myblog.controller.ControllerConstant.*;
 import static com.xhan.myblog.model.content.repo.ArticleState.*;
 import static java.util.Collections.singletonMap;
+import static java.util.stream.Collectors.toList;
 import static org.apache.tomcat.util.http.fileupload.IOUtils.copy;
 import static org.springframework.data.domain.Sort.Direction.DESC;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
@@ -223,31 +224,68 @@ public class AdminController extends BaseController {
     }
 
     @Secured(R_ADMIN)
+    @PostMapping(path = DELETE_URL + HISTORY_RECORD_URL)
+    public String delHistory(@RequestParam String articleId,
+                             @RequestParam String historyId,
+                             RedirectAttributes model) {
+        UpdateResult updateResult = mongoTemplate.update(Article.class)
+                .matching(query(Criteria.where("id").is(articleId)))
+                .apply(new Update().pull("historyRecords", singletonMap("recordId", historyId)))
+                .first();
+        if (updateResult.getModifiedCount() != 1)
+            model.addFlashAttribute("error", "cannot delete history");
+        return REDIRECT + EDIT_URL + ARTICLE_URL + SLASH + articleId;
+    }
+
+    @Secured(R_ADMIN)
+    @PostMapping(path = "/view" + HISTORY_RECORD_URL)
+    public ResponseEntity<?> viewHistory(@RequestParam String historyId) {
+        HistoryRecordsPrj prj = articleRepository.getHistoryRecords(historyId);
+        ArticleHistoryRecord history = prj.getHistoryRecords().stream()
+                .findFirst().orElseThrow(ArticleNotFoundException::new);
+        return ok(history.getSnapshotContent());
+    }
+
+    @Secured(R_ADMIN)
+    @PostMapping(path = RECOVER_URL + HISTORY_RECORD_URL)
+    public ResponseEntity<?> recoverToHistory(@RequestParam String historyId) {
+        HistoryRecordsPrj prj = articleRepository.getHistoryRecords(historyId);
+        ArticleHistoryRecord history = prj.getHistoryRecords().stream()
+                .findFirst().orElseThrow(ArticleNotFoundException::new);
+        return ResponseEntity.ok(history);
+    }
+
+    @Secured(R_ADMIN)
     @PostMapping(path = ADD_URL + HISTORY_RECORD_URL)
-    public ResponseEntity<?> saveHistory(@RequestBody @Valid HistoryDTO dto, BindingResult result) {
+    public String saveHistory(@Valid HistoryDTO dto, BindingResult result,
+                              RedirectAttributes model) {
         if (result.hasFieldErrors()) {
-            return ResponseEntity.badRequest().body(result.getFieldError());
+            model.addAttribute("error", result.getFieldError());
+            return "error";
         } else {
             dto.setRecordId(ObjectId.get().toString());
             String articleId;
+            Query idQuery = query(Criteria.where("id").is(dto.getArticleId()));
             if (hasText(dto.getArticleId())) {
-                mongoTemplate.update(Article.class)
-                        .matching(query(Criteria.where("id").is(dto.getArticleId())))
-                        .apply(new Update().pull("historyRecords", dto)).first();
+                UpdateResult changeHistory = mongoTemplate.update(Article.class)
+                        .matching(idQuery)
+                        .apply(new Update().push("historyRecords", dto.toRecord())).first();
+                UpdateResult changeContent = mongoTemplate.update(Article.class)
+                        .matching(idQuery)
+                        .apply(new Update().set("content", dto.getSnapshotContent())).first();
                 articleId = dto.getArticleId();
+                if (changeHistory.getModifiedCount() != 1 ||
+                        changeContent.getModifiedCount() != 1) {
+                    model.addFlashAttribute("error", "cannot save snapshot");
+                }
             } else {
                 Article article = dto.toArticle();
                 article = articleRepository.save(article);
                 delCateNumCacheByName(article.getCategory());
                 articleId = article.getId();
             }
-            return ResponseEntity.status(HttpStatus.FOUND)
-                    .location(URI.create(EDIT_URL + ARTICLE_URL + SLASH + articleId))
-                    .build();
+            return REDIRECT + EDIT_URL + ARTICLE_URL + SLASH + articleId;
         }
-    }
-
-    private void saveArticleByHistory(HistoryDTO dto) {
     }
 
     private void findByState(Integer page, Integer pageSize, ModelAndView mav, int state, String meta, String metaUrl) {

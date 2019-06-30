@@ -11,7 +11,7 @@ import java.util.List;
 public class ArticleHistoryRecord {
     private String recordId;
     @NotBlank
-    private String content;
+    private String snapshotContent;
     @NotBlank
     private String title;
     private List<String> imagePaths = new LinkedList<>();
@@ -22,7 +22,7 @@ public class ArticleHistoryRecord {
         article.getHistoryRecords().add(this);
         article.setCategory("默认分类");
         article.setTitle(getTitle());
-        article.setContent(getContent());
+        article.setContent(getSnapshotContent());
         article.setCreateTime(getCreateTime());
         article.setCommentEnable(true);
         article.setState(ArticleState.DRAFT.getState());

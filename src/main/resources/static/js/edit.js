@@ -4,10 +4,9 @@ var articleImageFolder = '/articleImages/';
 function addCardOfImage(data) {
     $('#picHolder')
         .append($("<div class='onePic col card m3 s12 yellow darken-1'></div>")
-            .css('margin', '3%')
-            .append($("<div class='card-content'></div>").css('word-break', 'break-all')
+            .append($("<div class='card-content'></div>")
                 .append($("<img class=\"responsive-img\">").attr('src', data))
-                .append($("<p class='flow-text href-holder'>").text(data).css('font-size', 'xx-small')))
+                .append($("<p class='flow-text href-holder'>").text(data)))
             .append($("<div class='card-action'></div>")
                 .append($("<a onclick=delImg(this)>删除图片</a>").attr('href', '#'))
                 .append($("<input type='hidden'/>").val(data))));
@@ -64,21 +63,57 @@ function getImagePaths() {
 $(document).ready(function () {
     var articleId = $('#modSig').val();
 
-    $('.slide-btn').css('margin', '3%');
-
     $('#saveDraft').click(function () {
-        var cme = $('#commentEnable').prop('checked'),
-            category = $("#categories").val(),
-            paths = getImagePaths(), state = 0,
-            content = editor.getData();
-
         var data = {
-            title: $('#aTitle').val(), content: content,
-            commentEnable: cme, state: state, category: category,
-            imagePaths: paths, id: articleId
+            title: $('#aTitle').val(), content: content = editor.getData(),
+            commentEnable: $('#commentEnable').prop('checked'), state: 0, category: $("#categories").val(),
+            imagePaths: getImagePaths(), id: articleId
         };
-
         mockFormKv('/add/draft', 'POST', data);
+    });
+
+    $('#sbmtHistory').click(function () {
+        var data = {
+            title: $('#aTitle').val(), snapshotContent: editor.getData(),
+            imagePaths: getImagePaths(), articleId: articleId
+        };
+        mockFormKv('/add/history', 'POST', data);
+    });
+
+    $('#backToHistory').click(function () {
+        var historyId = $('input[name=recordId]:checked').val();
+        var data = {};
+        data['historyId'] = historyId;
+        data['articleId'] = articleId;
+        data[token_name] = token;
+        data[header_name] = header;
+
+        $.post('/recover/history', data, function (d, status) {
+            if (status === 'success') {
+                console.log(d);
+                editor.setData(d['snapshotContent']);
+            }
+        })
+    });
+
+    $('#viewHistory').click(function () {
+        var historyId = $('input[name=recordId]:checked').val();
+        var data = {};
+        data['historyId'] = historyId;
+        data['articleId'] = articleId;
+        data[token_name] = token;
+        data[header_name] = header;
+        $.post('/view/history', data, function (d, status) {
+            if (status === "success") {
+                $('#viewModal').find('div').html(d).modal('open');
+            }
+        })
+    });
+
+    $('#delHistory').click(function () {
+        var historyId = $('input[name=recordId]:checked').val();
+        console.log('historyId : ' + historyId);
+        mockFormKv('/del/history', 'POST', {historyId: historyId, articleId: articleId});
     });
 
     if (articleId) {

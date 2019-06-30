@@ -13,6 +13,10 @@ public class ControllerPropertiesBean {
 
     private String brand;
 
+    private Integer people10SecVisit;
+
+    private Integer all5SecVisit;
+
     private String articleImages;
 
     private String categoryImages;

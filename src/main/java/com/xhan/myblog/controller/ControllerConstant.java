@@ -7,7 +7,7 @@ import java.util.Map;
 public interface ControllerConstant {
 
     String ARTICLE_NUMS_OF_CATE = "cateNums";
-    long PEOPLE_MAX_VISIT_PER_10_SECOND = 15;
+    long PEOPLE_MAX_VISIT_PER_10_SECOND = 20;
     long ALL_MAX_VISIT_PER_5_SECOND = 50;
     int DEFAULT_PAGE_SIZE = 7;
     // ARTICLES

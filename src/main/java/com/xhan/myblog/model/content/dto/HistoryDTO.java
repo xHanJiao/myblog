@@ -8,4 +8,14 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 public class HistoryDTO extends ArticleHistoryRecord {
     private String articleId;
+
+    public ArticleHistoryRecord toRecord() {
+        ArticleHistoryRecord record = new ArticleHistoryRecord();
+        record.setCreateTime(getCreateTime());
+        record.setSnapshotContent(getSnapshotContent());
+        record.setTitle(getTitle());
+        record.setImagePaths(getImagePaths());
+        record.setRecordId(getRecordId());
+        return record;
+    }
 }
