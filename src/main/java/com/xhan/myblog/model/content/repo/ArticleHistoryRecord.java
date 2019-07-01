@@ -18,14 +18,6 @@ public class ArticleHistoryRecord {
     private String createTime = BlogUtils.getCurrentDateTime();
 
     public Article toArticle() {
-        Article article = new Article();
-        article.getHistoryRecords().add(this);
-        article.setCategory("默认分类");
-        article.setTitle(getTitle());
-        article.setContent(getSnapshotContent());
-        article.setCreateTime(getCreateTime());
-        article.setCommentEnable(true);
-        article.setState(ArticleState.DRAFT.getState());
-        return article;
+        return new Article(this);
     }
 }

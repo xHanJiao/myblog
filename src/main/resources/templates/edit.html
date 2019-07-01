@@ -118,7 +118,7 @@
                 </form>
             </div>
             <div class="historyHolder">
-                <p class="history" th:if="${dto.getHistoryRecords()}"
+                <p class="history" th:if="${dto.getHistoryRecords().size() > 0}"
                    th:each="history : ${dto.getHistoryRecords()}">
                     <input th:name="recordId" type="radio"
                            th:value="${history.getRecordId()}"

@@ -112,7 +112,6 @@ $(document).ready(function () {
 
     $('#delHistory').click(function () {
         var historyId = $('input[name=recordId]:checked').val();
-        console.log('historyId : ' + historyId);
         mockFormKv('/del/history', 'POST', {historyId: historyId, articleId: articleId});
     });
 
@@ -125,13 +124,9 @@ $(document).ready(function () {
     }
     $('#categories').material_select();
     $('#sbmt').on('click', function () {
-        content = editor.getData();
         var modify = $('#modSig').val(),
-            cme = $('#commentEnable').prop('checked'),
             pub = $('#isPublished').prop('checked'),
-            fns = $('#finished').prop('checked'),
-            checkValue = $("#categories").val(),
-            paths = getImagePaths();
+            fns = $('#finished').prop('checked');
         var state;
         if (fns) {
             state = 0;
@@ -141,9 +136,9 @@ $(document).ready(function () {
             state = 2;
         }
         var data = {
-            title: $('#aTitle').val(), content: content,
-            commentEnable: cme, state: state, category: checkValue,
-            imagePaths: paths
+            title: $('#aTitle').val(), content: editor.getData(),
+            commentEnable: $('#commentEnable').prop('checked'), state: state,
+            category: $("#categories").val(), imagePaths: getImagePaths()
         };
         if (modify) {
             mockFormKv('/modify/article/' + modify, 'POST', data);

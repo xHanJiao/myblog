@@ -41,6 +41,7 @@ import javax.validation.Valid;
 import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collections;
 
 import static com.xhan.myblog.controller.ControllerConstant.*;
 import static com.xhan.myblog.model.content.repo.ArticleState.*;
@@ -198,7 +199,7 @@ public class AdminController extends BaseController {
             return setErrorMav("no article", mav, viewName);
         } else {
             UpdateResult updateResult = mongoTemplate.update(Article.class)
-                    .matching(query(where("id").is(dto.getArticleId())))
+                    .matching(getIdQuery(dto.getArticleId()))
                     .apply(new Update().pull("comments", singletonMap("content", dto.getContent())))
                     .first();
             return oneModify(mav, viewName, errMsg, updateResult);
@@ -229,7 +230,7 @@ public class AdminController extends BaseController {
                              @RequestParam String historyId,
                              RedirectAttributes model) {
         UpdateResult updateResult = mongoTemplate.update(Article.class)
-                .matching(query(Criteria.where("id").is(articleId)))
+                .matching(getIdQuery(articleId))
                 .apply(new Update().pull("historyRecords", singletonMap("recordId", historyId)))
                 .first();
         if (updateResult.getModifiedCount() != 1)
@@ -265,27 +266,36 @@ public class AdminController extends BaseController {
         } else {
             dto.setRecordId(ObjectId.get().toString());
             String articleId;
-            Query idQuery = query(Criteria.where("id").is(dto.getArticleId()));
+            Query idQuery = getIdQuery(dto.getArticleId());
             if (hasText(dto.getArticleId())) {
-                UpdateResult changeHistory = mongoTemplate.update(Article.class)
-                        .matching(idQuery)
-                        .apply(new Update().push("historyRecords", dto.toRecord())).first();
                 UpdateResult changeContent = mongoTemplate.update(Article.class)
                         .matching(idQuery)
-                        .apply(new Update().set("content", dto.getSnapshotContent())).first();
-                articleId = dto.getArticleId();
-                if (changeHistory.getModifiedCount() != 1 ||
-                        changeContent.getModifiedCount() != 1) {
-                    model.addFlashAttribute("error", "cannot save snapshot");
+                        .apply(new Update().set("content", dto.getSnapshotContent())
+                                .set("imagePaths", dto.getImagePaths())
+                                .set("title", dto.getTitle())).first();
+                if (changeContent.getModifiedCount() != 1) {
+                    model.addFlashAttribute("no change for this snapshot");
+                } else {
+                    UpdateResult changeHistory = mongoTemplate.update(Article.class)
+                            .matching(idQuery)
+                            .apply(new Update().push("historyRecords", dto.toRecord())).first();
+                    if (changeHistory.getModifiedCount() != 1) {
+                        model.addFlashAttribute("error", "cannot save snapshot");
+                    }
                 }
+                articleId = dto.getArticleId();
             } else {
-                Article article = dto.toArticle();
-                article = articleRepository.save(article);
+                Article article = articleRepository.save(dto.toArticle());
                 delCateNumCacheByName(article.getCategory());
                 articleId = article.getId();
             }
             return REDIRECT + EDIT_URL + ARTICLE_URL + SLASH + articleId;
         }
+    }
+
+    private Query getIdQuery(String id) {
+        Assert.notNull(id, "id cannot be null");
+        return query(Criteria.where("id").is(id));
     }
 
     private void findByState(Integer page, Integer pageSize, ModelAndView mav, int state, String meta, String metaUrl) {
@@ -317,7 +327,7 @@ public class AdminController extends BaseController {
             throw new CommentNotFoundException(dto.getContent());
 
         UpdateResult updateResult = mongoTemplate.update(Article.class)
-                .matching(query(where("id").is(dto.getArticleId())))
+                .matching(getIdQuery(dto.getArticleId()))
                 .apply(new Update().pull("comments", toDelete)).all();
 
         return updateResult.getModifiedCount() == 1
@@ -343,7 +353,7 @@ public class AdminController extends BaseController {
         delCateNumCacheByName(article.getCategory()); // clear cache of category nums
         if (article.getState() != RECYCLED.getState()) {
             UpdateResult result = mongoTemplate.update(Article.class)
-                    .matching(Query.query(Criteria.where("id").is(id)))
+                    .matching(getIdQuery(id))
                     .apply(new Update().set("state", RECYCLED.getState())).first();
             responseEntity = result.getModifiedCount() == 1
                     ? ResponseEntity.status(HttpStatus.FOUND).location(URI.create("/recycle")).build()
@@ -478,8 +488,23 @@ public class AdminController extends BaseController {
         } else if (!article.isDraftValid()) {
             return ResponseEntity.badRequest().body("草稿内容不合法");
         } else {
-            article.setId(article.getId().equals("") ? null : article.getId());
-            article = mongoTemplate.save(article, Article.COLLECTION_NAME);
+            if (hasText(article.getId())) {
+                UpdateResult updateResult = mongoTemplate.update(Article.class)
+                        .matching(getIdQuery(article.getId()))
+                        .apply(new Update().set("state", DRAFT.getState())
+                                .set("content", article.getContent())
+                                .set("commentEnable", article.getCommentEnable())
+                                .set("title", article.getTitle())
+                                .set("imagePaths", article.getImagePaths())
+                                .set("category", article.getCategory())).first();
+                if (updateResult.getModifiedCount() != 1L)
+                    return ResponseEntity.status(HttpStatus.FOUND)
+                            .location(URI.create(EDIT_URL + ARTICLE_URL + SLASH + article.getId()))
+                            .body(Collections.singletonMap("error", "no changing"));
+            } else {
+                article.setId(null);
+                article = mongoTemplate.save(article, Article.COLLECTION_NAME);
+            }
             Assert.isTrue(hasText(article.getId()), "保存后id必定有值");
             delCateNumCacheByName(article.getCategory());
             return ResponseEntity.status(HttpStatus.FOUND)
@@ -546,7 +571,7 @@ public class AdminController extends BaseController {
         return EDIT;
     }
 
-    private void compareForRedirect(Model model, @PathVariable String id) {
+    private void compareForRedirect(Model model, String id) {
         Article dto = articleRepository.findById(id)
                 .orElseThrow(ArticleNotFoundException::new);
         model.addAttribute("dto", dto);
@@ -571,7 +596,7 @@ public class AdminController extends BaseController {
                     .getFirstById(id)
                     .orElseThrow(ArticleNotFoundException::new);
             UpdateResult updateResult = mongoTemplate.update(Article.class)
-                    .matching(query(where("id").is(id)))
+                    .matching(getIdQuery(id))
                     .apply(new Update()
                             .set("content", dto.getContent())
                             .set("title", dto.getTitle())

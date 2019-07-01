@@ -1,6 +1,7 @@
 package com.xhan.myblog.model.content.dto;
 
 import com.xhan.myblog.model.content.repo.Article;
+import com.xhan.myblog.model.content.repo.ArticleHistoryRecord;
 import com.xhan.myblog.model.content.repo.Category;
 import com.xhan.myblog.model.content.repo.SimpleContent;
 import lombok.Data;
@@ -26,19 +27,11 @@ public class ArticleCreateDTO extends SimpleContent {
     @NotNull(message = "请确认是否允许评论")
     private Boolean commentEnable;
     private List<String> imagePaths;
+    private List<ArticleHistoryRecord> historyRecords;
     @NotNull(message = "请确认状态")
     private Integer state;
 
     public Article toArticle() {
-        setCategory(hasText(category) ? category : Category.DEFAULT_NAME);
-        Article article = new Article();
-        article.setState(getState());
-        article.setImagePaths(getImagePaths() == null ? Collections.emptyList(): getImagePaths());
-        article.setCommentEnable(getCommentEnable() == null ? false : getCommentEnable());
-        article.setCategory(getCategory());
-        article.setTitle(getTitle());
-        article.setContent(getContent());
-        article.setVisitTimes(0L);
-        return article;
+        return new Article(this);
     }
 }

@@ -9,6 +9,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static org.springframework.util.StringUtils.hasText;
@@ -24,12 +25,35 @@ public class Article extends ArticleCreateDTO {
     private String id;
     private List<Comment> comments = new ArrayList<>();
     private Long visitTimes;
-    private List<ArticleHistoryRecord> historyRecords;
 
     public Article() {
         setHistoryRecords(new ArrayList<>());
         setComments(new ArrayList<>());
         setImagePaths(new ArrayList<>());
+        setVisitTimes(0L);
+    }
+
+    public Article(ArticleCreateDTO dto) {
+        setCreateTime(BlogUtils.getCurrentDateTime());
+        setCategory(hasText(dto.getCategory()) ? dto.getCategory() : Category.DEFAULT_NAME);
+        setState(dto.getState());
+        setImagePaths(dto.getImagePaths() == null ? Collections.emptyList(): dto.getImagePaths());
+        setCommentEnable(dto.getCommentEnable() == null ? false : dto.getCommentEnable());
+        setHistoryRecords(dto.getHistoryRecords());
+        setTitle(dto.getTitle());
+        setContent(dto.getContent());
+        setVisitTimes(0L);
+    }
+
+    public Article(ArticleHistoryRecord dto) {
+        setCreateTime(BlogUtils.getCurrentDateTime());
+        setCategory(Category.DEFAULT_NAME);
+        setState(ArticleState.DRAFT.getState());
+        setImagePaths(dto.getImagePaths() == null ? Collections.emptyList(): dto.getImagePaths());
+        setCommentEnable(true);
+        setHistoryRecords(new ArrayList<ArticleHistoryRecord>(){{add(dto);}});
+        setTitle(dto.getTitle());
+        setContent(dto.getSnapshotContent());
         setVisitTimes(0L);
     }
 
