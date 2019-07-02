@@ -38,7 +38,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                         RECYCLE_URL, DRAFT_URL,
                         ADD_URL + SUFFIX,
                         "/view" + SUFFIX,
-                        SLASH + MODIFY + SUFFIX).authenticated()
+                        SLASH + MODIFY + SUFFIX,
+                        "/actuator" + SUFFIX).authenticated()
                 .anyRequest().permitAll()
                 .and()
                 .formLogin().loginPage(LOGIN_URL)

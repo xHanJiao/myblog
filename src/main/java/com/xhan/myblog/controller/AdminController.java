@@ -273,15 +273,11 @@ public class AdminController extends BaseController {
                         .apply(new Update().set("content", dto.getSnapshotContent())
                                 .set("imagePaths", dto.getImagePaths())
                                 .set("title", dto.getTitle())).first();
-                if (changeContent.getModifiedCount() != 1) {
-                    model.addFlashAttribute("no change for this snapshot");
-                } else {
-                    UpdateResult changeHistory = mongoTemplate.update(Article.class)
-                            .matching(idQuery)
-                            .apply(new Update().push("historyRecords", dto.toRecord())).first();
-                    if (changeHistory.getModifiedCount() != 1) {
-                        model.addFlashAttribute("error", "cannot save snapshot");
-                    }
+                UpdateResult changeHistory = mongoTemplate.update(Article.class)
+                        .matching(idQuery)
+                        .apply(new Update().push("historyRecords", dto.toRecord())).first();
+                if (changeHistory.getModifiedCount() != 1) {
+                    model.addFlashAttribute("error", "cannot save snapshot");
                 }
                 articleId = dto.getArticleId();
             } else {
