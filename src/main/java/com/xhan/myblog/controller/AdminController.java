@@ -10,7 +10,9 @@ import com.xhan.myblog.model.content.dto.ArticleCreateDTO;
 import com.xhan.myblog.model.content.dto.DelCommDTO;
 import com.xhan.myblog.model.content.dto.HistoryDTO;
 import com.xhan.myblog.model.content.repo.*;
+import com.xhan.myblog.model.prj.CategoryState;
 import com.xhan.myblog.model.prj.HistoryRecordsPrj;
+import com.xhan.myblog.model.prj.IdTitleTimeStatePrj;
 import com.xhan.myblog.model.user.Admin;
 import com.xhan.myblog.model.user.Guest;
 import com.xhan.myblog.model.user.ModifyDTO;
@@ -46,7 +48,6 @@ import java.util.Collections;
 import static com.xhan.myblog.controller.ControllerConstant.*;
 import static com.xhan.myblog.model.content.repo.ArticleState.*;
 import static java.util.Collections.singletonMap;
-import static java.util.stream.Collectors.toList;
 import static org.apache.tomcat.util.http.fileupload.IOUtils.copy;
 import static org.springframework.data.domain.Sort.Direction.DESC;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
@@ -273,6 +274,7 @@ public class AdminController extends BaseController {
                         .apply(new Update().set("content", dto.getSnapshotContent())
                                 .set("imagePaths", dto.getImagePaths())
                                 .set("title", dto.getTitle())).first();
+                Assert.isTrue(changeContent.getMatchedCount() == 1, "MUST MATCH ONE");
                 UpdateResult changeHistory = mongoTemplate.update(Article.class)
                         .matching(idQuery)
                         .apply(new Update().push("historyRecords", dto.toRecord())).first();
@@ -297,7 +299,7 @@ public class AdminController extends BaseController {
     private void findByState(Integer page, Integer pageSize, ModelAndView mav, int state, String meta, String metaUrl) {
         MyPageRequest mpr = new MyPageRequest(page, pageSize).invoke();
         PageRequest pageRequest = PageRequest.of(mpr.getPage(), mpr.getPageSize(), DESC, "createTime");
-        Page<Article> recycledArticles = articleRepository.findAllByState(state, pageRequest);
+        Page<IdTitleTimeStatePrj> recycledArticles = articleRepository.findAllByState(state, pageRequest);
         int totalNum = articleRepository.countByState(state);
         preProcessToArticleList(mav, mpr.getPage(), mpr.getPageSize(), recycledArticles, totalNum, meta, metaUrl);
     }
@@ -531,6 +533,7 @@ public class AdminController extends BaseController {
     }
 
     @Secured(R_ADMIN)
+    @CacheInvalid(keys = {POST_NUM + true, POST_NUM + false})
     @PostMapping(value = ADD_URL + ARTICLE_URL)
     public ModelAndView addArticle(@Valid ArticleCreateDTO dto, BindingResult result,
                                    ModelAndView mav, RedirectAttributes model) {

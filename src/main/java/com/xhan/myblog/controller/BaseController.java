@@ -7,6 +7,7 @@ import com.xhan.myblog.model.content.dto.CategoryNumDTO;
 import com.xhan.myblog.model.content.dto.CommentCreateDTO;
 import com.xhan.myblog.model.content.repo.Article;
 import com.xhan.myblog.model.content.repo.Comment;
+import com.xhan.myblog.model.prj.IdTitleTimeStatePrj;
 import com.xhan.myblog.repository.ArticleRepository;
 import com.xhan.myblog.repository.CategoryRepository;
 import com.xhan.myblog.utils.MapCache;
@@ -69,13 +70,8 @@ public class BaseController {
         return mav;
     }
 
-    protected Page<Article> getArticlesDueIsAdmin(Integer pageSize, Integer page) {
+    protected Page<IdTitleTimeStatePrj> getArticlesDueIsAdmin(Integer pageSize, Integer page) {
         return getPagedArticles(page, pageSize, isAdmin());
-    }
-
-    protected void resetPostNums() {
-        cache.del(POST_NUM + true);
-        cache.del(POST_NUM + false);
     }
 
     protected boolean isAdmin() {
@@ -86,15 +82,15 @@ public class BaseController {
         return isAdmin;
     }
 
-    protected Page<Article> getPagedArticles(Integer page, Integer pageSize, boolean isAdmin) {
+    protected Page<IdTitleTimeStatePrj> getPagedArticles(Integer page, Integer pageSize, boolean isAdmin) {
         MyPageRequest mpr = new MyPageRequest(page, pageSize).invoke();
         PageRequest pageRequest = of(mpr.getPage(), mpr.getPageSize(), DESC, "createTime");
         return isAdmin
-                ? articleRepository.findAll(pageRequest)
+                ? articleRepository.findAllBy(pageRequest)
                 : articleRepository.findAllByState(PUBLISHED.getState(), pageRequest);
     }
 
-    Page<Article> getPagedArticles(Integer page, Integer pageSize, String cateName, boolean isAdmin) {
+    Page<IdTitleTimeStatePrj> getPagedArticles(Integer page, Integer pageSize, String cateName, boolean isAdmin) {
         MyPageRequest mpr = new MyPageRequest(page, pageSize).invoke();
         PageRequest pageRequest = of(mpr.getPage(), mpr.getPageSize(), DESC, "createTime");
         return isAdmin
@@ -126,14 +122,14 @@ public class BaseController {
      * @param metaUrl
      */
     void preProcessToArticleList(ModelAndView mav, Integer page, Integer pageSize,
-                                         Page<Article> articles, int totalNums, String meta, String metaUrl) {
+                                 Page<IdTitleTimeStatePrj> articles, int totalNums, String meta, String metaUrl) {
         Map<String, Object> data = preProcessToArticleList(page, pageSize, articles, totalNums, meta, metaUrl);
         mav.setViewName(ARTICLE_LIST);
         mav.addAllObjects(data);
     }
 
     private Map<String, Object> preProcessToArticleList(Integer page, Integer pageSize,
-                                                        Page<Article> articles, int totalNums, String meta, String metaUrl) {
+                                                        Page<IdTitleTimeStatePrj> articles, int totalNums, String meta, String metaUrl) {
         page = isIntValid(page) ? page : 0;
         int maxPage = totalNums % pageSize == 0 ? totalNums / pageSize : totalNums / pageSize + 1;
         List<Integer> pages = IntStream.range(0, maxPage).boxed().map(i -> i+1).collect(toList());
@@ -169,7 +165,7 @@ public class BaseController {
     private Article getArticleDueIsAdmin(String id) {
         return (isAdmin()
                 ? articleRepository.findById(id)
-                : articleRepository.findByStateAndId(PUBLISHED.getState(), id))
+                : articleRepository.findByIdAndState(id, PUBLISHED.getState()))
                 .orElseThrow(ArticleNotFoundException::new);
     }
 

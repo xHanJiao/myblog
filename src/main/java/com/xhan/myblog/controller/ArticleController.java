@@ -1,14 +1,12 @@
 package com.xhan.myblog.controller;
 
 import com.mongodb.client.result.UpdateResult;
-import com.xhan.myblog.model.content.dto.CategoryNumDTO;
 import com.xhan.myblog.model.content.dto.CommentCreateDTO;
 import com.xhan.myblog.model.content.repo.Article;
-import com.xhan.myblog.model.content.repo.ArticleState;
 import com.xhan.myblog.model.content.repo.Category;
+import com.xhan.myblog.model.prj.IdTitleTimeStatePrj;
 import org.springframework.data.domain.Page;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -23,7 +21,8 @@ import java.util.List;
 
 import static com.xhan.myblog.controller.ControllerConstant.*;
 import static com.xhan.myblog.model.content.repo.ArticleState.PUBLISHED;
-import static org.springframework.data.mongodb.core.query.Query.query;
+import static org.springframework.data.domain.PageRequest.of;
+import static org.springframework.data.domain.Sort.Direction.DESC;
 import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.ResponseEntity.ok;
@@ -45,11 +44,11 @@ public class ArticleController extends BaseController {
         final int defaultPageSize = propertiesBean.getDefaultPageSize(),
                 maxLen = propertiesBean.getShortcutLen();
         if (page < 0) page = 0;
-        Page<Article> articles = getArticlesDueIsAdmin(defaultPageSize, page);
+        Page<Article> articles = getBriefAndContentDueIsAdmin(defaultPageSize, page);
         int totalPage = articles.getTotalPages();
         if (page > totalPage - 1){
             page = totalPage - 1;
-            articles = getArticlesDueIsAdmin(defaultPageSize, page);
+            articles = getBriefAndContentDueIsAdmin(defaultPageSize, page);
         }
         articles.forEach(a -> a.convertToShortcutNoTag(maxLen));
 
@@ -58,6 +57,14 @@ public class ArticleController extends BaseController {
         mav.addObject("currentPage", page);
         mav.addObject("articles", articles.getContent());
         return mav;
+    }
+
+    private Page<Article> getBriefAndContentDueIsAdmin(int pageSize, int page) {
+        MyPageRequest mpr = new MyPageRequest(page, pageSize).invoke();
+        PageRequest pageRequest = of(mpr.getPage(), mpr.getPageSize(), DESC, "createTime");
+        return isAdmin()
+                ? articleRepository.getAllBy(pageRequest)
+                : articleRepository.getAllByState(PUBLISHED.getState(), pageRequest);
     }
 
     @ModelAttribute(CATE_NUM)
@@ -100,11 +107,9 @@ public class ArticleController extends BaseController {
     @PostMapping(value = SLASH + "search")
     public String searchByTitle(@RequestParam String title, Model model) {
         boolean isAdmin = isAdmin();
-        Criteria published = Criteria.where("state").is(PUBLISHED.getState());
-        Query regexTitle = query(Criteria.where("title").regex(title));
-        List<Article> articles = isAdmin
-                ? mongoTemplate.find(regexTitle, Article.class)
-                : mongoTemplate.find(regexTitle.addCriteria(published), Article.class);
+        List<IdTitleTimeStatePrj> articles = isAdmin
+                ? articleRepository.findByTitleRegex(title)
+                : articleRepository.findByTitleRegexAndState(title, PUBLISHED.getState());
         model.addAttribute("articles", articles);
         model.addAttribute("meta", M_SEARCH);
         model.addAttribute("allPages", Collections.singletonList(0));
@@ -125,13 +130,12 @@ public class ArticleController extends BaseController {
                                               @RequestParam(defaultValue = "0") Integer page,
                                               @RequestParam(defaultValue = "10") Integer pageSize) {
         if (!hasText(name)) {
-            // todo 这个处理过程可以抽取函数
             mav.setViewName(INDEX);
             mav.setStatus(HttpStatus.BAD_REQUEST);
             mav.addObject("error", "分类名不能为空");
             return mav;
         }
-        Page<Article> articles = getPagedArticles(page, pageSize, name, isAdmin());
+        Page<IdTitleTimeStatePrj> articles = getPagedArticles(page, pageSize, name, isAdmin());
         int nums = articleRepository.countByCategoryAndState(name, PUBLISHED.getState());
 
         preProcessToArticleList(mav, page, pageSize, articles, nums, M_CATE, M_CATE_URL);
@@ -142,7 +146,7 @@ public class ArticleController extends BaseController {
     @GetMapping(path = ARTICLE_URL, consumes = {APPLICATION_JSON_VALUE, APPLICATION_JSON_UTF8_VALUE})
     public ResponseEntity<?> getArticles(@RequestParam(defaultValue = "0") Integer page,
                                          @RequestParam(defaultValue = "10") Integer pageSize) {
-        Page<Article> articles = getArticlesDueIsAdmin(pageSize, page);
+        Page<IdTitleTimeStatePrj> articles = getArticlesDueIsAdmin(pageSize, page);
         return ok(articles.getContent());
     }
 
@@ -150,7 +154,7 @@ public class ArticleController extends BaseController {
     public ModelAndView getArticles(@RequestParam(defaultValue = "0") Integer page,
                                     @RequestParam(defaultValue = "10") Integer pageSize,
                                     ModelAndView mav) {
-        Page<Article> articles = getArticlesDueIsAdmin(pageSize, page);
+        Page<IdTitleTimeStatePrj> articles = getArticlesDueIsAdmin(pageSize, page);
         int nums = articleRepository.countByState(PUBLISHED.getState());
 
         preProcessToArticleList(mav, page, pageSize, articles, nums, M_ALL_ARTICLES, M_ALL_ARTICLES_URL);

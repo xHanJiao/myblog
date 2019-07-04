@@ -90,7 +90,6 @@ $(document).ready(function () {
 
         $.post('/recover/history', data, function (d, status) {
             if (status === 'success') {
-                console.log(d);
                 editor.setData(d['snapshotContent']);
             }
         })
