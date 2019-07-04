@@ -10,6 +10,7 @@ import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Resource;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 
@@ -18,6 +19,9 @@ import java.util.Arrays;
 public class CacheInvalidAspect {
 
     private final MapCache cache = MapCache.single();
+
+    @Resource(name = "articleRepositoryCache")
+    private MapCache articleRepositoryCache;
 
     @Pointcut("@annotation(com.xhan.myblog.annotation.CacheInvalid)")
     public void deletePoint() {
@@ -29,6 +33,7 @@ public class CacheInvalidAspect {
         if (cacheInvalid == null) return;
         String [] keys = cacheInvalid.keys();
         Arrays.stream(keys).forEach(cache::del);
+        articleRepositoryCache.clean();
     }
 
     private CacheInvalid getAnnotationCacheInvalid(JoinPoint jp) {

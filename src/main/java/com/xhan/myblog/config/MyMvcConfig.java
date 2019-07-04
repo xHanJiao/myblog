@@ -41,6 +41,5 @@ public class MyMvcConfig implements WebMvcConfigurer {
                 .excludePathPatterns("/image/**")
                 .excludePathPatterns(ARTICLE_IMAGES_URL + SUFFIX)
                 .excludePathPatterns(CATEGORY_IMAGES_URL + SUFFIX);
-
     }
 }

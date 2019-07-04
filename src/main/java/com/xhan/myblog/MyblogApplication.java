@@ -2,6 +2,7 @@ package com.xhan.myblog;
 
 import com.mongodb.MongoClient;
 import com.mongodb.WriteConcern;
+import com.xhan.myblog.utils.MapCache;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -30,6 +31,11 @@ public class MyblogApplication {
         template.setWriteConcern(WriteConcern.JOURNALED);
         template.setWriteResultChecking(WriteResultChecking.EXCEPTION);
         return template;
+    }
+
+    @Bean(name = "articleRepositoryCache")
+    public MapCache getArticleRepositoryCache() {
+        return new MapCache();
     }
 
     @Bean(name = "myPasswordEncoder")

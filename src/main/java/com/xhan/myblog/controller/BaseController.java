@@ -10,6 +10,7 @@ import com.xhan.myblog.model.content.repo.Comment;
 import com.xhan.myblog.model.prj.IdTitleTimeStatePrj;
 import com.xhan.myblog.repository.ArticleRepository;
 import com.xhan.myblog.repository.CategoryRepository;
+import com.xhan.myblog.service.AuthorityHelper;
 import com.xhan.myblog.utils.MapCache;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -45,6 +46,7 @@ import static org.springframework.http.ResponseEntity.badRequest;
 @Controller
 public class BaseController {
 
+    protected final MapCache cache = MapCache.single();
     @Autowired
     protected MongoTemplate mongoTemplate;
     @Autowired
@@ -55,7 +57,8 @@ public class BaseController {
     protected ControllerPropertiesBean propertiesBean;
     protected Article emptyArticle = new Article();
 
-    protected final MapCache cache = MapCache.single();
+    @Autowired
+    protected AuthorityHelper authorityHelper;
 
     public BaseController() {
         emptyArticle.setState(1);
@@ -71,15 +74,7 @@ public class BaseController {
     }
 
     protected Page<IdTitleTimeStatePrj> getArticlesDueIsAdmin(Integer pageSize, Integer page) {
-        return getPagedArticles(page, pageSize, isAdmin());
-    }
-
-    protected boolean isAdmin() {
-        boolean isAdmin = false;
-        Collection<? extends GrantedAuthority> authorities = SecurityContextHolder.getContext().getAuthentication().getAuthorities();
-        for (GrantedAuthority ga : authorities)
-            isAdmin |= ga.getAuthority().equals(R_ADMIN);
-        return isAdmin;
+        return getPagedArticles(page, pageSize, authorityHelper.isAdmin());
     }
 
     protected Page<IdTitleTimeStatePrj> getPagedArticles(Integer page, Integer pageSize, boolean isAdmin) {
@@ -109,10 +104,11 @@ public class BaseController {
     /**
      * 在去往分类的文章列表之前，进行一些预处理，把文章、当前页数、总页数
      * 列表元信息（回收站？草稿箱？还是只是分类展示？）和对应的URL返回
-     *
+     * <p>
      * 为了达到尽量复用的目的，在这个项目中，回收站、草稿箱、分类展示、全部
      * 文章展示用的都是同一个视图，并且还是分页的视图，因此必须把关于视图中
      * 显示的文章的元信息发送到前端，这样在翻页的时候才可以找到正确的URL
+     *
      * @param mav
      * @param page
      * @param pageSize
@@ -132,7 +128,7 @@ public class BaseController {
                                                         Page<IdTitleTimeStatePrj> articles, int totalNums, String meta, String metaUrl) {
         page = isIntValid(page) ? page : 0;
         int maxPage = totalNums % pageSize == 0 ? totalNums / pageSize : totalNums / pageSize + 1;
-        List<Integer> pages = IntStream.range(0, maxPage).boxed().map(i -> i+1).collect(toList());
+        List<Integer> pages = IntStream.range(0, maxPage).boxed().map(i -> i + 1).collect(toList());
 
         Map<String, Object> data = new HashMap<>();
         data.put("articles", articles.getContent());
@@ -142,12 +138,16 @@ public class BaseController {
         data.put("metaUrl", metaUrl);
         return data;
     }
+
     private boolean isIntValid(Integer i) {
         return i != null && i >= 0;
     }
 
     Article getArticleByIdAndModifyVisit(String id) {
-        Article dto = getArticleDueIsAdmin(id);
+        Article dto = (authorityHelper.isAdmin()
+                ? articleRepository.findById(id)
+                : articleRepository.findByIdAndState(id, PUBLISHED.getState()))
+                .orElseThrow(ArticleNotFoundException::new);
         mongoTemplate.update(Article.class)
                 .matching(query(where("id").is(id)))
                 .apply(new Update().inc("visitTime", 1)).first();
@@ -162,13 +162,6 @@ public class BaseController {
                 .apply(new Update().push("comments", comment)).all();
     }
 
-    private Article getArticleDueIsAdmin(String id) {
-        return (isAdmin()
-                ? articleRepository.findById(id)
-                : articleRepository.findByIdAndState(id, PUBLISHED.getState()))
-                .orElseThrow(ArticleNotFoundException::new);
-    }
-
     @ExceptionHandler(value = BlogException.class)
     public ResponseEntity<?> handleException(BlogException e) {
         return badRequest().body(e.getMessage());
@@ -177,11 +170,12 @@ public class BaseController {
     /**
      * 获取所有分类的信息，以及对应的文章数目（管理员可以看到所有状态的文章
      * 普通用户只能看到已发布的文章）
+     *
      * @return 如果没有，就返回空列表，不会返回null
      */
     @NonNull
     List<CategoryNumDTO> getCategoryNumDTOS() {
-        boolean isAdmin = isAdmin();
+        boolean isAdmin = authorityHelper.isAdmin();
         return categoryRepository.findAll(Sort.by(ASC, "createTime"))
                 .stream().map(c -> {
                     Integer num = cache.hget(ARTICLE_NUMS_OF_CATE + isAdmin, c.getName());

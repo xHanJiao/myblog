@@ -66,7 +66,7 @@ public class ArticleController extends BaseController {
     private Page<IdTitleTimeStateContentPrj> getBriefAndContentDueIsAdmin(int pageSize, int page) {
         MyPageRequest mpr = new MyPageRequest(page, pageSize).invoke();
         PageRequest pageRequest = of(mpr.getPage(), mpr.getPageSize(), DESC, "createTime");
-        return isAdmin()
+        return authorityHelper.isAdmin()
                 ? articleRepository.getAllBy(pageRequest)
                 : articleRepository.getAllByState(PUBLISHED.getState(), pageRequest);
     }
@@ -78,7 +78,7 @@ public class ArticleController extends BaseController {
 
     @ModelAttribute(POST_NUM)
     public long getPostedArticle() {
-        boolean isAdmin = isAdmin();
+        boolean isAdmin = authorityHelper.isAdmin();
         String key = POST_NUM + isAdmin;
         Long postNum = cache.get(key);
         if (postNum == null) {
@@ -110,7 +110,7 @@ public class ArticleController extends BaseController {
 
     @PostMapping(value = SLASH + "search")
     public String searchByTitle(@RequestParam String title, Model model) {
-        boolean isAdmin = isAdmin();
+        boolean isAdmin = authorityHelper.isAdmin();
         List<IdTitleTimeStatePrj> articles = isAdmin
                 ? articleRepository.findByTitleRegex(title)
                 : articleRepository.findByTitleRegexAndState(title, PUBLISHED.getState());
@@ -139,7 +139,7 @@ public class ArticleController extends BaseController {
             mav.addObject("error", "分类名不能为空");
             return mav;
         }
-        Page<IdTitleTimeStatePrj> articles = getPagedArticles(page, pageSize, name, isAdmin());
+        Page<IdTitleTimeStatePrj> articles = getPagedArticles(page, pageSize, name, authorityHelper.isAdmin());
         int nums = articleRepository.countByCategoryAndState(name, PUBLISHED.getState());
 
         preProcessToArticleList(mav, page, pageSize, articles, nums, M_CATE, M_CATE_URL);

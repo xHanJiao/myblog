@@ -4,7 +4,6 @@ import com.mongodb.client.result.UpdateResult;
 import com.xhan.myblog.exceptions.content.ArticleNotFoundException;
 import com.xhan.myblog.model.content.dto.CommentCreateDTO;
 import com.xhan.myblog.model.content.repo.Article;
-import com.xhan.myblog.model.content.repo.ArticleState;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
@@ -14,7 +13,6 @@ import javax.validation.Valid;
 import java.net.URI;
 
 import static com.xhan.myblog.controller.ControllerConstant.*;
-import static com.xhan.myblog.model.content.repo.ArticleState.PUBLISHED;
 import static java.util.Collections.singletonMap;
 import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;

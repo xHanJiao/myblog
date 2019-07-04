@@ -480,7 +480,7 @@ public class AdminController extends BaseController {
     @Secured(R_ADMIN)
     @CacheInvalid(keys = {POST_NUM + true, POST_NUM + false})
     @PostMapping(value = ADD_URL + DRAFT_URL)
-    public ResponseEntity<?> saveDraft(@Valid Article article, BindingResult result) {
+    public ResponseEntity<?> addDraft(@Valid Article article, BindingResult result) {
         if (result.hasFieldErrors()) {
             return ResponseEntity.badRequest().body(result.getFieldError().getField());
         } else if (!article.isDraftValid()) {
@@ -635,6 +635,7 @@ public class AdminController extends BaseController {
      * @return 如果上传成功就重定向到/index，否则返回400
      */
     @Secured(R_ADMIN)
+    @CacheInvalid(keys = {POST_NUM + true, POST_NUM + false})
     @PostMapping(value = MODIFY_URL + CATEGORY_URL)
     public ResponseEntity<?> modifyCategory(@Valid Category category, BindingResult result,
                                             @RequestParam(value = "pic") MultipartFile file) {

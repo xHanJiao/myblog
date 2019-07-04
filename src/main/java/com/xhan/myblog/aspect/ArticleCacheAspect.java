@@ -9,13 +9,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Resource;
 import java.util.Arrays;
 
 @Aspect
 @Component
 public class ArticleCacheAspect {
 
-    private final MapCache cache = MapCache.single();
+    @Resource(name = "articleRepositoryCache")
+    private MapCache cache;
 
     private static final Logger logger = LoggerFactory.getLogger(ArticleCacheAspect.class);
 
