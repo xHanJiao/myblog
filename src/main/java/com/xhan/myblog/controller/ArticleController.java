@@ -4,6 +4,7 @@ import com.mongodb.client.result.UpdateResult;
 import com.xhan.myblog.model.content.dto.CommentCreateDTO;
 import com.xhan.myblog.model.content.repo.Article;
 import com.xhan.myblog.model.content.repo.Category;
+import com.xhan.myblog.model.prj.IdTitleTimeStateContentPrj;
 import com.xhan.myblog.model.prj.IdTitleTimeStatePrj;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -18,6 +19,7 @@ import org.springframework.web.servlet.ModelAndView;
 import javax.validation.Valid;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.xhan.myblog.controller.ControllerConstant.*;
 import static com.xhan.myblog.model.content.repo.ArticleState.PUBLISHED;
@@ -44,22 +46,24 @@ public class ArticleController extends BaseController {
         final int defaultPageSize = propertiesBean.getDefaultPageSize(),
                 maxLen = propertiesBean.getShortcutLen();
         if (page < 0) page = 0;
-        Page<Article> articles = getBriefAndContentDueIsAdmin(defaultPageSize, page);
+        Page<IdTitleTimeStateContentPrj> articles = getBriefAndContentDueIsAdmin(defaultPageSize, page);
         int totalPage = articles.getTotalPages();
         if (page > totalPage - 1){
             page = totalPage - 1;
             articles = getBriefAndContentDueIsAdmin(defaultPageSize, page);
         }
-        articles.forEach(a -> a.convertToShortcutNoTag(maxLen));
+        List<IdTitleTimeStateContentPrj> results = articles
+                .stream().map(a -> a.convertToShortcutNoTag(maxLen))
+                .collect(Collectors.toList());
 
         mav.setViewName(INDEX);
         mav.addObject("category", new Category());
         mav.addObject("currentPage", page);
-        mav.addObject("articles", articles.getContent());
+        mav.addObject("articles", results);
         return mav;
     }
 
-    private Page<Article> getBriefAndContentDueIsAdmin(int pageSize, int page) {
+    private Page<IdTitleTimeStateContentPrj> getBriefAndContentDueIsAdmin(int pageSize, int page) {
         MyPageRequest mpr = new MyPageRequest(page, pageSize).invoke();
         PageRequest pageRequest = of(mpr.getPage(), mpr.getPageSize(), DESC, "createTime");
         return isAdmin()

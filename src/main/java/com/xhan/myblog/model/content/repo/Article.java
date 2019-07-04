@@ -37,7 +37,7 @@ public class Article extends ArticleCreateDTO {
         setCreateTime(BlogUtils.getCurrentDateTime());
         setCategory(hasText(dto.getCategory()) ? dto.getCategory() : Category.DEFAULT_NAME);
         setState(dto.getState());
-        setImagePaths(dto.getImagePaths() == null ? Collections.emptyList(): dto.getImagePaths());
+        setImagePaths(dto.getImagePaths() == null ? Collections.emptyList() : dto.getImagePaths());
         setCommentEnable(dto.getCommentEnable() == null ? false : dto.getCommentEnable());
         setHistoryRecords(dto.getHistoryRecords());
         setTitle(dto.getTitle());
@@ -49,9 +49,11 @@ public class Article extends ArticleCreateDTO {
         setCreateTime(BlogUtils.getCurrentDateTime());
         setCategory(Category.DEFAULT_NAME);
         setState(ArticleState.DRAFT.getState());
-        setImagePaths(dto.getImagePaths() == null ? Collections.emptyList(): dto.getImagePaths());
+        setImagePaths(dto.getImagePaths() == null ? Collections.emptyList() : dto.getImagePaths());
         setCommentEnable(true);
-        setHistoryRecords(new ArrayList<ArticleHistoryRecord>(){{add(dto);}});
+        setHistoryRecords(new ArrayList<ArticleHistoryRecord>() {{
+            add(dto);
+        }});
         setTitle(dto.getTitle());
         setContent(dto.getSnapshotContent());
         setVisitTimes(0L);
@@ -75,16 +77,6 @@ public class Article extends ArticleCreateDTO {
         else return true;
     }
 
-    @JsonIgnore
-    public void convertToShortcutNoTag(final int maxLen) {
-        if (getContent() == null) return;
-        String content = BlogUtils.deEscape(getContent());
-        content = BlogUtils.delHtmlTag(content);
-        content = content.length() > maxLen
-                ? content.substring(0, maxLen) + "..."
-                : content;
-        setContent(content);
-    }
 
     @JsonIgnore
     public void convertToShortCutWithTag(final int maxLen) {

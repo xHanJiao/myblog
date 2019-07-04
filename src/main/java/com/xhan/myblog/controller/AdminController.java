@@ -10,7 +10,7 @@ import com.xhan.myblog.model.content.dto.ArticleCreateDTO;
 import com.xhan.myblog.model.content.dto.DelCommDTO;
 import com.xhan.myblog.model.content.dto.HistoryDTO;
 import com.xhan.myblog.model.content.repo.*;
-import com.xhan.myblog.model.prj.CategoryState;
+import com.xhan.myblog.model.prj.CategoryStatePrj;
 import com.xhan.myblog.model.prj.HistoryRecordsPrj;
 import com.xhan.myblog.model.prj.IdTitleTimeStatePrj;
 import com.xhan.myblog.model.user.Admin;
@@ -407,10 +407,10 @@ public class AdminController extends BaseController {
     }
 
     private void delNumCacheById(@PathVariable String id) {
-        CategoryState categoryState = articleRepository
+        CategoryStatePrj categoryStatePrj = articleRepository
                 .getFirstById(id)
                 .orElseThrow(ArticleNotFoundException::new);
-        delCateNumCacheByName(categoryState.getCategory());
+        delCateNumCacheByName(categoryStatePrj.getCategory());
     }
 
     @Secured(R_ADMIN)
@@ -591,7 +591,7 @@ public class AdminController extends BaseController {
             mav.addObject("modify", id);
             mav.addObject("categories", categoryRepository.findAll());
         } else {
-            CategoryState categoryState = articleRepository
+            CategoryStatePrj categoryStatePrj = articleRepository
                     .getFirstById(id)
                     .orElseThrow(ArticleNotFoundException::new);
             UpdateResult updateResult = mongoTemplate.update(Article.class)
@@ -605,7 +605,7 @@ public class AdminController extends BaseController {
                             .set("category", dto.getCategory())).first();
 
             delCateNumCacheByName(dto.getCategory());
-            delCateNumCacheByName(categoryState.getCategory());
+            delCateNumCacheByName(categoryStatePrj.getCategory());
             if (updateResult.getModifiedCount() == 0) {
                 mav.addObject("dto", dto);
                 mav.addObject("modify", id);

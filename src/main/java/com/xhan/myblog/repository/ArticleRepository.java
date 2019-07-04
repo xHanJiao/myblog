@@ -1,8 +1,9 @@
 package com.xhan.myblog.repository;
 
 import com.xhan.myblog.model.content.repo.Article;
-import com.xhan.myblog.model.prj.CategoryState;
+import com.xhan.myblog.model.prj.CategoryStatePrj;
 import com.xhan.myblog.model.prj.HistoryRecordsPrj;
+import com.xhan.myblog.model.prj.IdTitleTimeStateContentPrj;
 import com.xhan.myblog.model.prj.IdTitleTimeStatePrj;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -16,7 +17,7 @@ import java.util.Optional;
 @Repository
 public interface ArticleRepository extends MongoRepository<Article, String> {
 
-    Optional<CategoryState> getFirstById(String id);
+    Optional<CategoryStatePrj> getFirstById(String id);
 
     @Query(value = "{'historyRecords.recordId': ?0}",
             fields = "{'historyRecords.$': 1}")
@@ -24,9 +25,9 @@ public interface ArticleRepository extends MongoRepository<Article, String> {
 
     Optional<Article> findByIdAndState(String id, int state);
 
-    Page<Article> getAllBy(PageRequest pageRequest);
+    Page<IdTitleTimeStateContentPrj> getAllBy(PageRequest pageRequest);
 
-    Page<Article> getAllByState(int state, PageRequest pageRequest);
+    Page<IdTitleTimeStateContentPrj> getAllByState(int state, PageRequest pageRequest);
 
     Page<IdTitleTimeStatePrj> findAllBy(PageRequest pageRequest);
 
