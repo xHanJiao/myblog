@@ -7,5 +7,4 @@ import java.lang.annotation.*;
 @Documented
 public @interface CacheInvalid {
 
-    String [] keys();
 }

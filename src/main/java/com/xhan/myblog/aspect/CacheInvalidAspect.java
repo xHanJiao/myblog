@@ -14,6 +14,8 @@ import javax.annotation.Resource;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 
+import static com.xhan.myblog.controller.ControllerConstant.POST_NUM;
+
 @Aspect
 @Component("cacheInvalidAspect")
 public class CacheInvalidAspect {
@@ -29,9 +31,7 @@ public class CacheInvalidAspect {
 
     @AfterReturning(pointcut = "deletePoint()")
     public void doAfter(JoinPoint jp) {
-        CacheInvalid cacheInvalid = getAnnotationCacheInvalid(jp);
-        if (cacheInvalid == null) return;
-        String [] keys = cacheInvalid.keys();
+        String [] keys = {POST_NUM + true, POST_NUM + false};
         Arrays.stream(keys).forEach(cache::del);
         articleRepositoryCache.clean();
     }

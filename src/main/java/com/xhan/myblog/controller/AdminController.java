@@ -125,7 +125,7 @@ public class AdminController extends BaseController {
     }
 
     @Secured(R_ADMIN)
-    @CacheInvalid(keys = {POST_NUM + true, POST_NUM + false})
+    @CacheInvalid
     @PostMapping(value = ADD_URL + ARTICLE_URL, consumes = {APPLICATION_JSON_UTF8_VALUE, APPLICATION_JSON_VALUE})
     public ResponseEntity<?> addArticle(@RequestBody @Valid ArticleCreateDTO dto,
                                         BindingResult result) throws URISyntaxException {
@@ -338,7 +338,7 @@ public class AdminController extends BaseController {
     }
 
     @Secured(R_ADMIN)
-    @CacheInvalid(keys = {POST_NUM + true, POST_NUM + false})
+    @CacheInvalid
     @PostMapping(path = DELETE_URL + ARTICLE_URL + ID_PATH_VAR)
     public ResponseEntity<?> deleteArticle(@PathVariable String id) {
         if (!hasText(id))
@@ -372,7 +372,7 @@ public class AdminController extends BaseController {
     }
 
     @Secured(R_ADMIN)
-    @CacheInvalid(keys = {POST_NUM + true, POST_NUM + false})
+    @CacheInvalid
     @PostMapping(path = RECOVER_URL + ARTICLE_URL + ID_PATH_VAR)
     public ResponseEntity<?> recoverArticle(@PathVariable String id) {
         if (!hasText(id))
@@ -391,7 +391,7 @@ public class AdminController extends BaseController {
     }
 
     @Secured(R_ADMIN)
-    @CacheInvalid(keys = {POST_NUM + true, POST_NUM + false})
+    @CacheInvalid
     @PostMapping(value = VISIBLE_PUBLISH_URL + ID_PATH_VAR)
     public ModelAndView visiblePublish(@PathVariable String id, ModelAndView mav) {
         UpdateResult updateResult = mongoTemplate.update(Article.class)
@@ -423,7 +423,7 @@ public class AdminController extends BaseController {
     }
 
     @Secured(R_ADMIN)
-    @CacheInvalid(keys = {POST_NUM + true, POST_NUM + false})
+    @CacheInvalid
     @PostMapping(value = UNVISITABLE_PUBLISH_URL + ID_PATH_VAR)
     public ModelAndView unVisiblePublish(@PathVariable String id, ModelAndView mav) {
         UpdateResult updateResult = mongoTemplate.update(Article.class)
@@ -446,7 +446,7 @@ public class AdminController extends BaseController {
      * @return ResponseEntity.ok(修改条目数)
      */
     @Secured(R_ADMIN)
-    @CacheInvalid(keys = {POST_NUM + true, POST_NUM + false})
+    @CacheInvalid
     @PostMapping(value = CATEGORY_URL + "/{operate}" + NAME_PATH_VAR)
     public ResponseEntity<?> modifyStateByCategory(@PathVariable String name, // name of category
                                                    @PathVariable String operate) {
@@ -478,7 +478,7 @@ public class AdminController extends BaseController {
     }
 
     @Secured(R_ADMIN)
-    @CacheInvalid(keys = {POST_NUM + true, POST_NUM + false})
+    @CacheInvalid
     @PostMapping(value = ADD_URL + DRAFT_URL)
     public ResponseEntity<?> addDraft(@Valid Article article, BindingResult result) {
         if (result.hasFieldErrors()) {
@@ -521,7 +521,7 @@ public class AdminController extends BaseController {
     }
 
     @Secured(R_ADMIN)
-    @CacheInvalid(keys = {POST_NUM + true, POST_NUM + false})
+    @CacheInvalid
     @PostMapping(value = HIDDEN_URL + CATEGORY + NAME_PATH_VAR)
     public ResponseEntity<?> hideArticlesOfCategory(@PathVariable String cateName) {
         UpdateResult result = mongoTemplate.update(Article.class)
@@ -533,7 +533,7 @@ public class AdminController extends BaseController {
     }
 
     @Secured(R_ADMIN)
-    @CacheInvalid(keys = {POST_NUM + true, POST_NUM + false})
+    @CacheInvalid
     @PostMapping(value = ADD_URL + ARTICLE_URL)
     public ModelAndView addArticle(@Valid ArticleCreateDTO dto, BindingResult result,
                                    ModelAndView mav, RedirectAttributes model) {
@@ -580,7 +580,7 @@ public class AdminController extends BaseController {
 
 
     @Secured(R_ADMIN)
-    @CacheInvalid(keys = {POST_NUM + true, POST_NUM + false})
+    @CacheInvalid
     @PostMapping(value = MODIFY_URL + ARTICLE_URL + ID_PATH_VAR)
     public ModelAndView modifyArticle(@PathVariable String id, @Valid ArticleCreateDTO dto,
                                       BindingResult result, ModelAndView mav) {
@@ -635,7 +635,7 @@ public class AdminController extends BaseController {
      * @return 如果上传成功就重定向到/index，否则返回400
      */
     @Secured(R_ADMIN)
-    @CacheInvalid(keys = {POST_NUM + true, POST_NUM + false})
+    @CacheInvalid
     @PostMapping(value = MODIFY_URL + CATEGORY_URL)
     public ResponseEntity<?> modifyCategory(@Valid Category category, BindingResult result,
                                             @RequestParam(value = "pic") MultipartFile file) {
