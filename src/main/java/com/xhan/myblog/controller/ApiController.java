@@ -4,6 +4,7 @@ import com.mongodb.client.result.UpdateResult;
 import com.xhan.myblog.exceptions.content.ArticleNotFoundException;
 import com.xhan.myblog.model.content.dto.CommentCreateDTO;
 import com.xhan.myblog.model.content.repo.Article;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
@@ -36,6 +37,19 @@ public class ApiController extends BaseController {
             return badRequest().body("id cannot be null");
         Article dto = getArticleByIdAndModifyVisit(id);
         return ok(singletonMap("article", dto.getContent()));
+    }
+
+    @PostMapping(path = API_URL + CONTENT_URL + ID_PATH_VAR,
+            produces = {APPLICATION_JSON_UTF8_VALUE, APPLICATION_JSON_VALUE})
+    public ResponseEntity<?> saveContentOfCertainArticle(@PathVariable String id,
+                                                         @RequestParam(required = false) String content) {
+        if (hasText(content)) {
+            UpdateResult result = mongoTemplate.update(Article.class)
+                    .matching(getIdQuery(id))
+                    .apply(new Update().set("content", content)).first();
+            return ok(result.getModifiedCount());
+        }
+        return ok().build();
     }
 
     @GetMapping(value = API_URL + ARTICLE_URL + ID_PATH_VAR)

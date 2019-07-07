@@ -7,8 +7,9 @@ import com.xhan.myblog.exceptions.content.BlogException;
 import com.xhan.myblog.exceptions.content.CategoryNotFoundException;
 import com.xhan.myblog.exceptions.content.CommentNotFoundException;
 import com.xhan.myblog.model.content.dto.ArticleCreateDTO;
+import com.xhan.myblog.model.content.dto.ArticleHistoryIdDTO;
 import com.xhan.myblog.model.content.dto.DelCommDTO;
-import com.xhan.myblog.model.content.dto.HistoryDTO;
+import com.xhan.myblog.model.content.dto.HistoryCreateDTO;
 import com.xhan.myblog.model.content.repo.*;
 import com.xhan.myblog.model.prj.CategoryStatePrj;
 import com.xhan.myblog.model.prj.HistoryRecordsPrj;
@@ -47,11 +48,13 @@ import java.util.Collections;
 
 import static com.xhan.myblog.controller.ControllerConstant.*;
 import static com.xhan.myblog.model.content.repo.ArticleState.*;
+import static com.xhan.myblog.model.prj.HistoryShowDTO.getHistoryShowDTO;
 import static java.util.Collections.singletonMap;
 import static org.apache.tomcat.util.http.fileupload.IOUtils.copy;
 import static org.springframework.data.domain.Sort.Direction.DESC;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 import static org.springframework.data.mongodb.core.query.Query.query;
+import static org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.ResponseEntity.badRequest;
@@ -126,7 +129,8 @@ public class AdminController extends BaseController {
 
     @Secured(R_ADMIN)
     @CacheInvalid
-    @PostMapping(value = ADD_URL + ARTICLE_URL, consumes = {APPLICATION_JSON_UTF8_VALUE, APPLICATION_JSON_VALUE})
+    @PostMapping(value = ADD_URL + ARTICLE_URL,
+            consumes = {APPLICATION_JSON_UTF8_VALUE, APPLICATION_JSON_VALUE})
     public ResponseEntity<?> addArticle(@RequestBody @Valid ArticleCreateDTO dto,
                                         BindingResult result) throws URISyntaxException {
         if (result.hasFieldErrors())
@@ -225,18 +229,33 @@ public class AdminController extends BaseController {
         return mav;
     }
 
+//    @Secured(R_ADMIN)
+//    @PostMapping(path = DELETE_URL + HISTORY_RECORD_URL)
+//    public String delHistory(@RequestParam String articleId,
+//                             @RequestParam String historyId,
+//                             RedirectAttributes model) {
+//        UpdateResult updateResult = mongoTemplate.update(Article.class)
+//                .matching(getIdQuery(articleId))
+//                .apply(new Update().pull("historyRecords", singletonMap("recordId", historyId)))
+//                .first();
+//        if (updateResult.getModifiedCount() != 1)
+//            model.addFlashAttribute("error", "cannot delete history");
+//        return REDIRECT + EDIT_URL + ARTICLE_URL + SLASH + articleId;
+//    }
+
     @Secured(R_ADMIN)
     @PostMapping(path = DELETE_URL + HISTORY_RECORD_URL)
-    public String delHistory(@RequestParam String articleId,
-                             @RequestParam String historyId,
-                             RedirectAttributes model) {
+    public ResponseEntity<?> delHistory(@RequestBody @Valid ArticleHistoryIdDTO dto,
+                                        BindingResult result) {
+        if (result.hasFieldErrors())
+            return ResponseEntity.badRequest().body(result.getFieldError());
         UpdateResult updateResult = mongoTemplate.update(Article.class)
-                .matching(getIdQuery(articleId))
-                .apply(new Update().pull("historyRecords", singletonMap("recordId", historyId)))
+                .matching(getIdQuery(dto.getArticleId()))
+                .apply(new Update().pull("historyRecords", singletonMap("recordId", dto.getHistoryId())))
                 .first();
         if (updateResult.getModifiedCount() != 1)
-            model.addFlashAttribute("error", "cannot delete history");
-        return REDIRECT + EDIT_URL + ARTICLE_URL + SLASH + articleId;
+            ResponseEntity.badRequest().body("cannot modify");
+        return ResponseEntity.ok().build();
     }
 
     @Secured(R_ADMIN)
@@ -258,42 +277,38 @@ public class AdminController extends BaseController {
     }
 
     @Secured(R_ADMIN)
-    @PostMapping(path = ADD_URL + HISTORY_RECORD_URL)
-    public String saveHistory(@Valid HistoryDTO dto, BindingResult result,
-                              RedirectAttributes model) {
+    @PostMapping(path = ADD_URL + HISTORY_RECORD_URL,
+            consumes = {APPLICATION_JSON_UTF8_VALUE, APPLICATION_JSON_VALUE})
+    public ResponseEntity<?> saveHistory(@RequestBody @Valid HistoryCreateDTO dto, BindingResult result) {
         if (result.hasFieldErrors()) {
-            model.addAttribute("error", result.getFieldError());
-            return "error";
+            return ResponseEntity.badRequest().body(result.getFieldError());
         } else {
-            dto.setRecordId(ObjectId.get().toString());
-            String articleId;
-            Query idQuery = getIdQuery(dto.getArticleId());
-            if (hasText(dto.getArticleId())) {
-                UpdateResult changeContent = mongoTemplate.update(Article.class)
-                        .matching(idQuery)
-                        .apply(new Update().set("content", dto.getSnapshotContent())
-                                .set("imagePaths", dto.getImagePaths())
-                                .set("title", dto.getTitle())).first();
-                Assert.isTrue(changeContent.getMatchedCount() == 1, "MUST MATCH ONE");
-                UpdateResult changeHistory = mongoTemplate.update(Article.class)
-                        .matching(idQuery)
-                        .apply(new Update().push("historyRecords", dto.toRecord())).first();
-                if (changeHistory.getModifiedCount() != 1) {
-                    model.addFlashAttribute("error", "cannot save snapshot");
-                }
-                articleId = dto.getArticleId();
-            } else {
-                Article article = articleRepository.save(dto.toArticle());
-                delCateNumCacheByName(article.getCategory());
-                articleId = article.getId();
-            }
-            return REDIRECT + EDIT_URL + ARTICLE_URL + SLASH + articleId;
+            saveHistoryAndReturnArticleId(dto);
+            return ResponseEntity.ok(getHistoryShowDTO(dto));
         }
     }
 
-    private Query getIdQuery(String id) {
-        Assert.notNull(id, "id cannot be null");
-        return query(Criteria.where("id").is(id));
+    private String saveHistoryAndReturnArticleId(@Valid HistoryCreateDTO dto) {
+        dto.setRecordId(ObjectId.get().toString());
+        String articleId;
+        Query idQuery = getIdQuery(dto.getArticleId());
+        if (hasText(dto.getArticleId())) {
+            UpdateResult changeContent = mongoTemplate.update(Article.class)
+                    .matching(idQuery)
+                    .apply(new Update().set("content", dto.getSnapshotContent())
+                            .set("imagePaths", dto.getImagePaths())
+                            .set("title", dto.getTitle())).first();
+            Assert.isTrue(changeContent.getMatchedCount() == 1, "MUST MATCH ONE");
+            UpdateResult changeHistory = mongoTemplate.update(Article.class)
+                    .matching(idQuery)
+                    .apply(new Update().push("historyRecords", dto.toRecord())).first();
+            articleId = dto.getArticleId();
+        } else {
+            Article article = articleRepository.save(dto.toArticle());
+            delCateNumCacheByName(article.getCategory());
+            articleId = article.getId();
+        }
+        return articleId;
     }
 
     private void findByState(Integer page, Integer pageSize, ModelAndView mav, int state, String meta, String metaUrl) {

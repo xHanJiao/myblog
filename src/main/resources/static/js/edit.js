@@ -1,4 +1,3 @@
-
 var articleImageFolder = '/articleImages/';
 
 function addCardOfImage(data) {
@@ -72,12 +71,45 @@ $(document).ready(function () {
         mockFormKv('/add/draft', 'POST', data);
     });
 
+    CKEDITOR.instances.editor1.on('blur', function () {
+        if (editor.getData()) {
+            var data = {content: editor.getData()};
+            data[token_name] = token;
+            data[header_name] = header;
+            if (articleId) {
+                $.post('/api/content/' + articleId, data,
+                    function (d, status) {
+                    });
+            }
+        }
+    });
+
     $('#sbmtHistory').click(function () {
         var data = {
-            title: $('#aTitle').val(), snapshotContent: editor.getData(),
-            imagePaths: getImagePaths(), articleId: articleId
+            "title": $('#aTitle').val(), "snapshotContent": editor.getData(),
+            'imagePaths': getImagePaths(), 'articleId': articleId
         };
-        mockFormKv('/add/history', 'POST', data);
+        var jsonStr = JSON.stringify(data);
+        $.ajax({
+            type: 'POST',
+            url: '/add/history',
+            contentType: "application/json",
+            data: jsonStr,
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader(header, token);
+            },
+            success: function (d) {
+                console.log(d);
+                var $historyHolder = $('.historyHolder'),
+                    recordId = d['recordId'],
+                    labelText = d['title'] + '-' + d['createTime'];
+                $historyHolder.append($('<p></p>').addClass('history')
+                    .append($('<input type="radio"/>')
+                        .attr('id', recordId).val(recordId).attr('name', 'recordId'))
+                    .append($('<label></label>')
+                        .attr('for', recordId).text(labelText)));
+            }
+        });
     });
 
     $('#backToHistory').click(function () {
@@ -110,8 +142,23 @@ $(document).ready(function () {
     });
 
     $('#delHistory').click(function () {
-        var historyId = $('input[name=recordId]:checked').val();
-        mockFormKv('/del/history', 'POST', {historyId: historyId, articleId: articleId});
+        var $checkedOne = $('input[name=recordId]:checked'),
+            historyId = $checkedOne.val(),
+            data = {historyId: historyId, articleId: articleId},
+            jsonStr = JSON.stringify(data);
+        $.ajax({
+            type: 'POST',
+            url: '/del/history',
+            contentType: "application/json",
+            data: jsonStr,
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader(header, token);
+            },
+            success: function () {
+                $checkedOne.parent().remove();
+            }
+        })
+        // mockFormKv('/del/history', 'POST', {historyId: historyId, articleId: articleId});
     });
 
     if (articleId) {

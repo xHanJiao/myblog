@@ -6,7 +6,7 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class HistoryDTO extends ArticleHistoryRecord {
+public class HistoryCreateDTO extends ArticleHistoryRecord {
     private String articleId;
 
     public ArticleHistoryRecord toRecord() {
