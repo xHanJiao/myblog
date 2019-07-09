@@ -229,20 +229,6 @@ public class AdminController extends BaseController {
         return mav;
     }
 
-//    @Secured(R_ADMIN)
-//    @PostMapping(path = DELETE_URL + HISTORY_RECORD_URL)
-//    public String delHistory(@RequestParam String articleId,
-//                             @RequestParam String historyId,
-//                             RedirectAttributes model) {
-//        UpdateResult updateResult = mongoTemplate.update(Article.class)
-//                .matching(getIdQuery(articleId))
-//                .apply(new Update().pull("historyRecords", singletonMap("recordId", historyId)))
-//                .first();
-//        if (updateResult.getModifiedCount() != 1)
-//            model.addFlashAttribute("error", "cannot delete history");
-//        return REDIRECT + EDIT_URL + ARTICLE_URL + SLASH + articleId;
-//    }
-
     @Secured(R_ADMIN)
     @PostMapping(path = DELETE_URL + HISTORY_RECORD_URL)
     public ResponseEntity<?> delHistory(@RequestBody @Valid ArticleHistoryIdDTO dto,
@@ -288,27 +274,21 @@ public class AdminController extends BaseController {
         }
     }
 
-    private String saveHistoryAndReturnArticleId(@Valid HistoryCreateDTO dto) {
+    private void saveHistoryAndReturnArticleId(@Valid HistoryCreateDTO dto) {
         dto.setRecordId(ObjectId.get().toString());
-        String articleId;
         Query idQuery = getIdQuery(dto.getArticleId());
         if (hasText(dto.getArticleId())) {
             UpdateResult changeContent = mongoTemplate.update(Article.class)
                     .matching(idQuery)
                     .apply(new Update().set("content", dto.getSnapshotContent())
                             .set("imagePaths", dto.getImagePaths())
-                            .set("title", dto.getTitle())).first();
+                            .set("title", dto.getTitle())
+                            .push("historyRecords", dto.toRecord())).first();
             Assert.isTrue(changeContent.getMatchedCount() == 1, "MUST MATCH ONE");
-            UpdateResult changeHistory = mongoTemplate.update(Article.class)
-                    .matching(idQuery)
-                    .apply(new Update().push("historyRecords", dto.toRecord())).first();
-            articleId = dto.getArticleId();
         } else {
             Article article = articleRepository.save(dto.toArticle());
             delCateNumCacheByName(article.getCategory());
-            articleId = article.getId();
         }
-        return articleId;
     }
 
     private void findByState(Integer page, Integer pageSize, ModelAndView mav, int state, String meta, String metaUrl) {
@@ -323,6 +303,7 @@ public class AdminController extends BaseController {
     @PostMapping(path = DELETE_URL + COMMENT_URL, consumes = {APPLICATION_JSON_UTF8_VALUE, APPLICATION_JSON_VALUE})
     public ResponseEntity<?> delComments(@RequestBody @Valid DelCommDTO dto,
                                          BindingResult result) {
+        // fixme 这里两个函数做一样的事的逻辑不统一啊
         if (result.hasFieldErrors())
             return badRequest().body(result.getFieldError());
 
@@ -501,28 +482,24 @@ public class AdminController extends BaseController {
         } else if (!article.isDraftValid()) {
             return ResponseEntity.badRequest().body("草稿内容不合法");
         } else {
-            if (hasText(article.getId())) {
+            boolean hasId = hasText(article.getId());
+            if (hasId) {
                 UpdateResult updateResult = mongoTemplate.update(Article.class)
                         .matching(getIdQuery(article.getId()))
                         .apply(new Update().set("state", DRAFT.getState())
                                 .set("content", article.getContent())
-                                .set("commentEnable", article.getCommentEnable())
                                 .set("title", article.getTitle())
                                 .set("imagePaths", article.getImagePaths())
                                 .set("category", article.getCategory())).first();
                 if (updateResult.getModifiedCount() != 1L)
-                    return ResponseEntity.status(HttpStatus.FOUND)
-                            .location(URI.create(EDIT_URL + ARTICLE_URL + SLASH + article.getId()))
-                            .body(Collections.singletonMap("error", "no changing"));
+                    return ResponseEntity.badRequest().body(Collections.singletonMap("error", "no changing"));
             } else {
                 article.setId(null);
                 article = mongoTemplate.save(article, Article.COLLECTION_NAME);
             }
             Assert.isTrue(hasText(article.getId()), "保存后id必定有值");
             delCateNumCacheByName(article.getCategory());
-            return ResponseEntity.status(HttpStatus.FOUND)
-                    .location(URI.create(EDIT_URL + ARTICLE_URL + SLASH + article.getId()))
-                    .build();
+            return hasId ? ResponseEntity.ok().build() : ResponseEntity.ok(article.getId());
         }
     }
 

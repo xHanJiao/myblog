@@ -12,7 +12,5 @@ public interface CategoryRepository extends MongoRepository<Category, String> {
 
     void deleteByName(String name);
 
-    long countByName(String name);
-
     Optional<Category> findByName(String name);
 }

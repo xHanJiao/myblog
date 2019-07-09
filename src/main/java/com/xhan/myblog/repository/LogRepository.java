@@ -6,5 +6,4 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface LogRepository extends MongoRepository<MongoLog, String> {
-    Long countByDateGreaterThan(String date);
 }

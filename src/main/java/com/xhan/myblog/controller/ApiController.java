@@ -39,6 +39,13 @@ public class ApiController extends BaseController {
         return ok(singletonMap("article", dto.getContent()));
     }
 
+    /**
+     * 保存文章内容的ajax后端接口，前端将id和content发来，后端根据id而更新MongoDB中的
+     * 对应文档的内容。
+     * @param id 包含了文章id的路径参数
+     * @param content 文章内容，这里可以为空，但是为空则不会更新
+     * @return 不论是否更新，都会返回200状态码，但是更新的话会返回更新的文章的条目数（1）
+     */
     @PostMapping(path = API_URL + CONTENT_URL + ID_PATH_VAR,
             produces = {APPLICATION_JSON_UTF8_VALUE, APPLICATION_JSON_VALUE})
     public ResponseEntity<?> saveContentOfCertainArticle(@PathVariable String id,

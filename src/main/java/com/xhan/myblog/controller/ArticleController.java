@@ -18,7 +18,9 @@ import org.springframework.web.servlet.ModelAndView;
 
 import javax.validation.Valid;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.xhan.myblog.controller.ControllerConstant.*;
@@ -42,7 +44,13 @@ public class ArticleController extends BaseController {
     @GetMapping(value = {SLASH + INDEX, SLASH})
     public ModelAndView index(@RequestParam(required = false, defaultValue = "0") int page,
                               ModelAndView mav) {
+        Map<String, Object> resultMap = prepareDataForIndex(page);
+        mav.setViewName(INDEX);
+        mav.addAllObjects(resultMap);
+        return mav;
+    }
 
+    private Map<String, Object> prepareDataForIndex(@RequestParam(required = false, defaultValue = "0") int page) {
         final int defaultPageSize = propertiesBean.getDefaultPageSize(),
                 maxLen = propertiesBean.getShortcutLen();
         if (page < 0) page = 0;
@@ -55,12 +63,12 @@ public class ArticleController extends BaseController {
         List<IdTitleTimeStateContentPrj> results = articles
                 .stream().map(a -> a.convertToShortcutNoTag(maxLen))
                 .collect(Collectors.toList());
-
-        mav.setViewName(INDEX);
-        mav.addObject("category", new Category());
-        mav.addObject("currentPage", page);
-        mav.addObject("articles", results);
-        return mav;
+        final int finalPage = page;
+        return new HashMap<String, Object>(){{
+            put("category", new Category());
+            put("currentPage", finalPage);
+            put("articles", results);
+        }};
     }
 
     private Page<IdTitleTimeStateContentPrj> getBriefAndContentDueIsAdmin(int pageSize, int page) {

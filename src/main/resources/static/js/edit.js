@@ -60,15 +60,26 @@ function getImagePaths() {
 }
 
 $(document).ready(function () {
-    var articleId = $('#modSig').val();
 
     $('#saveDraft').click(function () {
+        var $modSig = $('#modSig'),
+            articleId = $modSig.val();
+
         var data = {
             title: $('#aTitle').val(), content: content = editor.getData(),
             commentEnable: $('#commentEnable').prop('checked'), state: 0, category: $("#categories").val(),
             imagePaths: getImagePaths(), id: articleId
         };
-        mockFormKv('/add/draft', 'POST', data);
+        data[token_name] = token;
+        data[header_name] = header;
+        $.post('/add/draft', data, function (d, status) {
+            if (status === 'success') {
+                if (!articleId) {
+                    console.log('set articleId : ' + d);
+                    $modSig.val(d);
+                }
+            }
+        });
     });
 
     CKEDITOR.instances.editor1.on('blur', function () {

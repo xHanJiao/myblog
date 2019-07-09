@@ -7,6 +7,5 @@ import org.springframework.stereotype.Service;
 
 @Service
 public interface AdminRepository extends MongoRepository<Admin, String> {
-
     Admin findByAccount(String account);
 }
