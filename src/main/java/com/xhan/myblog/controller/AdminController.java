@@ -5,12 +5,14 @@ import com.xhan.myblog.annotation.CacheInvalid;
 import com.xhan.myblog.exceptions.content.ArticleNotFoundException;
 import com.xhan.myblog.exceptions.content.BlogException;
 import com.xhan.myblog.exceptions.content.CategoryNotFoundException;
-import com.xhan.myblog.exceptions.content.CommentNotFoundException;
 import com.xhan.myblog.model.content.dto.ArticleCreateDTO;
 import com.xhan.myblog.model.content.dto.ArticleHistoryIdDTO;
 import com.xhan.myblog.model.content.dto.DelCommDTO;
 import com.xhan.myblog.model.content.dto.HistoryCreateDTO;
-import com.xhan.myblog.model.content.repo.*;
+import com.xhan.myblog.model.content.repo.Article;
+import com.xhan.myblog.model.content.repo.ArticleHistoryRecord;
+import com.xhan.myblog.model.content.repo.ArticleState;
+import com.xhan.myblog.model.content.repo.Category;
 import com.xhan.myblog.model.prj.CategoryStatePrj;
 import com.xhan.myblog.model.prj.HistoryRecordsPrj;
 import com.xhan.myblog.model.prj.IdTitleTimeStatePrj;
@@ -54,7 +56,6 @@ import static org.apache.tomcat.util.http.fileupload.IOUtils.copy;
 import static org.springframework.data.domain.Sort.Direction.DESC;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 import static org.springframework.data.mongodb.core.query.Query.query;
-import static org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.ResponseEntity.badRequest;
@@ -200,8 +201,6 @@ public class AdminController extends BaseController {
             String error = result.getFieldError().getField();
             return setErrorMav("error in " + (error),
                     mav, viewName);
-        } else if (!articleRepository.existsById(dto.getArticleId())) {
-            return setErrorMav("no article", mav, viewName);
         } else {
             UpdateResult updateResult = mongoTemplate.update(Article.class)
                     .matching(getIdQuery(dto.getArticleId()))
@@ -303,26 +302,13 @@ public class AdminController extends BaseController {
     @PostMapping(path = DELETE_URL + COMMENT_URL, consumes = {APPLICATION_JSON_UTF8_VALUE, APPLICATION_JSON_VALUE})
     public ResponseEntity<?> delComments(@RequestBody @Valid DelCommDTO dto,
                                          BindingResult result) {
-        // fixme 这里两个函数做一样的事的逻辑不统一啊
         if (result.hasFieldErrors())
             return badRequest().body(result.getFieldError());
 
-        Article article = articleRepository.findById(dto.getArticleId())
-                .orElseThrow(ArticleNotFoundException::new);
-
-        Comment toDelete = new Comment();
-        for (Comment comment : article.getComments()) {
-            if (comment.getContent().equals(dto.getContent())) {
-                toDelete = comment;
-                break;
-            }
-        }
-        if (!hasText(toDelete.getContent()))
-            throw new CommentNotFoundException(dto.getContent());
-
         UpdateResult updateResult = mongoTemplate.update(Article.class)
                 .matching(getIdQuery(dto.getArticleId()))
-                .apply(new Update().pull("comments", toDelete)).all();
+                .apply(new Update().pull("comments", singletonMap("content", dto.getContent())))
+                .first();
 
         return updateResult.getModifiedCount() == 1
                 ? ok("deleted successfully")
