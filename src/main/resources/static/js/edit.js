@@ -60,21 +60,22 @@ function getImagePaths() {
 }
 
 $(document).ready(function () {
+    var articleId = $('#modSig').val();
 
     $('#saveDraft').click(function () {
         var $modSig = $('#modSig'),
-            articleId = $modSig.val();
+            aId = $modSig.val();
 
         var data = {
             title: $('#aTitle').val(), content: content = editor.getData(),
             commentEnable: $('#commentEnable').prop('checked'), state: 0, category: $("#categories").val(),
-            imagePaths: getImagePaths(), id: articleId
+            imagePaths: getImagePaths(), id: aId
         };
         data[token_name] = token;
         data[header_name] = header;
         $.post('/add/draft', data, function (d, status) {
             if (status === 'success') {
-                if (!articleId) {
+                if (!aId) {
                     console.log('set articleId : ' + d);
                     $modSig.val(d);
                 }
