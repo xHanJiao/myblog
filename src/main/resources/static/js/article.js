@@ -106,7 +106,6 @@ $(document).ready(function () {
     $('.reply').on('click', function () {
         var title = 'reply to: @' +
             $(this).siblings('input[class=replyTo]').val() + '   ';
-        console.log(title);
         addCommDiv.show();
         $('#content').val(title);
         $("html,body").animate({scrollTop: addCommDiv.offset().top}, 1000);
@@ -120,32 +119,26 @@ $(document).ready(function () {
     $('.delcomm').on('click', function () {
         var delContent = $(this).parents('div[class=row]')
             .prev().find('p').text();
-        console.log('delcomm : ' + delContent);
         mockFormKv('/del/comment', 'POST', {content: delContent, articleId: $('#articleId').val()});
     });
 
     $('#editBtn').on('click', function () {
         var articleId = $('#articleId').val();
-        console.log('articleId : ' + articleId);
         mockFormKv('/edit/article/' + articleId, 'get', {});
     });
 
     $('#vpub').on('click', function () {
         var articleId = $('#articleId').val();
-        console.log('articleId : ' + articleId);
         mockFormKv('/vpub/' + articleId, 'post', {});
     });
 
     $('#uvpub').on('click', function () {
         var articleId = $('#articleId').val();
-        console.log('articleId : ' + articleId);
         mockFormKv('/uvpub/' + articleId, 'post', {});
     });
 
     $('.deleteBtn').on('click', function () {
         var articleId = $('#articleId').val();
-        console.log('articleId : ' + articleId);
-        // mockFormKv('/del/article/' + articleId, 'POST', {});
         $.post('/del/article/' + articleId, csrf_kv, function () {
             window.location.replace('/index');
         });
@@ -153,19 +146,16 @@ $(document).ready(function () {
 
     $('.hideBtn').click(function () {
         var articleId = $('#articleId').val();
-        console.log('articleId : ' + articleId);
         mockFormKv('/uvpub/' + articleId, 'POST', {});
     });
 
     $('.showBtn').click(function () {
         var articleId = $('#articleId').val();
-        console.log('articleId : ' + articleId);
         mockFormKv('/vpub/' + articleId, 'POST', {});
     });
 
     $('#recoverBtn').on('click', function () {
         var articleId = $('#articleId').val();
-        console.log('articleId : ' + articleId);
         $.post('/recover/article/' + articleId, csrf_kv, function () {
             window.location.reload();
         });

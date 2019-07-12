@@ -13,7 +13,6 @@ $(document).ready(function () {
                 var contentHolder = $(this).parent().prev();
                 var title = contentHolder.children('a').text();
                 var content = contentHolder.children('p[class=cate_dscrp]').text();
-                console.log('content : ' + content);
                 $('#cateName').val(title);
                 $('#cateDescription').val(content);
                 $('#cateForm').attr('action', '/modify/category');

@@ -52,7 +52,6 @@ $(document).ready(function () {
         btnHolder.remove();
 
         var articleId = $(this).siblings('input[type=hidden]').val();
-        console.log('articleId : ' + articleId);
         var holder = $('<div></div>').addClass('section btnHolder');
         $(this).parent().after(holder);
         $.get('/article/state/' + articleId, function (data, status) {

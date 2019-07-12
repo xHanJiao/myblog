@@ -20,6 +20,8 @@ import com.xhan.myblog.model.user.Admin;
 import com.xhan.myblog.model.user.Guest;
 import com.xhan.myblog.model.user.ModifyDTO;
 import org.bson.types.ObjectId;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.data.domain.Page;
@@ -46,7 +48,6 @@ import javax.validation.Valid;
 import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Collections;
 
 import static com.xhan.myblog.controller.ControllerConstant.*;
 import static com.xhan.myblog.model.content.repo.ArticleState.*;
@@ -70,6 +71,8 @@ public class AdminController extends BaseController {
     private PasswordEncoder passwordEncoder;
     @Autowired
     private ControllerPropertiesBean propertiesBean;
+
+    private static final Logger logger = LoggerFactory.getLogger(AdminController.class);
 
     @ModelAttribute(name = "brand")
     public String getBrand() {
@@ -268,25 +271,22 @@ public class AdminController extends BaseController {
         if (result.hasFieldErrors()) {
             return ResponseEntity.badRequest().body(result.getFieldError());
         } else {
-            saveHistoryAndReturnArticleId(dto);
+            dto.setRecordId(ObjectId.get().toString());
+            if (hasText(dto.getArticleId())) {
+                Query idQuery = getIdQuery(dto.getArticleId());
+                UpdateResult changeContent = mongoTemplate.update(Article.class)
+                        .matching(idQuery)
+                        .apply(new Update().set("content", dto.getSnapshotContent())
+                                .set("imagePaths", dto.getImagePaths())
+                                .set("title", dto.getTitle())
+                                .push("historyRecords", dto.toRecord())).first();
+                Assert.isTrue(changeContent.getMatchedCount() == 1, "MUST MATCH ONE");
+            } else {
+                Article article = articleRepository.save(dto.toArticle());
+                dto.setArticleId(article.getId());
+                delCateNumCacheByName(article.getCategory());
+            }
             return ResponseEntity.ok(getHistoryShowDTO(dto));
-        }
-    }
-
-    private void saveHistoryAndReturnArticleId(@Valid HistoryCreateDTO dto) {
-        dto.setRecordId(ObjectId.get().toString());
-        Query idQuery = getIdQuery(dto.getArticleId());
-        if (hasText(dto.getArticleId())) {
-            UpdateResult changeContent = mongoTemplate.update(Article.class)
-                    .matching(idQuery)
-                    .apply(new Update().set("content", dto.getSnapshotContent())
-                            .set("imagePaths", dto.getImagePaths())
-                            .set("title", dto.getTitle())
-                            .push("historyRecords", dto.toRecord())).first();
-            Assert.isTrue(changeContent.getMatchedCount() == 1, "MUST MATCH ONE");
-        } else {
-            Article article = articleRepository.save(dto.toArticle());
-            delCateNumCacheByName(article.getCategory());
         }
     }
 
@@ -344,12 +344,11 @@ public class AdminController extends BaseController {
                 String path = propertiesBean.getArticleImages() + filename;
                 File toDelete = new File(path);
                 if (!toDelete.delete())
-                    throw new BlogException("cannot delete the image");
+                    logger.warn("cannot delete the image : " + toDelete.getName());
             });
             articleRepository.delete(article);
             responseEntity = ResponseEntity.ok().build();
         }
-
         return responseEntity;
     }
 
@@ -464,7 +463,7 @@ public class AdminController extends BaseController {
     @PostMapping(value = ADD_URL + DRAFT_URL)
     public ResponseEntity<?> addDraft(@Valid Article article, BindingResult result) {
         if (result.hasFieldErrors()) {
-            return ResponseEntity.badRequest().body(result.getFieldError().getField());
+            return ResponseEntity.badRequest().body(result.getFieldError());
         } else if (!article.isDraftValid()) {
             return ResponseEntity.badRequest().body("草稿内容不合法");
         } else {
@@ -478,7 +477,7 @@ public class AdminController extends BaseController {
                                 .set("imagePaths", article.getImagePaths())
                                 .set("category", article.getCategory())).first();
                 if (updateResult.getModifiedCount() != 1L)
-                    return ResponseEntity.badRequest().body(Collections.singletonMap("error", "no changing"));
+                    return ResponseEntity.badRequest().body("没有修改");
             } else {
                 article.setId(null);
                 article = mongoTemplate.save(article, Article.COLLECTION_NAME);

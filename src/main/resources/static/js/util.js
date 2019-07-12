@@ -79,7 +79,6 @@ function mockFormKv(URL, method, kv) {
             .attr("type", "hidden")
             .attr("name", k)
             .attr("value", kv[k]));
-        console.log(k + ' : ' + kv[k]);
     }
     if (method === "post" || method === "POST") {
         form.append($("<input/>")
@@ -91,7 +90,5 @@ function mockFormKv(URL, method, kv) {
             .attr("name", "_csrf_header")
             .attr("value", header));
     }
-    console.log('token : ' + token);
-    console.log('header : ' + header);
     form.appendTo('body').submit().remove();
 }
