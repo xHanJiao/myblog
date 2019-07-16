@@ -88,7 +88,7 @@ public class AdminController extends BaseController {
 
     @ModelAttribute(name = "greeting")
     public String greeting() {
-        return hasText(propertiesBean.getGreeting()) ? propertiesBean.getGreeting() : "吃了吗";
+        return hasText(propertiesBean.getGreeting()) ? propertiesBean.getGreeting() : GREETING_WORDS;
     }
 
     @GetMapping(value = MODI_ADMIN_URL)
@@ -160,7 +160,7 @@ public class AdminController extends BaseController {
         FileSystemResource resource = new FileSystemResource(propertiesBean.getArticleImages());
         File file = new File(resource.getFile(), name);
         boolean isSuccess = file.delete();
-        return (isSuccess ? ResponseEntity.ok() : ResponseEntity.status(500)).build();
+        return ok().body(isSuccess);
     }
 
     @Secured(R_ADMIN)
@@ -277,9 +277,9 @@ public class AdminController extends BaseController {
                 UpdateResult changeContent = mongoTemplate.update(Article.class)
                         .matching(idQuery)
                         .apply(new Update().set("content", dto.getSnapshotContent())
-                                .set("imagePaths", dto.getImagePaths())
                                 .set("title", dto.getTitle())
-                                .push("historyRecords", dto.toRecord())).first();
+                                .addToSet("imagePaths").each(dto.getImagePaths())
+                                .push("historyRecords").slice(-3).each(dto.toRecord())).first();
                 Assert.isTrue(changeContent.getMatchedCount() == 1, "MUST MATCH ONE");
             } else {
                 Article article = articleRepository.save(dto.toArticle());
@@ -449,43 +449,13 @@ public class AdminController extends BaseController {
                 && articleRepository.countByCategory(name) == 0) {
             categoryRepository.deleteByName(name);
         }
+
         UpdateResult result = mongoTemplate.update(Article.class)
                 .matching(query(Criteria.where("category").is(name)))
                 .apply(new Update().set("state", state))
                 .all();
-
         delCateNumCacheByName(name);
         return ok(result.getModifiedCount());
-    }
-
-    @Secured(R_ADMIN)
-    @CacheInvalid
-    @PostMapping(value = ADD_URL + DRAFT_URL)
-    public ResponseEntity<?> addDraft(@Valid Article article, BindingResult result) {
-        if (result.hasFieldErrors()) {
-            return ResponseEntity.badRequest().body(result.getFieldError());
-        } else if (!article.isDraftValid()) {
-            return ResponseEntity.badRequest().body("草稿内容不合法");
-        } else {
-            boolean hasId = hasText(article.getId());
-            if (hasId) {
-                UpdateResult updateResult = mongoTemplate.update(Article.class)
-                        .matching(getIdQuery(article.getId()))
-                        .apply(new Update().set("state", DRAFT.getState())
-                                .set("content", article.getContent())
-                                .set("title", article.getTitle())
-                                .set("imagePaths", article.getImagePaths())
-                                .set("category", article.getCategory())).first();
-                if (updateResult.getModifiedCount() != 1L)
-                    return ResponseEntity.badRequest().body("没有修改");
-            } else {
-                article.setId(null);
-                article = mongoTemplate.save(article, Article.COLLECTION_NAME);
-            }
-            Assert.isTrue(hasText(article.getId()), "保存后id必定有值");
-            delCateNumCacheByName(article.getCategory());
-            return hasId ? ResponseEntity.ok().build() : ResponseEntity.ok(article.getId());
-        }
     }
 
     @Secured(R_ADMIN)

@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static java.util.Collections.emptyList;
 import static org.springframework.util.StringUtils.hasText;
 
 @Data
@@ -37,7 +38,7 @@ public class Article extends ArticleCreateDTO {
         setCreateTime(BlogUtils.getCurrentDateTime());
         setCategory(hasText(dto.getCategory()) ? dto.getCategory() : Category.DEFAULT_NAME);
         setState(dto.getState());
-        setImagePaths(dto.getImagePaths() == null ? Collections.emptyList() : dto.getImagePaths());
+        setImagePaths(dto.getImagePaths() == null ? emptyList() : dto.getImagePaths());
         setCommentEnable(dto.getCommentEnable() == null ? false : dto.getCommentEnable());
         setHistoryRecords(dto.getHistoryRecords());
         setTitle(dto.getTitle());

@@ -6,6 +6,7 @@ import java.util.Map;
 
 public interface ControllerConstant {
 
+    String GREETING_WORDS = "今天能否吃顿饱饭";
     String ARTICLE_NUMS_OF_CATE = "cateNums";
     long PEOPLE_MAX_VISIT_PER_10_SECOND = 20;
     long ALL_MAX_VISIT_PER_5_SECOND = 50;
