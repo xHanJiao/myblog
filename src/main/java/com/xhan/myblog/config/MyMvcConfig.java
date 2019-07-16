@@ -24,8 +24,10 @@ public class MyMvcConfig implements WebMvcConfigurer {
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry.addResourceHandler(
                 ARTICLE_IMAGES_URL + SUFFIX,
-                CATEGORY_IMAGES_URL + SUFFIX)
+                CATEGORY_IMAGES_URL + SUFFIX,
+                "/pdf" + SUFFIX)
                 .addResourceLocations(
+                        "file:" + propertiesBean.getPdfPaths(),
                         "file:" + propertiesBean.getArticleImages(),
                         "file:" + propertiesBean.getCategoryImages());
     }
