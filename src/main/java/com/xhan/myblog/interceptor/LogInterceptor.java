@@ -3,6 +3,7 @@ package com.xhan.myblog.interceptor;
 import com.xhan.myblog.controller.ControllerPropertiesBean;
 import com.xhan.myblog.model.content.repo.MongoLog;
 import com.xhan.myblog.repository.LogRepository;
+import com.xhan.myblog.utils.BlogUtils;
 import com.xhan.myblog.utils.MapCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,9 +46,9 @@ public class LogInterceptor extends HandlerInterceptorAdapter {
                 all = (AtomicLong) cache.setnx("TOTAL_VISIT", new AtomicLong(0), 100);
         long oneValue = one.incrementAndGet();
         long allValue = all.incrementAndGet();
-//        logger.info(format("[ip: %s]---[time: %s]---[URI: %s]---[one: %s]---[all: %s]",
-//                request.getRemoteAddr(), BlogUtils.getCurrentDateTime(),
-//                request.getRequestURI(), oneValue, allValue));
+        logger.info(format("[ip: %s]---[time: %s]---[URI: %s]---[one: %s]---[all: %s]",
+                request.getRemoteAddr(), BlogUtils.getCurrentDateTime(),
+                request.getRequestURI(), oneValue, allValue));
 
         if (cache.hget(BANNED_IP, request.getRemoteAddr()) != null) {
             return false;

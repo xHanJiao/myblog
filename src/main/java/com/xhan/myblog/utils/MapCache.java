@@ -2,6 +2,7 @@ package com.xhan.myblog.utils;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * map缓存实现
@@ -48,6 +49,8 @@ public class MapCache {
      */
     public <T> T get(String key) {
         CacheObject cacheObject = cachePool.get(key);
+        AtomicLong l = new AtomicLong(0);
+
         if (null != cacheObject) {
             long cur = System.currentTimeMillis() / 1000;
             if (cacheObject.getExpired() <= 0 || cacheObject.getExpired() > cur) {
