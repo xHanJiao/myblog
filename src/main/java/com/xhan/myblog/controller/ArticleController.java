@@ -147,8 +147,9 @@ public class ArticleController extends BaseController {
             mav.addObject("error", "分类名不能为空");
             return mav;
         }
-        Page<IdTitleTimeStatePrj> articles = getPagedArticles(page, pageSize, name, authorityHelper.isAdmin());
-        int nums = articleRepository.countByCategoryAndState(name, PUBLISHED.getState());
+        boolean isAdmin = authorityHelper.isAdmin();
+        Page<IdTitleTimeStatePrj> articles = getPagedArticles(page, pageSize, name, isAdmin);
+        int nums = (int) countByCategoryAndIsAdmin(name, isAdmin);
 
         preProcessToArticleList(mav, page, pageSize, articles, nums, M_CATE, M_CATE_URL);
         mav.addObject("cateName", name);
@@ -167,8 +168,8 @@ public class ArticleController extends BaseController {
                                     @RequestParam(defaultValue = "10") Integer pageSize,
                                     ModelAndView mav) {
         Page<IdTitleTimeStatePrj> articles = getArticlesDueIsAdmin(pageSize, page);
-        int nums = articleRepository.countByState(PUBLISHED.getState());
 
+        int nums = (int) countByIsAdmin(authorityHelper.isAdmin());
         preProcessToArticleList(mav, page, pageSize, articles, nums, M_ALL_ARTICLES, M_ALL_ARTICLES_URL);
         return mav;
     }

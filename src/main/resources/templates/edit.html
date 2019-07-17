@@ -77,19 +77,22 @@
                         th:text="${category.getName()}"
                         th:value="${category.getName()}"></option>
             </select>
-            <div class="row">
-                <div class="section center-align">
-                    <a class="smallBtn btn btn-flat waves-effect brown-text slide-btn waves-light"
-                       id="sbmt"><i class="material-icons">publish</i></a>
-                    <input type="hidden" id="modSig" th:value="${modify}">
-                    <input type="hidden" id="draftId">
-                </div>
-            </div>
+            <!--<div class="row">-->
+            <!--<div class="section center-align">-->
+            <!--<a class="smallBtn btn btn-flat waves-effect brown-text slide-btn waves-light"-->
+            <!--id="sbmt"><i class="material-icons">publish</i></a>-->
+            <!--<input type="hidden" id="modSig" th:value="${modify}">-->
+            <!--<input type="hidden" id="draftId">-->
+            <!--</div>-->
+            <!--</div>-->
             <div class="divider"></div>
             <div class="row">
                 <div class="section left">
+                    <!--<a class="smallBtn btn btn-flat waves-effect brown-text slide-btn waves-light"-->
+                    <!--id="sbmtHistory" th:title="提交快照"><i class="material-icons">drafts</i></a>-->
                     <a class="smallBtn btn btn-flat waves-effect brown-text slide-btn waves-light"
-                       id="sbmtHistory" th:title="提交快照"><i class="material-icons">drafts</i></a>
+                       id="sbmt"><i class="material-icons">publish</i></a>
+                    <input id="modSig" th:value="${modify}" type="hidden">
                     <a class="smallBtn btn btn-flat waves-effect brown-text slide-btn waves-light"
                        id="delHistory" th:title="删除快照"><i class="material-icons">delete</i></a>
                     <a class="smallBtn btn btn-flat waves-effect brown-text slide-btn waves-light"

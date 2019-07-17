@@ -102,7 +102,7 @@ $(document).ready(function () {
         });
     }
 
-    $('#sbmtHistory').click(saveHistory);
+    // $('#sbmtHistory').click(saveHistory);
 
     $('#backToHistory').click(function () {
         var data = {}, aId = $modSig.val();

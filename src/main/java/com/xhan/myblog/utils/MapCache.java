@@ -54,7 +54,7 @@ public class MapCache {
                 Object result = cacheObject.getValue();
                 return (T) result;
             } else {
-                cachePool.remove(key);
+                cachePool.remove(key, cacheObject);
             }
         }
         return null;
@@ -100,15 +100,33 @@ public class MapCache {
         cachePool.put(key, cacheObject);
     }
 
-    public void setnx(String key, Object value, long expired) {
+    /**
+     * 当键不存在或者过期的时候设置键，这里重要的是对过期的判断，如果过期就
+     * 清除它，然后用putIfAbsent设置，如果没过期就返回，如果不存在，也用
+     * putIfAbsent设置。如果设置成功，就会把设置的值返回，否则就把原来的值
+     * 返回
+     *
+     * @param key
+     * @param value
+     * @param expired
+     * @return Object 当过期或不存在时，就返回传入的value，当值依旧可用时，就返回值
+     */
+    public Object setnx(String key, Object value, long expired) {
         expired = expired > 0 ? System.currentTimeMillis() / 1000 + expired : expired;
         CacheObject cacheObject = new CacheObject(key, value, expired);
-        cachePool.putIfAbsent(key, cacheObject);
-    }
+        Object returnedObject = get(key);
+        // 这里一个先判断后执行，可能出现这个线程将值删除（在get里）但是其他线程又将值设置的情况
+        // 如果get(key) != null，然后返回了要设置的值
 
-    public void setnx(String key, Object value) {
-        CacheObject cacheObject = new CacheObject(key, value, -1);
-        cachePool.putIfAbsent(key, cacheObject);
+        // 如果超时或者不存在，就用putIfAbsent将键值对置入，如果存在，就将旧值返回
+        if (returnedObject == null)
+            cacheObject = cachePool.putIfAbsent(key, cacheObject);
+        else
+            return returnedObject;
+
+        // 如果置入成功，cacheObject则为null，就返回置入的值，
+        // 如果置入失败，则cacheObject不为null，则返回cacheObject.val
+        return cacheObject == null ? value : cacheObject.value;
     }
 
     /**
@@ -165,7 +183,7 @@ public class MapCache {
     static class CacheObject {
         private String key;
         private Object value;
-        private long expired;
+        private final long expired;
 
         public CacheObject(String key, Object value, long expired) {
             this.key = key;

@@ -294,7 +294,7 @@ public class AdminController extends BaseController {
         MyPageRequest mpr = new MyPageRequest(page, pageSize).invoke();
         PageRequest pageRequest = PageRequest.of(mpr.getPage(), mpr.getPageSize(), DESC, "createTime");
         Page<IdTitleTimeStatePrj> recycledArticles = articleRepository.findAllByState(state, pageRequest);
-        int totalNum = articleRepository.countByState(state);
+        int totalNum = (int) countByIsAdmin(authorityHelper.isAdmin());
         preProcessToArticleList(mav, mpr.getPage(), mpr.getPageSize(), recycledArticles, totalNum, meta, metaUrl);
     }
 

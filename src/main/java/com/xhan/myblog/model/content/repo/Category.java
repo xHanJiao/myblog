@@ -13,7 +13,7 @@ import static org.springframework.util.StringUtils.hasText;
 @Document
 public class Category {
 
-    public static final String DEFAULT_NAME = "未分类";
+    public static final String DEFAULT_NAME = "默认分类";
     @Id
     private String id;
     @NotBlank

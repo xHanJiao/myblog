@@ -3,7 +3,6 @@ package com.xhan.myblog.interceptor;
 import com.xhan.myblog.controller.ControllerPropertiesBean;
 import com.xhan.myblog.model.content.repo.MongoLog;
 import com.xhan.myblog.repository.LogRepository;
-import com.xhan.myblog.utils.BlogUtils;
 import com.xhan.myblog.utils.MapCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,10 +12,11 @@ import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.time.format.DateTimeFormatter;
 import java.util.concurrent.atomic.AtomicLong;
 
+import static java.lang.String.format;
 import static java.time.LocalDateTime.now;
+import static java.time.format.DateTimeFormatter.ofPattern;
 
 @Component(value = "logInterceptor")
 public class LogInterceptor extends HandlerInterceptorAdapter {
@@ -40,21 +40,22 @@ public class LogInterceptor extends HandlerInterceptorAdapter {
         logRepository.save(log);
 
         String host = request.getRemoteAddr();
-        cache.setnx(host, new AtomicLong(0), 10);
-        cache.setnx("TOTAL_VISIT", new AtomicLong(0),100);
-        AtomicLong one = cache.get(host), all = cache.get("TOTAL_VISIT");
-        long oneValue = one == null ? 0 : one.incrementAndGet();
-        long allValue = all == null ? 0 : all.incrementAndGet();
-        logger.info(String.format("[ip: %s]---[time: %s]---[URI: %s]---[one: %s]---[all: %s]", request.getRemoteAddr(),
-                BlogUtils.getCurrentDateTime(), request.getRequestURI(), oneValue, allValue));
+        // 一个bug，这里没有考虑到过期的情况啊
+        AtomicLong one = (AtomicLong) cache.setnx(host, new AtomicLong(0), 10),
+                all = (AtomicLong) cache.setnx("TOTAL_VISIT", new AtomicLong(0), 100);
+        long oneValue = one.incrementAndGet();
+        long allValue = all.incrementAndGet();
+//        logger.info(format("[ip: %s]---[time: %s]---[URI: %s]---[one: %s]---[all: %s]",
+//                request.getRemoteAddr(), BlogUtils.getCurrentDateTime(),
+//                request.getRequestURI(), oneValue, allValue));
 
         if (cache.hget(BANNED_IP, request.getRemoteAddr()) != null) {
             return false;
         }
         if (oneValue > propertiesBean.getPeople10SecVisit()) {
             cache.hset(BANNED_IP, host,
-                    now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")), 300);
-            logger.info(String.format("BANNED [ip: %s] for [%s] times visit", host, oneValue));
+                    now().format(ofPattern("yyyy-MM-dd HH:mm:ss")), 300);
+            logger.info(format("BANNED [ip: %s] for [%s] times visit", host, oneValue));
             return false;
         }
         return allValue <= propertiesBean.getAll5SecVisit();

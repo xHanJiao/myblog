@@ -23,14 +23,11 @@ import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.NonNull;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.ModelAndView;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -88,7 +85,7 @@ public class BaseController {
                 : articleRepository.findAllByState(PUBLISHED.getState(), pageRequest);
     }
 
-    Page<IdTitleTimeStatePrj> getPagedArticles(Integer page, Integer pageSize, String cateName, boolean isAdmin) {
+    protected Page<IdTitleTimeStatePrj> getPagedArticles(Integer page, Integer pageSize, String cateName, boolean isAdmin) {
         MyPageRequest mpr = new MyPageRequest(page, pageSize).invoke();
         PageRequest pageRequest = of(mpr.getPage(), mpr.getPageSize(), DESC, "createTime");
         return isAdmin
@@ -126,6 +123,19 @@ public class BaseController {
         mav.setViewName(ARTICLE_LIST);
         mav.addAllObjects(data);
     }
+
+    long countByIsAdmin(boolean admin) {
+        return admin
+                ? articleRepository.count()
+                : articleRepository.countByState(PUBLISHED.getState());
+    }
+
+    long countByCategoryAndIsAdmin(String category, boolean admin) {
+        return admin
+                ? articleRepository.countByCategory(category)
+                : articleRepository.countByCategoryAndState(category, PUBLISHED.getState());
+    }
+
 
     private Map<String, Object> preProcessToArticleList(Integer page, Integer pageSize,
                                                         Page<IdTitleTimeStatePrj> articles, int totalNums, String meta, String metaUrl) {
