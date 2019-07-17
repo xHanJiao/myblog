@@ -8,8 +8,8 @@ public interface ControllerConstant {
 
     String GREETING_WORDS = "今天能否吃顿饱饭";
     String ARTICLE_NUMS_OF_CATE = "cateNums";
-    long PEOPLE_MAX_VISIT_PER_10_SECOND = 20;
-    long ALL_MAX_VISIT_PER_5_SECOND = 50;
+    String ALL_VISIT_KEY = "ALL_VISIT";
+    int MAX_WAIT_SECOND = 8;
     int DEFAULT_PAGE_SIZE = 7;
     // ARTICLES
     String SLASH = "/";
@@ -38,7 +38,6 @@ public interface ControllerConstant {
     String EDIT_URL = SLASH + EDIT;
     String ID_PATH_VAR = SLASH + "{id}";
     String NAME_PATH_VAR = SLASH + "{name}";
-    String CATEGORIES = "categories";
     String DELETE = "del";
     String DELETE_URL = SLASH + DELETE;
     String IMAGE_URL = SLASH + "image";
@@ -51,9 +50,7 @@ public interface ControllerConstant {
     String RECOVER_URL = SLASH + "recover";
     String DRAFT_URL = SLASH + "draft";
     String POST_NUM = "postedArticleNum";
-    String POST_NUM_URL = SLASH + POST_NUM;
     String CATE_NUM = "createdCategoryNum";
-    String CATE_NUM_URL = SLASH + CATE_NUM;
     // LOGIN
     String LOGIN_DISPATCH_URL = "/loginsucc";
     String IS_ADMIN = "isAdmin";

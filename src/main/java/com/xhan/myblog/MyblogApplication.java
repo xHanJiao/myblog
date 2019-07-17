@@ -2,7 +2,9 @@ package com.xhan.myblog;
 
 import com.mongodb.MongoClient;
 import com.mongodb.WriteConcern;
+import com.xhan.myblog.controller.ControllerConstant;
 import com.xhan.myblog.utils.MapCache;
+import com.xhan.myblog.utils.TokenBucketManager;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -31,6 +33,13 @@ public class MyblogApplication {
         template.setWriteConcern(WriteConcern.JOURNALED);
         template.setWriteResultChecking(WriteResultChecking.EXCEPTION);
         return template;
+    }
+
+    @Bean
+    public TokenBucketManager tokenBucketManager() {
+        TokenBucketManager manager = new TokenBucketManager();
+        manager.addRateLimiter(ControllerConstant.ALL_VISIT_KEY, 10, 5);
+        return manager;
     }
 
     @Bean(name = "articleRepositoryCache")

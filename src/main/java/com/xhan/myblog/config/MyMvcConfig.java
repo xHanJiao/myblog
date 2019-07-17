@@ -17,6 +17,9 @@ public class MyMvcConfig implements WebMvcConfigurer {
     @Resource(name = "logInterceptor")
     private HandlerInterceptor logInterceptor;
 
+    @Resource(name = "allVisitRateLimiterInterceptor")
+    private HandlerInterceptor allVisitRateLimiter;
+
     @Resource(name = "controllerPropertiesBean")
     private ControllerPropertiesBean propertiesBean;
 
@@ -36,12 +39,13 @@ public class MyMvcConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(logInterceptor)
                 .addPathPatterns(SUFFIX)
-                .excludePathPatterns("/fonts/**")
-                .excludePathPatterns("/js/**")
-                .excludePathPatterns("/css/**")
-                .excludePathPatterns("/images/**")
-                .excludePathPatterns("/image/**")
-                .excludePathPatterns(ARTICLE_IMAGES_URL + SUFFIX)
-                .excludePathPatterns(CATEGORY_IMAGES_URL + SUFFIX);
+                .excludePathPatterns("/fonts/**", "/js/**", "/css/**",
+                        "/images/**", "/image/**", ARTICLE_IMAGES_URL + SUFFIX,
+                        CATEGORY_IMAGES_URL + SUFFIX);
+        registry.addInterceptor(allVisitRateLimiter)
+                .addPathPatterns(SUFFIX)
+                .excludePathPatterns("/fonts/**", "/js/**", "/css/**",
+                        "/images/**", "/image/**", ARTICLE_IMAGES_URL + SUFFIX,
+                        CATEGORY_IMAGES_URL + SUFFIX);
     }
 }
