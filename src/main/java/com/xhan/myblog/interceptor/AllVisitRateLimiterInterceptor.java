@@ -24,7 +24,7 @@ public class AllVisitRateLimiterInterceptor extends HandlerInterceptorAdapter {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        if (!manager.acquireWithExpire(ALL_VISIT_KEY, ControllerConstant.MAX_WAIT_SECOND))
+        if (!manager.tryAcquire(ALL_VISIT_KEY, ControllerConstant.MAX_WAIT_SECOND))
             throw new TooManyVisitorException();
         return true;
     }

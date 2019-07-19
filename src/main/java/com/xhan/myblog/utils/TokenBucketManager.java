@@ -4,10 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.Assert;
 
 import javax.annotation.PreDestroy;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static java.lang.String.valueOf;
@@ -15,17 +12,23 @@ import static java.lang.String.valueOf;
 @Slf4j
 public class TokenBucketManager {
 
-    private static final int SCHEDULED_POOL_SIZE = 3;
-    private static final int DEFAULT_TOKEN_NUM = 5;
-    private static final int MAX_WAIT_SECOND = 10;
-    private static final int DEFAULT_INTERVAL = 10;
+    public static final int DEFAULT_THREAD_POOL_SIZE = 1;
+    public static final int DEFAULT_TOKEN_NUM = 5;
+    public static final int MAX_WAIT_SECOND = 10;
+    public static final int DEFAULT_INTERVAL = 10;
 
     private final ConcurrentHashMap<String, TokenBucket> bucketHolder;
     private final ScheduledExecutorService scheduledExecutorService;
 
-    public TokenBucketManager() {
+    /**
+     * 创建一个TokenBucketManager，并指定用来更新令牌桶的线程池的大小
+     *
+     * @param size 线程池的大小
+     */
+    public TokenBucketManager(Integer size) {
+        if (size == null || size <= 0) size = DEFAULT_THREAD_POOL_SIZE;
         bucketHolder = new ConcurrentHashMap<>();
-        scheduledExecutorService = new ScheduledThreadPoolExecutor(SCHEDULED_POOL_SIZE);
+        scheduledExecutorService = new ScheduledThreadPoolExecutor(size, new ThreadPoolExecutor.CallerRunsPolicy());
     }
 
     @PreDestroy
@@ -33,10 +36,20 @@ public class TokenBucketManager {
         scheduledExecutorService.shutdown();
     }
 
+    /**
+     * 添加一个频率限制器, 桶中令牌数和桶更新的间隔都是默认值
+     * @param key 频率限制器的key
+     */
     public void addRateLimiter(String key) {
         addRateLimiterAndSetTokenNum(key, DEFAULT_TOKEN_NUM, DEFAULT_INTERVAL);
     }
 
+    /**
+     * 添加一个频率限制器
+     * @param key 频率限制器的key
+     * @param tokenNum 桶中的最大令牌数
+     * @param interval 桶更新的间隔
+     */
     public void addRateLimiter(String key, int tokenNum, int interval) {
         addRateLimiterAndSetTokenNum(key, tokenNum, interval);
     }
@@ -47,10 +60,16 @@ public class TokenBucketManager {
         log.debug(String.format("add RateLimiter for [key: %s] --- [tokenNum: %d] --- [interval: %d]",
                 key, tokenNum, interval));
         if (sig == null) {
-            scheduledExecutorService.scheduleAtFixedRate(new ReplaceBucketWorker(key, tokenNum), interval, interval, TimeUnit.SECONDS);
+            scheduledExecutorService.scheduleWithFixedDelay(new ReplaceBucketWorker(key, tokenNum), interval, interval, TimeUnit.SECONDS);
         }
     }
 
+    /**
+     * 尝试为key 获取一个令牌，如果获取成功会返回true，否则会返回false, 这个方法不会阻塞
+     * 而是立刻得到结果
+     * @param key 频率限制器的key
+     * @return boolean 代表结果的布尔值
+     */
     public boolean acquire(String key) {
         TokenBucket bucket = bucketHolder.get(key);
         Assert.notNull(bucket, "tokenBucket cannot be null there");
@@ -58,11 +77,21 @@ public class TokenBucketManager {
         return bucket.acquire();
     }
 
-    public boolean acquireWithExpire(String key, int waitSecond) {
+    /**
+     * 尝试为key 获取一个令牌，如果获取成功会返回true，否则会进入等待并直到下次有令牌放入
+     * 桶时被唤醒，被唤醒时如果等待时间没有超过waitSecond 就尝试获取令牌，否则就直接返回
+     * 失败。这里要注意的是不管waitSecond 设置为多少，阻塞至少都会等到下次有令牌被放入时
+     * 才解除
+     *
+     * @param key        频率限制器的key
+     * @param waitSecond 等待的时间
+     * @return boolean 代表结果的布尔值
+     */
+    public boolean tryAcquire(String key, int waitSecond) {
         TokenBucket bucket = bucketHolder.get(key);
         Assert.notNull(bucket, "tokenBucket cannot be null there");
         log.debug(String.format("try to acquire token for [key: %s] and [waitSecond: %s]", key, valueOf(waitSecond)));
-        return bucket.acquireWithExpire(waitSecond);
+        return bucket.tryAcquire(waitSecond);
     }
 
     /**
@@ -104,14 +133,14 @@ public class TokenBucketManager {
         }
 
         /**
-         * 尝试获取令牌，如果获取成功，则会返回true，如果当前令牌桶中数目不足，则会wait()
-         * 直到新桶到来，并再次尝试获取令牌。有一个等待的时间，如果超过等待时间还没有获得
+         * 尝试获取令牌，如果获取成功，则会返回true，如果当前令牌桶中数目不足，则会阻塞
+         * 直到新令牌到来，并再次尝试获取令牌。有一个等待的时间，如果超过等待时间还没有获得
          * 令牌，就返回false
          *
-         * @param waitSecond 等待的时间，不能小于0，不能大于MAX_WAIT_SECOND
+         * @param waitSecond 等待的时间，不能小于0，不能大于MAX_WAIT_SECOND (10)
          * @return boolean
          */
-        private boolean acquireWithExpire(int waitSecond) {
+        private boolean tryAcquire(int waitSecond) {
             if (waitSecond <= 0) throw new IllegalArgumentException("等待时间必须大于0");
             waitSecond = waitSecond > MAX_WAIT_SECOND ? MAX_WAIT_SECOND : waitSecond;
             long waitUntil = System.currentTimeMillis() / 1000 + waitSecond;
@@ -155,9 +184,7 @@ public class TokenBucketManager {
          */
         @Override
         public void run() {
-            TokenBucket bucket = bucketHolder.get(key);
-            Assert.notNull(bucket, "tokenBucket cannot be null there");
-            bucket.replaceNewBucket(tokenNum);
+            bucketHolder.get(key).replaceNewBucket(tokenNum);
         }
     }
 }

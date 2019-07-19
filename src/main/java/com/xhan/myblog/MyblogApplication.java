@@ -37,7 +37,7 @@ public class MyblogApplication {
 
     @Bean
     public TokenBucketManager tokenBucketManager() {
-        TokenBucketManager manager = new TokenBucketManager();
+        TokenBucketManager manager = new TokenBucketManager(1);
         manager.addRateLimiter(ControllerConstant.ALL_VISIT_KEY, 10, 5);
         return manager;
     }
